@@ -1,11 +1,3 @@
-/**************************************************************************//**
-  \file app.c
-
-  \brief Basis-Anwendung.
-
-  \author Markus Krau?e
-
-******************************************************************************/
 
 
 #include <zdo.h>
@@ -15,7 +7,7 @@
 #include <zclOnOffCluster.h>
 #include <zcl.h>
 
-static AppState_t appstate = INIT;
+static SCHALTERState_t appstate = INIT;
 
 static ZDO_StartNetworkReq_t;
 

@@ -1,0 +1,13 @@
+
+#ifndef _SCHALTER_H
+#define _SCHALTER_H
+
+#define SCHALTER_SENDE_INTERVAL    1000
+
+typedef enum{
+	INIT,
+	START_NETWORK,
+	REG_ENDPOINT,
+	NOTHING
+} SCHALTERState_t;
+#endif
