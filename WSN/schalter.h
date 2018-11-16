@@ -2,12 +2,11 @@
 #ifndef _SCHALTER_H
 #define _SCHALTER_H
 
-#define SCHALTER_SENDE_INTERVAL    1000
-
 typedef enum{
 	INIT,
-	START_NETWORK,
+	JOIN_NETWORK,
 	REG_ENDPOINT,
+	REG_IRQ,
 	NOTHING
-} SCHALTERState_t;
+} AppState_t;
 #endif

@@ -4,18 +4,17 @@
 #include <app.h>
 #include <sysTaskManager.h>
 #include <irq.h>
-#include <zclOnOffCluster.h>
 #include <zcl.h>
+#include <zclOnOffCluster.h>
 
-static SCHALTERState_t appstate = INIT;
+static AppState_t appstate = INIT;
 
-static ZDO_StartNetworkReq_t;
+static ZDO_StartNetworkReq_t networkParams;
 
 static void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo);
 
-
-static ClusterID_t clietClusterIds[] = {ONOFF_ClUSTER_ID};
-static ZCL_Cluster_t clientCluster[]={
+static ClusterId_t clientClusterIds[] = {ONOFF_CLUSTER_ID};
+static ZCL_Cluster_t clientClusters[]={
 		DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
 
 static ZCL_DeviceEndpoint_t endPoint;
@@ -30,16 +29,16 @@ static void interruptHandlerINT4(void);
 
 
 static void initEndpoint(void){
-	endpoint.simpleDescriptor.AppDeviceID = 1;
-	endpoint.simpleDescriptor.AppProfileId = 0x0104;
-	endpoint.simpleDescriptor.endpoint = 1;
-	endpoint.simpleDescriptor.AppDeviceVersion = 1;
-	endpoint.simpleDescriptor.AppInClustersCount =0;
-	endpoint.simpleDescriptor.AppInClustersList = NULL;
-	endpoint.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterIds);
-	endpoint.simpleDescriptor.AppOutClustersList = clientClusterIds;
-	endpoint.serverCluster = NULL;
-	endpoint.clientCluster = clientClusters;
+	endPoint.simpleDescriptor.AppDeviceId = 1;
+	endPoint.simpleDescriptor.AppProfileId = 0x0104;
+	endPoint.simpleDescriptor.endpoint = 1;
+	endPoint.simpleDescriptor.AppDeviceVersion = 1;
+	endPoint.simpleDescriptor.AppInClustersCount =0;
+	endPoint.simpleDescriptor.AppInClustersList = NULL;
+	endPoint.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterIds);
+	endPoint.simpleDescriptor.AppOutClustersList = clientClusterIds;
+	endPoint.serverCluster = NULL;
+	endPoint.clientCluster = clientClusters;
 }
 
 static void initKommando(void){
@@ -59,18 +58,20 @@ static void ZCL_CommandResp(ZCL_Notify_t *ntfy){
 	(void)ntfy;
 }
 
-void ZDO_StartNetworkConf(ZDO_StartNetworConf_t *confirmInfo){
+
+
+void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo){
 	if(ZDO_SUCCESS_STATUS == confirmInfo->status){
-		apppstate = REG_ENDPOINT;
+		appstate = REG_ENDPOINT;
 	}
 	SYS_PostTask(APL_TASK_ID);
 }
 
 static void initButton(void){
 	HAL_RegisterIrq(IRQ_4, IRQ_FALLING_EDGE, interruptHandlerINT4);
-	HALEnableIrq(IRQ_4);
+	HAL_EnableIrq(IRQ_4);
 }
-void interruptHandlerINT(void){
+void interruptHandlerINT4(void){
 	ZCL_CommandReq(&toggleCommand);
 }
 
@@ -102,10 +103,6 @@ void APL_TaskHandler(void){
 
 };
 
-
-void APL_TaskHandler(void){
-
-}
 
 
 
