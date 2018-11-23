@@ -14,7 +14,7 @@
 #include <bspLeds.h>
 #include <zclOnOffCluster.h>
 #include <zcl.h>
-
+#include <irq.h>
 /********************************PROTOTYPEN************************************************/
 
 //aktueller Zustand
@@ -49,6 +49,11 @@ static ClusterId_t serverClusterIds[] = {ONOFF_CLUSTER_ID}; // 0x0006
 /*Liste mit ZCL_Cluster_t Datenstrukturen, der unterstützten Cluster (hier nur OnOff-Cluster).*/
 static ZCL_Cluster_t serverClusters[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffAttributes, &onOffCommands)};
 
+/*Clientcluster*/
+static ClusterId_t clientClusterIds[] = {ONOFF_CLUSTER_ID};
+static ZCL_Cluster_t clientClusters[]={
+DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+
 //Endpunkt für die Registrierung des Endpunktes zur Datenkommunikation
 static ZCL_DeviceEndpoint_t endPoint;
 
@@ -58,6 +63,36 @@ static void initEndpoint();
 //Funktion zur Manipulation des OnOff-Cluster-Attributes OnOff.
 static void setOnOffState(bool state);
 
+static ZCL_Request_t toggleCommand;
+static void ZCL_CommandResp(ZCL_Notify_t *ntfy);
+static void initKommando(void);
+
+static void initButton(void);
+static void interruptHandlerINT3(void);
+
+static void initKommando(void){
+	toggleCommand.dstAddressing.addrMode=APS_EXT_ADDRESS;
+	toggleCommand.dstAddressing.addr.extAddress = 0x50000000A03LL;
+	toggleCommand.dstAddressing.profileId=0x0104;
+	toggleCommand.dstAddressing.endpointId=5;
+	toggleCommand.dstAddressing.clusterId=ONOFF_CLUSTER_ID;
+	toggleCommand.dstAddressing.clusterSide=ZCL_CLUSTER_SIDE_SERVER;
+
+	toggleCommand.endpointId=5;
+	toggleCommand.id=ZCL_ONOFF_CLUSTER_TOGGLE_COMMAND_ID;
+	toggleCommand.ZCL_Notify=ZCL_CommandResp;
+}
+static void ZCL_CommandResp(ZCL_Notify_t *ntfy){
+	(void)ntfy;
+}
+static void initButton(void){
+	HAL_RegisterIrq(IRQ_3, IRQ_FALLING_EDGE, interruptHandlerINT3);
+	HAL_EnableIrq(IRQ_3);
+}
+
+void interruptHandlerINT3(void){
+	ZCL_CommandReq(&toggleCommand);
+}
 /**********************************PROTOTYPEN-ENDE**********************************************/
 
 /**********************************IMPLEMENTIERUNG**********************************************/
@@ -70,10 +105,10 @@ static void initEndpoint(){
 	endPoint.simpleDescriptor.AppDeviceVersion = 1;
 	endPoint.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterIds);
 	endPoint.simpleDescriptor.AppInClustersList = serverClusterIds;
-	endPoint.simpleDescriptor.AppOutClustersCount = 0;
-	endPoint.simpleDescriptor.AppOutClustersList = NULL;
+	endPoint.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterIds);
+	endPoint.simpleDescriptor.AppOutClustersList = clientClusterIds;
 	endPoint.serverCluster = serverClusters;
-	endPoint.clientCluster = NULL;
+	endPoint.clientCluster = clientClusters;
 }
 
 /* On-Kommando erhalten. OnOff-Attribut auf On setzen und LED anschalten. */
@@ -117,6 +152,7 @@ void APL_TaskHandler(){
 	
 	switch(appstate){
 		case INIT:
+			initKommando();
 			BSP_OpenLeds();
 			initEndpoint();
 			appstate = START_NETWORK;
@@ -130,6 +166,7 @@ void APL_TaskHandler(){
 			
 		case REG_ENDPOINT:
 			ZCL_RegisterEndpoint(&endPoint);
+			initButton();
 			appstate = NOTHING;
 			break;
 		

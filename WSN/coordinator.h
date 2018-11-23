@@ -5,8 +5,6 @@
 typedef enum{
 	INIT,
 	JOIN_NETWORK,
-	REG_ENDPOINT,
-	REG_IRQ,
 	NOTHING
 } AppState_t;
 #endif
