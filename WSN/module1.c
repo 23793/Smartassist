@@ -11,10 +11,10 @@
 #include <zdo.h>
 #include <app.h>
 #include <sysTaskManager.h>
-#include <bspLeds.h>
 #include <zclOnOffCluster.h>
 #include <zcl.h>
 #include <irq.h>
+
 /********************************PROTOTYPEN************************************************/
 
 //aktueller Zustand
@@ -62,6 +62,9 @@ static void initEndpoint();
 
 //Funktion zur Manipulation des OnOff-Cluster-Attributes OnOff.
 static void setOnOffState(bool state);
+
+//Funktion zur Initialisierung der Outputs (LEDs, Lüfter)
+static void initOutputs();
 
 static ZCL_Request_t toggleCommand;
 static void ZCL_CommandResp(ZCL_Notify_t *ntfy);
@@ -111,10 +114,30 @@ static void initEndpoint(){
 	endPoint.clientCluster = clientClusters;
 }
 
+/*Initialisierung der Outputs (LEDS, Lüfter) */
+/* PE2 = rote LED , PE3 = blaue LED ,PE4 = weiße LED, PE7 = Lüfter */
+static void initOutputs(){
+	
+	/* PINS als Ausgang deklarieren */
+	DDRE |= (1<<PE2);
+	DDRE |= (1<<PE3);
+	DDRE |= (1<<PE4);
+	DDRE |= (1<<PE7);
+	
+	/* Alle Ausgänge als Ausgangszustand ausschalten */
+	turnOff(LEDWHITE);
+	turnOff(LEDBLUE);
+	turnOff(LEDRED);
+	turnOff(FAN);
+}
+
 /* On-Kommando erhalten. OnOff-Attribut auf On setzen und LED anschalten. */
 ZCL_Status_t onInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
 	setOnOffState(true);
-	BSP_OnLed(LED_FIRST);
+	turnOn(LEDBLUE);
+	turnOn(LEDRED);
+	turnOn(LEDWHITE);
+	turnOn(FAN);
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -122,7 +145,10 @@ ZCL_Status_t onInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t*
 /* Off-Kommando erhalten. OnOff-Attribut auf Off setzen und LED ausschalten.*/
 ZCL_Status_t offInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
 	setOnOffState(false);
-	BSP_OffLed(false);
+	turnOff(LEDBLUE);
+	turnOff(LEDRED);
+	turnOff(LEDWHITE);
+	turnOff(FAN);
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -130,7 +156,12 @@ ZCL_Status_t offInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t
 /* Toggle-Kommando erhalten. Zustand des OnOff-Attribut und der LED wechseln. */
 ZCL_Status_t toggleInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
 	setOnOffState(!onOffAttributes.onOff.value);
-	BSP_ToggleLed(LED_FIRST);
+	
+	toggle(FAN);
+	toggle(LEDWHITE);
+	toggle(LEDBLUE);
+	toggle(LEDRED);
+	
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -152,8 +183,8 @@ void APL_TaskHandler(){
 	
 	switch(appstate){
 		case INIT:
+			initOutputs();
 			initKommando();
-			BSP_OpenLeds();
 			initEndpoint();
 			appstate = START_NETWORK;
 			SYS_PostTask(APL_TASK_ID);
