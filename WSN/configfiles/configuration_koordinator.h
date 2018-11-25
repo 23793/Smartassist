@@ -552,7 +552,7 @@
 // as destinations for group bindings. If the binding is going to be applied to
 // send a data frame, then the corresponding entry shall be first inserted into the
 // table via the APS_BindingReq() function.
-#define CS_APS_BINDING_TABLE_SIZE 1
+#define CS_APS_BINDING_TABLE_SIZE 3
 
 // MAC ban table size
 #define CS_BAN_TABLE_SIZE 1
