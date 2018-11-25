@@ -3,7 +3,7 @@
 
   \brief Basis-Anwendung.
 
-  \author Markus Krauße
+  \author Markus Krauï¿½e
 
 ******************************************************************************/
 
@@ -14,13 +14,119 @@
 #include <zclOnOffCluster.h>
 #include <zcl.h>
 #include <irq.h>
+//****************TemperatureSensor************************//
+#include <zclTemperatureMeasurementCluster.h>
+#include <i2cPacket.h>
+#include <appTimer.h>
+
+#define LM73_DEVICE_ADDRESS 0x4D //Addresse TemperatureSensor
+
+static void readSensorDoneCb(); //Funktion nach Temperatursensormessung
+static void sendeTimerFired(); // Funktion wenn Timer abgelaufen ist
+static uint8_t lm73Data[2]; //Array fï¿½r Temperaturwert
+static HAL_AppTimer_t sendeTimer; // Timer fï¿½r periodische Temperaturmessung
+ZCL_TemperatureMeasurementClusterAttributes_t temperatureMeasurementAttributes ={ 
+	ZCL_DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 3)
+	}; //Reportable Temperaturattribut
+	
+int16_t i; // Int zum Verarbeiten des Temperaturwertes
+APS_BindReq_t bindTemp; //Binding Variable
+APS_BindReq_t bindOnOff; //Binding Variable
+
+
+// Variablen fï¿½r Temperaturmessung
+#define APP_TEMPERATURE_MEASUREMENT_MEASURED_VALUE_ATTRIBUTE_VALUE       0x5000
+#define APP_TEMPERATURE_MEASUREMENT_MIN_MEASURED_VALUE_ATTRIBUTE_VALUE   0x954d 
+#define APP_TEMPERATURE_MEASUREMENT_MAX_MEASURED_VALUE_ATTRIBUTE_VALUE   0x7fff 
+#define APP_TEMPERATURE_MEASUREMENT_TOLERANCE_ATTRIBUTE_VALUE            0x0100 
+
+#define APP_TEMPERATURE_MEASUREMENT_MEASURED_VALUE_PERIODIC_CHANGE       1000
+
+// Pin fï¿½r Temperaturmessung vorbereiten
+static HAL_I2cDescriptor_t i2cdescriptor={
+	.tty = TWI_CHANNEL_0,
+	.clockRate = I2C_CLOCK_RATE_62,
+	.f = readSensorDoneCb,
+	.id = LM73_DEVICE_ADDRESS,
+	.data = lm73Data,
+	.length = 2,
+	.lengthAddr = HAL_NO_INTERNAL_ADDRESS
+};
+// Timer fï¿½r periodische Temperaturmessung initialisieren
+static void initTimer(){
+	sendeTimer.interval = 2000;
+	sendeTimer.mode = TIMER_REPEAT_MODE;
+	sendeTimer.callback = sendeTimerFired;
+	HAL_StartAppTimer(&sendeTimer);
+}
+
+// Bei Timerablauf Temperatur auslesen
+static void sendeTimerFired(){
+	HAL_ReadI2cPacket(&i2cdescriptor);
+
+}
+
+// Temperturwert konvertieren und in Temperaturclusterattribut schreiben
+void readSensorDoneCb(){
+	
+	i = lm73Data[0];
+	i <<= 8;
+	i |= lm73Data[1];
+
+	ZCL_WriteAttributeValue(5,
+	TEMPERATURE_MEASUREMENT_CLUSTER_ID,
+	ZCL_CLUSTER_SIDE_SERVER,
+	ZCL_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_MEASURED_VALUE_ATTRIBUTE_ID,
+	ZCL_S16BIT_DATA_TYPE_ID,
+	(int16_t*)(& i));
+	
+}
+// Temperaturclusterinit
+void temperatureMeasurementClusterInit(void)
+{
+	temperatureMeasurementAttributes.measuredValue.value = APP_TEMPERATURE_MEASUREMENT_MEASURED_VALUE_ATTRIBUTE_VALUE;
+	temperatureMeasurementAttributes.minMeasuredValue.value = APP_TEMPERATURE_MEASUREMENT_MIN_MEASURED_VALUE_ATTRIBUTE_VALUE;
+	temperatureMeasurementAttributes.maxMeasuredValue.value = APP_TEMPERATURE_MEASUREMENT_MAX_MEASURED_VALUE_ATTRIBUTE_VALUE;
+	temperatureMeasurementAttributes.tolerance.value = APP_TEMPERATURE_MEASUREMENT_TOLERANCE_ATTRIBUTE_VALUE;
+}
+
+//****************ENDTemperatureSensor************************//
+
+//******************Binding*****************//
+
+// Binding fï¿½r Tempertur und OnOff initialisieren
+void initBinding(void){
+	CS_ReadParameter(CS_UID_ID, &bindTemp.srcAddr); //eigene Adresse lesen und schreiben
+
+	bindTemp.srcEndpoint = 5; 
+	bindTemp.clusterId   = TEMPERATURE_MEASUREMENT_CLUSTER_ID; 
+	bindTemp.dstAddrMode = APS_EXT_ADDRESS;
+	bindTemp.dst.unicast.extAddr  =   0x50000000A04LL; 
+	bindTemp.dst.unicast.endpoint = 1; 
+
+	APS_BindReq(&bindTemp); //local binding ausfï¿½hren
+	
+	CS_ReadParameter(CS_UID_ID, &bindOnOff.srcAddr); //eigene Adresse lesen und schreiben
+
+	bindOnOff.srcEndpoint = 5; 
+	bindOnOff.clusterId   = ONOFF_CLUSTER_ID; 
+	bindOnOff.dstAddrMode = APS_EXT_ADDRESS;
+	bindOnOff.dst.unicast.extAddr  =  0x50000000A04LL;  
+	bindOnOff.dst.unicast.endpoint = 1; 
+
+	APS_BindReq(&bindOnOff); //local binding ausfï¿½hren
+	
+}
+//*****************ENDBinding********************************//
+
+
 
 /********************************PROTOTYPEN************************************************/
 
 //aktueller Zustand
 static AppState_t appstate = INIT;
 
-//Übergabevariable für die Funktion ZDO_StartNetworkReq().
+//ï¿½bergabevariable fï¿½r die Funktion ZDO_StartNetworkReq().
 static ZDO_StartNetworkReq_t networkParams;
 
 //CB-Funktion nach Aufruf ZDO_StartNetworkReq().
@@ -37,24 +143,31 @@ static ZCL_Status_t toggleInd(ZCL_Addressing_t* addressing, uint8_t payloadLengt
 
 
 /*Datenstruktur mit allen Variablen des OnOff-Serverclusters (hier nur onOff-Attribut).*/
-static ZCL_OnOffClusterServerAttributes_t onOffAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(30, 60)};
+//Intervall (min-max) fï¿½r den Report definieren
+static ZCL_OnOffClusterServerAttributes_t onOffAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(0, 3)};
 
-/*Datenstruktur in der zu jeder OnOff-KommandoId eine Referenz auf die ausführenden Funktionen gespeichert ist.
+/*Datenstruktur in der zu jeder OnOff-KommandoId eine Referenz auf die ausfï¿½hrenden Funktionen gespeichert ist.
 */
 static ZCL_OnOffClusterCommands_t onOffCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onInd, offInd, toggleInd)};
 
-/*Liste mit IDs der unterstützend Servercluster (hier nur OnOff-Cluster).*/
-static ClusterId_t serverClusterIds[] = {ONOFF_CLUSTER_ID}; // 0x0006
+/*Liste mit IDs der unterstï¿½tzend Servercluster.*/
+static ClusterId_t serverClusterIds[] = {
+	ONOFF_CLUSTER_ID,
+	TEMPERATURE_MEASUREMENT_CLUSTER_ID
+	};
 
-/*Liste mit ZCL_Cluster_t Datenstrukturen, der unterstützten Cluster (hier nur OnOff-Cluster).*/
-static ZCL_Cluster_t serverClusters[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffAttributes, &onOffCommands)};
+/*Liste mit ZCL_Cluster_t Datenstrukturen, der unterstï¿½tzten Cluster.*/
+static ZCL_Cluster_t serverClusters[] = {
+DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffAttributes, &onOffCommands),
+DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &temperatureMeasurementAttributes),
+};
 
 /*Clientcluster*/
 static ClusterId_t clientClusterIds[] = {ONOFF_CLUSTER_ID};
 static ZCL_Cluster_t clientClusters[]={
 DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
 
-//Endpunkt für die Registrierung des Endpunktes zur Datenkommunikation
+//Endpunkt fï¿½r die Registrierung des Endpunktes zur Datenkommunikation
 static ZCL_DeviceEndpoint_t endPoint;
 
 //Funktion zur Initialisierung des Endpunktes
@@ -63,7 +176,7 @@ static void initEndpoint();
 //Funktion zur Manipulation des OnOff-Cluster-Attributes OnOff.
 static void setOnOffState(bool state);
 
-//Funktion zur Initialisierung der Outputs (LEDs, Lüfter)
+//Funktion zur Initialisierung der Outputs (LEDs, Lï¿½fter)
 static void initOutputs();
 
 static ZCL_Request_t toggleCommand;
@@ -114,8 +227,8 @@ static void initEndpoint(){
 	endPoint.clientCluster = clientClusters;
 }
 
-/*Initialisierung der Outputs (LEDS, Lüfter) */
-/* PE2 = rote LED , PE3 = blaue LED ,PE4 = weiße LED, PE7 = Lüfter */
+/*Initialisierung der Outputs (LEDS, Lï¿½fter) */
+/* PE2 = rote LED , PE3 = blaue LED ,PE4 = weiï¿½e LED, PE7 = Lï¿½fter */
 static void initOutputs(){
 	
 	/* PINS als Ausgang deklarieren */
@@ -124,7 +237,7 @@ static void initOutputs(){
 	DDRE |= (1<<PE4);
 	DDRE |= (1<<PE7);
 	
-	/* Alle Ausgänge als Ausgangszustand ausschalten */
+	/* Alle Ausgï¿½nge als Ausgangszustand ausschalten */
 	turnOff(LEDWHITE);
 	turnOff(LEDBLUE);
 	turnOff(LEDRED);
@@ -186,6 +299,7 @@ void APL_TaskHandler(){
 			initOutputs();
 			initKommando();
 			initEndpoint();
+            HAL_OpenI2cPacket(&i2cdescriptor);
 			appstate = START_NETWORK;
 			SYS_PostTask(APL_TASK_ID);
 			break;
@@ -197,7 +311,11 @@ void APL_TaskHandler(){
 			
 		case REG_ENDPOINT:
 			ZCL_RegisterEndpoint(&endPoint);
+            temperatureMeasurementClusterInit();
+			initTimer();
 			initButton();
+            initBinding(); //Binding initialisieren
+			ZCL_StartReporting(); //Automatisches Reporting starten
 			appstate = NOTHING;
 			break;
 		
