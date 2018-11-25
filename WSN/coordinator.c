@@ -20,15 +20,37 @@ void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo){
 	SYS_PostTask(APL_TASK_ID);
 }
 
+static ZCL_DeviceEndpoint_t endPoint;
+static ClusterId_t clientClusterIds[] = {ONOFF_CLUSTER_ID};
+static ZCL_Cluster_t clientClusters[]={
+DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+
+static void initEndpoint(void){
+	endPoint.simpleDescriptor.AppDeviceId = 1;
+	endPoint.simpleDescriptor.AppProfileId = 0x0104;
+	endPoint.simpleDescriptor.endpoint = 1;
+	endPoint.simpleDescriptor.AppDeviceVersion = 1;
+	endPoint.simpleDescriptor.AppInClustersCount =0;
+	endPoint.simpleDescriptor.AppInClustersList = NULL;
+	endPoint.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterIds);
+	endPoint.simpleDescriptor.AppOutClustersList = clientClusterIds;
+	endPoint.serverCluster = NULL;
+	endPoint.clientCluster = clientClusters;
+}
+
+
+
 void APL_TaskHandler(void){
 	switch(appstate){
 	case INIT:
+		initEndpoint();
 		appstate = JOIN_NETWORK;
 		SYS_PostTask(APL_TASK_ID);
 		break;
 	case JOIN_NETWORK:
 		networkParams.ZDO_StartNetworkConf = ZDO_StartNetworkConf;
 		ZDO_StartNetworkReq(&networkParams);
+		ZCL_RegisterEndpoint(&endPoint);
 		appstate = NOTHING;
 		break;
 	case NOTHING:
