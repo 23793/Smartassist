@@ -555,7 +555,7 @@
 #define CS_APS_BINDING_TABLE_SIZE 1
 
 // MAC ban table size
-#define CS_BAN_TABLE_SIZE 1
+#define CS_BAN_TABLE_SIZE 3
 
 // Maximum number of records in the route cache.
 #define CS_ROUTE_CACHE_SIZE 1
