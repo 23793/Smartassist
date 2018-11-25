@@ -19,7 +19,6 @@
 #include <i2cPacket.h>
 #include <appTimer.h>
 
-#define LM73_DEVICE_ADDRESS 0x4D //Addresse TemperatureSensor
 
 static void readSensorDoneCb(); //Funktion nach Temperatursensormessung
 static void sendeTimerFired(); // Funktion wenn Timer abgelaufen ist
@@ -34,13 +33,6 @@ APS_BindReq_t bindTemp; //Binding Variable
 APS_BindReq_t bindOnOff; //Binding Variable
 
 
-// Variablen f�r Temperaturmessung
-#define APP_TEMPERATURE_MEASUREMENT_MEASURED_VALUE_ATTRIBUTE_VALUE       0x5000
-#define APP_TEMPERATURE_MEASUREMENT_MIN_MEASURED_VALUE_ATTRIBUTE_VALUE   0x954d 
-#define APP_TEMPERATURE_MEASUREMENT_MAX_MEASURED_VALUE_ATTRIBUTE_VALUE   0x7fff 
-#define APP_TEMPERATURE_MEASUREMENT_TOLERANCE_ATTRIBUTE_VALUE            0x0100 
-
-#define APP_TEMPERATURE_MEASUREMENT_MEASURED_VALUE_PERIODIC_CHANGE       1000
 
 // Pin f�r Temperaturmessung vorbereiten
 static HAL_I2cDescriptor_t i2cdescriptor={
