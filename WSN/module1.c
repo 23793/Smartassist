@@ -3,15 +3,15 @@
 
   \brief Basis-Anwendung.
 
-  \author Markus Krau�e
+  \author Markus Krau?e
 
 ******************************************************************************/
-
 
 #include <zdo.h>
 #include <app.h>
 #include <sysTaskManager.h>
 #include <zclOnOffCluster.h>
+#include <zclFanControlCluster.h>
 #include <zcl.h>
 #include <irq.h>
 //****************TemperatureSensor************************//
@@ -22,8 +22,8 @@
 
 static void readSensorDoneCb(); //Funktion nach Temperatursensormessung
 static void sendeTimerFired(); // Funktion wenn Timer abgelaufen ist
-static uint8_t lm73Data[2]; //Array f�r Temperaturwert
-static HAL_AppTimer_t sendeTimer; // Timer f�r periodische Temperaturmessung
+static uint8_t lm73Data[2]; //Array f?r Temperaturwert
+static HAL_AppTimer_t sendeTimer; // Timer f?r periodische Temperaturmessung
 ZCL_TemperatureMeasurementClusterAttributes_t temperatureMeasurementAttributes ={ 
 	ZCL_DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 3)
 	}; //Reportable Temperaturattribut
@@ -31,10 +31,9 @@ ZCL_TemperatureMeasurementClusterAttributes_t temperatureMeasurementAttributes =
 int16_t i; // Int zum Verarbeiten des Temperaturwertes
 APS_BindReq_t bindTemp; //Binding Variable
 APS_BindReq_t bindOnOff; //Binding Variable
+APS_BindReq_t bindFanControl; //Binding Variable
 
-
-
-// Pin f�r Temperaturmessung vorbereiten
+// Pin f?r Temperaturmessung vorbereiten
 static HAL_I2cDescriptor_t i2cdescriptor={
 	.tty = TWI_CHANNEL_0,
 	.clockRate = I2C_CLOCK_RATE_62,
@@ -44,7 +43,7 @@ static HAL_I2cDescriptor_t i2cdescriptor={
 	.length = 2,
 	.lengthAddr = HAL_NO_INTERNAL_ADDRESS
 };
-// Timer f�r periodische Temperaturmessung initialisieren
+// Timer f?r periodische Temperaturmessung initialisieren
 static void initTimer(){
 	sendeTimer.interval = 2000;
 	sendeTimer.mode = TIMER_REPEAT_MODE;
@@ -86,7 +85,7 @@ void temperatureMeasurementClusterInit(void)
 
 //******************Binding*****************//
 
-// Binding f�r Tempertur und OnOff initialisieren
+// Binding f?r Tempertur und OnOff initialisieren
 void initBinding(void){
 	CS_ReadParameter(CS_UID_ID, &bindTemp.srcAddr); //eigene Adresse lesen und schreiben
 
@@ -96,7 +95,7 @@ void initBinding(void){
 	bindTemp.dst.unicast.extAddr  =   0x50000000A04LL; 
 	bindTemp.dst.unicast.endpoint = 1; 
 
-	APS_BindReq(&bindTemp); //local binding ausf�hren
+	APS_BindReq(&bindTemp); //local binding ausf?hren
 	
 	CS_ReadParameter(CS_UID_ID, &bindOnOff.srcAddr); //eigene Adresse lesen und schreiben
 
@@ -106,8 +105,17 @@ void initBinding(void){
 	bindOnOff.dst.unicast.extAddr  =  0x50000000A04LL;  
 	bindOnOff.dst.unicast.endpoint = 1; 
 
-	APS_BindReq(&bindOnOff); //local binding ausf�hren
+	APS_BindReq(&bindOnOff); //local binding ausf?hren
 	
+	CS_ReadParameter(CS_UID_ID, &bindFanControl.srcAddr);
+	
+	bindFanControl.srcEndpoint = 5;
+	bindFanControl.clusterId = FAN_CONTROL_CLUSTER_ID;
+	bindFanControl.dstAddrMode = APS_EXT_ADDRESS;
+	bindFanControl.dst.unicast.extAddr  =  0x50000000A04LL;
+	bindFanControl.dst.unicast.endpoint = 1;
+	
+	APS_BindReq(&bindFanControl);
 }
 //*****************ENDBinding********************************//
 
@@ -118,7 +126,7 @@ void initBinding(void){
 //aktueller Zustand
 static AppState_t appstate = INIT;
 
-//�bergabevariable f�r die Funktion ZDO_StartNetworkReq().
+//?bergabevariable f?r die Funktion ZDO_StartNetworkReq().
 static ZDO_StartNetworkReq_t networkParams;
 
 //CB-Funktion nach Aufruf ZDO_StartNetworkReq().
@@ -133,33 +141,37 @@ static ZCL_Status_t offInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, 
 //Funktion wird aufgerufen beim Empfang eines Toggle-Kommandos.
 static ZCL_Status_t toggleInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
 
-
 /*Datenstruktur mit allen Variablen des OnOff-Serverclusters (hier nur onOff-Attribut).*/
-//Intervall (min-max) f�r den Report definieren
+//Intervall (min-max) f?r den Report definieren
 static ZCL_OnOffClusterServerAttributes_t onOffAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(0, 3)};
 
-/*Datenstruktur in der zu jeder OnOff-KommandoId eine Referenz auf die ausf�hrenden Funktionen gespeichert ist.
+/*Datenstruktur in der zu jeder OnOff-KommandoId eine Referenz auf die ausf?hrenden Funktionen gespeichert ist.
 */
 static ZCL_OnOffClusterCommands_t onOffCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onInd, offInd, toggleInd)};
 
-/*Liste mit IDs der unterst�tzend Servercluster.*/
+static ZCL_FanControlClusterServerAttributes_t fanControlAttribute = {ZCL_DEFINE_FAN_CONTROL_CLUSTER_SERVER_ATTRIBUTES()};
+
+/*Liste mit IDs der unterst?tzend Servercluster.*/
 static ClusterId_t serverClusterIds[] = {
 	ONOFF_CLUSTER_ID,
-	TEMPERATURE_MEASUREMENT_CLUSTER_ID
+	TEMPERATURE_MEASUREMENT_CLUSTER_ID,
+	FAN_CONTROL_CLUSTER_ID
 	};
 
-/*Liste mit ZCL_Cluster_t Datenstrukturen, der unterst�tzten Cluster.*/
+/*Liste mit ZCL_Cluster_t Datenstrukturen, der unterst?tzten Cluster.*/
 static ZCL_Cluster_t serverClusters[] = {
 DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffAttributes, &onOffCommands),
 DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &temperatureMeasurementAttributes),
+DEFINE_FAN_CONTROL_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &fanControlAttribute, NULL),
 };
 
 /*Clientcluster*/
-static ClusterId_t clientClusterIds[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t clientClusterIds[] = {ONOFF_CLUSTER_ID, FAN_CONTROL_CLUSTER_ID};
 static ZCL_Cluster_t clientClusters[]={
-DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL),
+DEFINE_FAN_CONTROL_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
 
-//Endpunkt f�r die Registrierung des Endpunktes zur Datenkommunikation
+//Endpunkt f?r die Registrierung des Endpunktes zur Datenkommunikation
 static ZCL_DeviceEndpoint_t endPoint;
 
 //Funktion zur Initialisierung des Endpunktes
@@ -168,7 +180,7 @@ static void initEndpoint();
 //Funktion zur Manipulation des OnOff-Cluster-Attributes OnOff.
 static void setOnOffState(bool state);
 
-//Funktion zur Initialisierung der Outputs (LEDs, L�fter)
+//Funktion zur Initialisierung der Outputs (LEDs, L?fter)
 static void initOutputs();
 
 static ZCL_Request_t toggleCommand;
@@ -219,8 +231,8 @@ static void initEndpoint(){
 	endPoint.clientCluster = clientClusters;
 }
 
-/*Initialisierung der Outputs (LEDS, L�fter) */
-/* PE2 = rote LED , PE3 = blaue LED ,PE4 = wei�e LED, PE7 = L�fter */
+/* Initialisierung der Outputs (LEDS, Luefter) */
+/* PE2 = rote LED , PE3 = blaue LED ,PE4 = weisse LED, PE7 = Luefter */
 static void initOutputs(){
 	
 	/* PINS als Ausgang deklarieren */
@@ -229,20 +241,23 @@ static void initOutputs(){
 	DDRE |= (1<<PE4);
 	DDRE |= (1<<PE7);
 	
-	/* Alle Ausg�nge als Ausgangszustand ausschalten */
+	/* Alle Ausg?nge als Ausgangszustand ausschalten */
 	turnOff(LEDWHITE);
 	turnOff(LEDBLUE);
 	turnOff(LEDRED);
-	turnOff(FAN);
+	fanControlAttribute.fanMode.value =  ZCL_FC_FAN_MODE_OFF;
+	fanControlAttribute.fanModeSequence.value = ZCL_FC_FAN_SEQUENCE_OPERATION_LOW_MED_HIGH;
+	//turnOff(FAN);
 }
-
+;
 /* On-Kommando erhalten. OnOff-Attribut auf On setzen und LED anschalten. */
 ZCL_Status_t onInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
 	setOnOffState(true);
 	turnOn(LEDBLUE);
 	turnOn(LEDRED);
 	turnOn(LEDWHITE);
-	turnOn(FAN);
+	fanControlAttribute.fanMode.value = ZCL_FC_FAN_MODE_HIGH;
+	//turnOn(FAN);
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -253,7 +268,8 @@ ZCL_Status_t offInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t
 	turnOff(LEDBLUE);
 	turnOff(LEDRED);
 	turnOff(LEDWHITE);
-	turnOff(FAN);
+	fanControlAttribute.fanMode.value = ZCL_FC_FAN_MODE_OFF;
+	//turnOff(FAN);
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -261,11 +277,17 @@ ZCL_Status_t offInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t
 /* Toggle-Kommando erhalten. Zustand des OnOff-Attribut und der LED wechseln. */
 ZCL_Status_t toggleInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
 	setOnOffState(!onOffAttributes.onOff.value);
-	
-	toggle(FAN);
+
+	//toggle(FAN);
 	toggle(LEDWHITE);
 	toggle(LEDBLUE);
 	toggle(LEDRED);
+	
+	if(fanControlAttribute.fanMode.value == ZCL_FC_FAN_MODE_OFF)
+	{
+		fanControlAttribute.fanMode.value = ZCL_FC_FAN_MODE_HIGH;
+	}else
+		fanControlAttribute.fanMode.value = ZCL_FC_FAN_MODE_OFF;
 	
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;

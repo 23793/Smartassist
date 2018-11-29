@@ -1,8 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\WSN"
+    "\\GUI",
+    "\\WSN",
+    "\\WSN\\configfiles"
   ],
-  "SelectedNode": "\\WSN\\schalter.h",
+  "SelectedNode": "\\WSN\\module.h",
   "PreviewInSolutionExplorer": false
 }
