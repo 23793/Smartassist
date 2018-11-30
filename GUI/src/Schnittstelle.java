@@ -4,7 +4,7 @@ import jssc.*;
 
 public class Schnittstelle {
 
-	static SerialPort serialPort;
+	private static SerialPort serialPort;
 	private static String[] portNames = SerialPortList.getPortNames();
 
 	/**
