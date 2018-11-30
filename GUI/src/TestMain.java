@@ -1,7 +1,7 @@
 package GUI.src;
 
 
-public class Main {
+public class TestMain {
 
 	public static void main(String[] args) {
 
