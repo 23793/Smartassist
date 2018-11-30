@@ -67,15 +67,12 @@ public class Main {
 			 * Benutzer: Bei Automatisch muss int -> 0 und float -> 0 übergeben werden
 			 * Bei manuell muss int -> LichtZielwert (1 = hell, 2 = mittel, 3 = dunkel) und
 			 * float -> TemperaturZielwert übergeben werden*/
-			if(manu.equals(modus)) {
-			zimmer1.modul.manuell(licht_ziel, temp_ziel); //Zielwerte bekommen wir von dem Benutzer (GUI)
-			} else {
-			zimmer1.modul.auto();
-			}
+			zimmer1.modul.einstellung_licht(0, licht_ziel);
+			zimmer1.modul.einstellung_temp(0, temp_ziel);
 
 			/*Temperaturregulierung: aktuelle Temperatur bekommen wir von den Zigbeemodulen und vergleichen
 			 * sie mit den Zielwerten, die bei "einstellung()" konfiguriert wurden */
-			zimmer1.modul.temperaturregulierung(zimmer1.modul.gettemperatur()); // wir übergeben die aktuelle temp
+			zimmer1.modul.temperaturanzeige(zimmer1.modul.gettemperatur()); // wir übergeben die aktuelle temp
 
 			break;
 

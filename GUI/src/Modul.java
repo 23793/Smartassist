@@ -22,37 +22,45 @@ public class Modul {
 
 	}*/
 
-	public void auto() {  //einteilen in einstellung licht und einstellung temp .. vergessen
+	public void einstellung_licht(int modus, int ziel_licht) {  //einteilen in einstellung licht und einstellung temp .. vergessen
 
-			tempsettings.set_temp_zielwert(22.00f);
+		//manuell
+		if(modus == 0) {
+			lichtsettings.set_licht_zielwert(ziel_licht);
+			System.out.println("Wir sind im manuellen modus: " +"Ziellichtwert: "
+			+lichtsettings.get_licht_zielwert());
+		} else if (modus == 1) { //automatisch
 			lichtsettings.set_licht_zielwert(2);
-			System.out.println("Automatische Einstellung: ");
-			System.out.println("Zieltemperatur = " +tempsettings.get_temp_zielwert());
-			System.out.println("Ziellichtwert = " +lichtsettings.get_licht_zielwert());
-
-
-	}
-
-	public void manuell(int licht, float temp) {  //einteilen in einstellung licht und einstellung temp .. vergessen
-
-		System.out.println("Manuelle Einstellung: ");
-		tempsettings.set_temp_zielwert(temp);
-		lichtsettings.set_licht_zielwert(licht);
-		System.out.println("Zieltemperatur = " +tempsettings.get_temp_zielwert());
-		System.out.println("Ziellichtwert = " +lichtsettings.get_licht_zielwert());
+			System.out.println("Wir sind im automatischen modus: " +"Ziellichtwert: "
+					+lichtsettings.get_licht_zielwert());
+		}
 
 	}
 
+	public void einstellung_temp(int modus, float ziel_temp) {  //einteilen in einstellung licht und einstellung temp .. vergessen
 
-	public void temperaturregulierung(float tmp) {
+		if(modus == 0 ) {
+			tempsettings.set_temp_zielwert(ziel_temp);
+			System.out.println("Wir sind im manuellen modus: " +"Zieltempwert: "
+					+tempsettings.get_temp_zielwert());
+		} else if (modus == 1) {
+			tempsettings.set_temp_zielwert(22.00f);
+			System.out.println("Wir sind im automatischen modus: " +"Zieltempwert: "
+					+tempsettings.get_temp_zielwert());
+		}
+
+	}
+
+
+	public void temperaturanzeige(float tmp) {
 
 		if(tmp < tempsettings.get_temp_zielwert()) {
 			System.out.println("Es ist gerade " + tmp+" Grad, die Zieltemperatur ist "
-					+ tempsettings.get_temp_zielwert() +". Es ist zu kalt."+" Es muss geheizt werden (heat)"); // wird zum modul gesendet
+					+ tempsettings.get_temp_zielwert() +". Es ist zu kalt."+" Es muss geheizt werden."); // wird zum modul gesendet
 
 		} else if (tmp > tempsettings.get_temp_zielwert()) {
 			System.out.println("Es ist " + tmp + " Grad, die Zieltemperatur ist "
-					+ tempsettings.get_temp_zielwert() +". Es ist zu heiß."+ " Es muss gekühlt werden (AC)");
+					+ tempsettings.get_temp_zielwert() +". Es ist zu heiß."+ " Es muss gekühlt werden.");
 		} else {
 			System.out.println("Perfekte Raumemperatur.");
 		}
