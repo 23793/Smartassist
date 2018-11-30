@@ -63,10 +63,7 @@ public class Main {
 			}
 
 
-			/*Automatische einstellung (false = manuell, true = automatisch)
-			 * Benutzer: Bei Automatisch muss int -> 0 und float -> 0 übergeben werden
-			 * Bei manuell muss int -> LichtZielwert (1 = hell, 2 = mittel, 3 = dunkel) und
-			 * float -> TemperaturZielwert übergeben werden*/
+			/**/
 			zimmer1.modul.einstellung_licht(0, licht_ziel);
 			zimmer1.modul.einstellung_temp(0, temp_ziel);
 
