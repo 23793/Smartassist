@@ -1,3 +1,5 @@
+package GUI.src;
+
 import jssc.*;
 
 public class Schnittstelle {
@@ -6,20 +8,17 @@ public class Schnittstelle {
 
 	public void init() {
 		for (String p : portNames) {
-			system.out.println(p);
+			System.out.println(p);
 		}
-
-		return true;
 	}
 
 	public String receive() {
-		String x;
+		String x = null;
 
 		return x;
 	}
 
 	public void send() {
 
-		return true;
 	}
 }

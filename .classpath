@@ -2,5 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path=""/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="GUI/lib/jssc-2.8.0.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>

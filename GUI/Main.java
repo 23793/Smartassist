@@ -1,4 +1,6 @@
-import Schnittstelle;
+package GUI;
+
+import GUI.src.Schnittstelle;
 
 public class Main {
 
