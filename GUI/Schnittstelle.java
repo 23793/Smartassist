@@ -2,10 +2,12 @@ import jssc.*;
 
 public class Schnittstelle {
 
-	static String[] portNames = SerialPortList.getPortNames();
+	private static String[] portNames = SerialPortList.getPortNames();
 
 	public void init() {
-
+		for (String p : portNames) {
+			system.out.println(p);
+		}
 
 		return true;
 	}
@@ -13,12 +15,10 @@ public class Schnittstelle {
 	public String receive() {
 		String x;
 
-
 		return x;
 	}
 
 	public void send() {
-
 
 		return true;
 	}
