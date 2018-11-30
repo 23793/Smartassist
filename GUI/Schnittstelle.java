@@ -1,15 +1,25 @@
+import jssc.*;
 
 public class Schnittstelle {
 
-	boolean initUSB() {
+	static String[] portNames = SerialPortList.getPortNames();
+
+	public void init() {
+
+
 		return true;
 	}
 
-	String read(String x) {
+	public String receive() {
+		String x;
+
+
 		return x;
 	}
 
-	boolean write() {
+	public void send() {
+
+
 		return true;
 	}
 }
