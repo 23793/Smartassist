@@ -1,0 +1,37 @@
+.titleFont{
+    -fx-font-family: "Times New Roman";
+    -fx-font-size: 24px;
+    -fx-text-fill: grey;
+}
+
+.check-box {
+    -fx-font-family: "Times New Roman";
+    -fx-font-size: 16px;
+}
+
+.check-box .box .mark {
+    visibility: hidden;
+}
+
+.light-switch .box {
+    -fx-background-radius: 18,17;
+    -fx-padding: 10,30,10,30;
+    -fx-background-color: derive(grey, 80%), derive(grey,120%), derive(grey,40%),derive(grey,120%);
+    -fx-background-insets: 0,1 , 2 40 2 2, 3 41 3 3;
+}
+
+.light-switch:selected box {
+    -fx-background-color: derive(grey, 80%), derive(grey,120%), derive(grey,40%), lightyellow;
+    -fx-background-insets: 0, 1 ,2 2 2 40, 3 3 3 41;
+}
+
+.light-switch-master .box {
+    -fx-background-radius: 18, 17;
+    -fx-background-color: grey, linear-gradient to bottom, derive(grey, -30%)0%, derive(grey, -11%)50% , derive(grey, 100% );
+    -fx-background-insets: 0 , 1 , 2 40 2 2;
+    -fx-padding: 10 ,30 , 10, 30;
+}
+
+.light-switch-master:selected .box {
+    -fx-background-insets: 0 , 1, 2 2 2 40;
+}
