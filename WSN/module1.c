@@ -18,6 +18,7 @@
 #include <zclTemperatureMeasurementCluster.h>
 #include <i2cPacket.h>
 #include <appTimer.h>
+#include <util/delay.h>
 
 
 static void readSensorDoneCb(); //Funktion nach Temperatursensormessung
@@ -231,6 +232,18 @@ static void initEndpoint(){
 	endPoint.clientCluster = clientClusters;
 }
 
+static void setPWMOutput(uint8_t duty)
+{
+	OCR3B=duty;
+}
+
+static uint8_t brightness;
+
+void Wait()
+{
+	_delay_loop_2(10000);
+}
+
 /* Initialisierung der Outputs (LEDS, Luefter) */
 /* PE2 = rote LED , PE3 = blaue LED ,PE4 = weisse LED, PE7 = Luefter */
 static void initOutputs(){
@@ -241,13 +254,20 @@ static void initOutputs(){
 	DDRE |= (1<<PE4);
 	DDRE |= (1<<PE7);
 	
-	/* Alle Ausg?nge als Ausgangszustand ausschalten */
-	turnOff(LEDWHITE);
+	/* init Timer3 in fast PWM mode 
+	   Timer Clock = CPU Clock (No Prescaleing)
+	   Compare Output Mode = Clear OC3B on compare match with TCNT3 (Value = 2)
+	   Mode        = Fast PWM (Value = 3)
+	   PWM Output  = Non Inverted                */
+	TCCR3A |= (1<<WGM00)|(1<<WGM01)|(1<<COM3B1);
+	TCCR3B |= (1<<CS30);
+	
+	OCR3B = 0;
+
+	/* Alle Ausgaenge im Ausgangszustand ausschalten */
 	turnOff(LEDBLUE);
 	turnOff(LEDRED);
-	fanControlAttribute.fanMode.value =  ZCL_FC_FAN_MODE_OFF;
-	fanControlAttribute.fanModeSequence.value = ZCL_FC_FAN_SEQUENCE_OPERATION_LOW_MED_HIGH;
-	//turnOff(FAN);
+	turnOff(FAN);
 }
 ;
 /* On-Kommando erhalten. OnOff-Attribut auf On setzen und LED anschalten. */
@@ -255,9 +275,7 @@ ZCL_Status_t onInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t*
 	setOnOffState(true);
 	turnOn(LEDBLUE);
 	turnOn(LEDRED);
-	turnOn(LEDWHITE);
-	fanControlAttribute.fanMode.value = ZCL_FC_FAN_MODE_HIGH;
-	//turnOn(FAN);
+	turnOn(FAN);
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -267,9 +285,7 @@ ZCL_Status_t offInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t
 	setOnOffState(false);
 	turnOff(LEDBLUE);
 	turnOff(LEDRED);
-	turnOff(LEDWHITE);
-	fanControlAttribute.fanMode.value = ZCL_FC_FAN_MODE_OFF;
-	//turnOff(FAN);
+	turnOff(FAN);
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -278,16 +294,35 @@ ZCL_Status_t offInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t
 ZCL_Status_t toggleInd(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
 	setOnOffState(!onOffAttributes.onOff.value);
 
-	//toggle(FAN);
-	toggle(LEDWHITE);
+	toggle(FAN);
 	toggle(LEDBLUE);
 	toggle(LEDRED);
 	
-	if(fanControlAttribute.fanMode.value == ZCL_FC_FAN_MODE_OFF)
+	if(OCR3B == 0)
 	{
-		fanControlAttribute.fanMode.value = ZCL_FC_FAN_MODE_HIGH;
-	}else
-		fanControlAttribute.fanMode.value = ZCL_FC_FAN_MODE_OFF;
+		for(brightness=0;brightness<255;brightness++)
+		{
+			//Increase the Brightness using PWM
+
+			setPWMOutput(brightness);
+
+			//Now Wait For Some Time
+			Wait();
+		}
+	}
+	else
+	{
+		for(brightness=OCR3B;brightness>0;brightness--)
+		{
+			//Decrease The Brightness using PWM
+
+			setPWMOutput(brightness);
+
+			//Now Wait For Some Time
+			Wait();
+		}
+		OCR3B = 0;
+	}
 	
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
