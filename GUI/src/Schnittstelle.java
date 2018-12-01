@@ -14,7 +14,7 @@ public class Schnittstelle {
 	 * @see SerialPort
 	 */
 	public void connect() {
-		if (serialPort == null) {
+		if (serialPort == null) { // Port has to be found for the first time
 			SerialPort tempPort;
 			String s = null;
 			for (String p : portNames) { // Loop looking for the right port
@@ -52,7 +52,7 @@ public class Schnittstelle {
 			} else {
 				System.out.println("Kein passendes Gerät gefunden!");
 			}
-		} else {
+		} else { // Port already found
 			try {
 				System.out.println("Connecting to " + serialPort.getPortName() + "...");
 				serialPort.openPort();
