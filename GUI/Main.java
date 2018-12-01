@@ -23,6 +23,8 @@ public class Main {
 		s.close();
 
 		roomAttributes = roomString.split(";");
+		
+		// Check if rooms exist
 	}
 }
 
