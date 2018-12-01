@@ -1,6 +1,6 @@
 package GUI;
 
-import GUI.src.Schnittstelle;
+import GUI.src.*;
 
 public class Main {
 	private static Schnittstelle s = new Schnittstelle();
@@ -24,5 +24,8 @@ public class Main {
 
 		roomAttributes = roomString.split(";");
 	}
-
 }
+
+/*
+ * GUI über Thread laufen lassen
+ */
