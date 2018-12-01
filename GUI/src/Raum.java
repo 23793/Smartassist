@@ -32,6 +32,10 @@ public class Raum {
 		lightswitch(lightswitch);
 	}
 
+	public Raum() {
+
+	}
+
 	public void lightswitch(boolean b) {
 		if (b) {
 			this.licht.toggle();
