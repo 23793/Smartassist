@@ -4,34 +4,62 @@ import jssc.*;
 
 public class Schnittstelle {
 
-	private static SerialPort serialPort;
+	private static SerialPort serialPort = null;
 	private static String[] portNames = SerialPortList.getPortNames();
 
 	/**
-	 * Initializes the connection to a port.
+	 * Initializes the connection to the right port where the Controller is
+	 * connected via a handshake.
 	 * 
 	 * @see SerialPort
 	 */
 	public void connect() {
-		System.out.println("Available ports:");
-		for (String p : portNames) {
-			System.out.println(p); // Prints a list of all connected ports
-		}
+		if (serialPort == null) {
+			SerialPort tempPort;
+			String s = null;
+			for (String p : portNames) { // Loop looking for the right port
+				tempPort = new SerialPort(p);
+				System.out.println(p);
+				try {
+					tempPort.openPort();
+					tempPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1,
+							SerialPort.PARITY_NONE);
+					try {
+						tempPort.writeString("Hallo!"); // Handshake
+						s = new String(tempPort.readBytes(36, 50));
+					} catch (SerialPortTimeoutException e) {
+						e.printStackTrace();
+					}
+					tempPort.closePort();
+				} catch (SerialPortException e) {
+					e.printStackTrace();
+				}
+				if (s != null && s.matches(".*Hallo.*")) { // Regular expression
+					serialPort = tempPort;
+					break;
+				}
+			}
 
-		System.out.println();
-		System.out.println("Connecting to " + portNames[1] + "...");
-		serialPort = new SerialPort(portNames[1]); // Connects to the second one
-													// in the list (Works for
-													// testing, finding the
-													// right port dynamically
-													// needs to be solved)
-		try {
-			serialPort.openPort();
-			serialPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1,
-					SerialPort.PARITY_NONE);
-			System.out.println("Connected!");
-		} catch (SerialPortException e) {
-			e.printStackTrace();
+			if (serialPort != null) {
+				try {
+					System.out.println("Connecting to " + serialPort.getPortName() + "...");
+					serialPort = new SerialPort(serialPort.getPortName());
+					serialPort.openPort();
+					System.out.println("Connected!");
+				} catch (SerialPortException e) {
+					e.printStackTrace();
+				}
+			} else {
+				System.out.println("Kein passendes Gerät gefunden!");
+			}
+		} else {
+			try {
+				System.out.println("Connecting to " + serialPort.getPortName() + "...");
+				serialPort.openPort();
+				System.out.println("Connected!");
+			} catch (SerialPortException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -46,18 +74,24 @@ public class Schnittstelle {
 	 * @return a String containing all WSN data, separated by ";"
 	 */
 	public String receive() {
-		String x = null;
-		try {
-			System.out.println("Waiting for data from the WSN...");
-			x = new String(serialPort.readBytes(36)); // Reads the 36 Bytes of
-														// sensor and status
-														// data from the WSN
-			System.out.println("'" + x + "' Received!");
-		} catch (SerialPortException e) {
-			System.out.println("Could not receive the data from the WSN!");
-			e.printStackTrace();
+		if (serialPort != null) {
+			String x = null;
+			try {
+				System.out.println("Waiting for data from the WSN...");
+				x = new String(serialPort.readBytes(36)); // Reads the 36 Bytes
+															// of
+															// sensor and status
+															// data from the WSN
+				System.out.println("'" + x + "' Received!");
+			} catch (SerialPortException e) {
+				System.out.println("Could not receive the data from the WSN!");
+				e.printStackTrace();
+			}
+			return x;
+		} else {
+			System.out.println("Kein Port verbunden!");
+			return null;
 		}
-		return x;
 	}
 
 	/**
@@ -67,14 +101,18 @@ public class Schnittstelle {
 	 *            the String of data to send to the WSN
 	 */
 	public void send(String data) {
-		try {
-			System.out.println("Sending data to the WSN...");
-			serialPort.writeString(data); // Sends the data String to the
-											// connected port
-			System.out.println("Data sent!");
-		} catch (SerialPortException e) {
-			System.out.println("Could not send the data to the WSN!");
-			e.printStackTrace();
+		if (serialPort != null) {
+			try {
+				System.out.println("Sending data to the WSN...");
+				serialPort.writeString(data); // Sends the data String to the
+												// connected port
+				System.out.println("Data sent!");
+			} catch (SerialPortException e) {
+				System.out.println("Could not send the data to the WSN!");
+				e.printStackTrace();
+			}
+		} else {
+			System.out.println("Kein Port verbunden!");
 		}
 	}
 
@@ -84,12 +122,16 @@ public class Schnittstelle {
 	 * @see SerialPort
 	 */
 	public void close() {
-		System.out.println("Closing connection...");
-		try {
-			serialPort.closePort();
-		} catch (SerialPortException e) {
-			e.printStackTrace();
+		if (serialPort != null) {
+			System.out.println("Closing connection...");
+			try {
+				serialPort.closePort();
+			} catch (SerialPortException e) {
+				e.printStackTrace();
+			}
+			System.out.println("Connection closed!");
+		} else {
+			System.out.println("Kein Port verbunden!");
 		}
-		System.out.println("Connection closed!");
 	}
 }
