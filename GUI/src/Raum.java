@@ -1,18 +1,42 @@
 package GUI.src;
 
-
 public class Raum {
 
-	private float position_x; //von links aus
-	private float position_y; //von oben aus
+	private float position_x; // von links aus
+	private float position_y; // von oben aus
 	private int RaumID;
 	private float height;
 	private float width;
-	private boolean Raumstatus;  //aktiv/inaktiv
+	private boolean Raumstatus; // aktiv/inaktiv
 
-	Modul modul = new Modul();
-	Licht licht = new Licht();
-	Klima klima = new Klima();
+	private Modul modul = new Modul();
+	private Licht licht = new Licht();
+	private Klima klima = new Klima();
+
+	/**
+	 * Erstellt ein Raumobjekt mit den gegebenen Parametern.
+	 * 
+	 * @param id
+	 *            die ID des Raums
+	 * @param temp
+	 *            die aktuelle Temperatur im Raum
+	 * @param lichtwert
+	 *            der aktuelle Lichtwert im Raum
+	 * @param lightswitch
+	 *            boolean der angibt, ob der Lichtschalter betätigt wurde
+	 */
+	public Raum(int id, float temp, int lichtwert, boolean lightswitch) {
+		this.RaumID = id;
+		this.modul.settemperatur(temp);
+		this.modul.setlichtwert(lichtwert);
+		lightswitch(lightswitch);
+	}
+
+	public void lightswitch(boolean b) {
+		if (b) {
+			this.licht.toggle();
+		}
+	}
 
 	public void setposition_x(float pos_x) {
 		position_x = pos_x;
