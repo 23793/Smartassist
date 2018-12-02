@@ -25,7 +25,7 @@ public class Raum {
 	 * @param lightswitch
 	 *            boolean der angibt, ob der Lichtschalter betätigt wurde
 	 */
-	public Raum(int id, float temp, int lichtwert, boolean lightswitch) {
+	public Raum(int id, float temp, int lichtwert, int lightswitch) {
 		this.RaumID = id;
 		this.modul.settemperatur(temp);
 		this.modul.setlichtwert(lichtwert);
@@ -36,8 +36,8 @@ public class Raum {
 
 	}
 
-	public void lightswitch(boolean b) {
-		if (b) {
+	public void lightswitch(int lightswitch ) {
+		if (lightswitch == 1) {
 			this.licht.toggle();
 		}
 	}
