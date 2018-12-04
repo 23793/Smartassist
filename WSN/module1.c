@@ -25,11 +25,14 @@ static void readSensorDoneCb(); //Funktion nach Temperatursensormessung
 static void sendeTimerFired(); // Funktion wenn Timer abgelaufen ist
 static uint8_t lm73Data[2]; //Array f?r Temperaturwert
 static HAL_AppTimer_t sendeTimer; // Timer f?r periodische Temperaturmessung
+static uint8_t temp[] = "Value: XXX.XXXCelsius\n\r";
+static int16_t i; // Int zum Verarbeiten des Temperaturwertes
+static int16_t j; // Int zum Verarbeiten des Temperaturwertes
+
 ZCL_TemperatureMeasurementClusterAttributes_t temperatureMeasurementAttributes ={ 
 	ZCL_DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 3)
 	}; //Reportable Temperaturattribut
 	
-int16_t i; // Int zum Verarbeiten des Temperaturwertes
 APS_BindReq_t bindTemp; //Binding Variable
 APS_BindReq_t bindOnOff; //Binding Variable
 APS_BindReq_t bindFanControl; //Binding Variable
@@ -60,17 +63,22 @@ static void sendeTimerFired(){
 
 // Temperturwert konvertieren und in Temperaturclusterattribut schreiben
 void readSensorDoneCb(){
-	
 	i = lm73Data[0];
 	i <<= 8;
 	i |= lm73Data[1];
-
-	ZCL_WriteAttributeValue(5,
+	i >>= 7;
+	j = i*100;
+	i = lm73Data[1] & (0x7F);
+	i >>= 5;
+	i = i*25;
+	j = j+i;
+//	temperatureMeasurementAttributes.measuredValue.value = j;
+	ZCL_WriteAttributeValue(1,
 	TEMPERATURE_MEASUREMENT_CLUSTER_ID,
 	ZCL_CLUSTER_SIDE_SERVER,
 	ZCL_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_MEASURED_VALUE_ATTRIBUTE_ID,
 	ZCL_S16BIT_DATA_TYPE_ID,
-	(int16_t*)(& i));
+	(uint8_t*)(& j));
 	
 }
 // Temperaturclusterinit
@@ -90,7 +98,7 @@ void temperatureMeasurementClusterInit(void)
 void initBinding(void){
 	CS_ReadParameter(CS_UID_ID, &bindTemp.srcAddr); //eigene Adresse lesen und schreiben
 
-	bindTemp.srcEndpoint = 5; 
+	bindTemp.srcEndpoint = 1; 
 	bindTemp.clusterId   = TEMPERATURE_MEASUREMENT_CLUSTER_ID; 
 	bindTemp.dstAddrMode = APS_EXT_ADDRESS;
 	bindTemp.dst.unicast.extAddr  =   0x50000000A04LL; 
@@ -100,21 +108,21 @@ void initBinding(void){
 	
 	CS_ReadParameter(CS_UID_ID, &bindOnOff.srcAddr); //eigene Adresse lesen und schreiben
 
-	bindOnOff.srcEndpoint = 5; 
+	bindOnOff.srcEndpoint = 2; 
 	bindOnOff.clusterId   = ONOFF_CLUSTER_ID; 
 	bindOnOff.dstAddrMode = APS_EXT_ADDRESS;
 	bindOnOff.dst.unicast.extAddr  =  0x50000000A04LL;  
-	bindOnOff.dst.unicast.endpoint = 1; 
+	bindOnOff.dst.unicast.endpoint = 2; 
 
 	APS_BindReq(&bindOnOff); //local binding ausf?hren
 	
 	CS_ReadParameter(CS_UID_ID, &bindFanControl.srcAddr);
 	
-	bindFanControl.srcEndpoint = 5;
+	bindFanControl.srcEndpoint = 3;
 	bindFanControl.clusterId = FAN_CONTROL_CLUSTER_ID;
 	bindFanControl.dstAddrMode = APS_EXT_ADDRESS;
 	bindFanControl.dst.unicast.extAddr  =  0x50000000A04LL;
-	bindFanControl.dst.unicast.endpoint = 1;
+	bindFanControl.dst.unicast.endpoint = 3;
 	
 	APS_BindReq(&bindFanControl);
 }
@@ -154,16 +162,16 @@ static ZCL_FanControlClusterServerAttributes_t fanControlAttribute = {ZCL_DEFINE
 
 /*Liste mit IDs der unterst?tzend Servercluster.*/
 static ClusterId_t serverClusterIds[] = {
-	ONOFF_CLUSTER_ID,
+//	ONOFF_CLUSTER_ID,
 	TEMPERATURE_MEASUREMENT_CLUSTER_ID,
-	FAN_CONTROL_CLUSTER_ID
+//	FAN_CONTROL_CLUSTER_ID
 	};
 
 /*Liste mit ZCL_Cluster_t Datenstrukturen, der unterst?tzten Cluster.*/
 static ZCL_Cluster_t serverClusters[] = {
-DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffAttributes, &onOffCommands),
+//DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffAttributes, &onOffCommands),
 DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &temperatureMeasurementAttributes),
-DEFINE_FAN_CONTROL_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &fanControlAttribute, NULL),
+//DEFINE_FAN_CONTROL_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &fanControlAttribute, NULL),
 };
 
 /*Clientcluster*/
@@ -195,11 +203,11 @@ static void initKommando(void){
 	toggleCommand.dstAddressing.addrMode=APS_EXT_ADDRESS;
 	toggleCommand.dstAddressing.addr.extAddress = 0x50000000A01LL;
 	toggleCommand.dstAddressing.profileId=0x0104;
-	toggleCommand.dstAddressing.endpointId=5;
+	toggleCommand.dstAddressing.endpointId=2;
 	toggleCommand.dstAddressing.clusterId=ONOFF_CLUSTER_ID;
 	toggleCommand.dstAddressing.clusterSide=ZCL_CLUSTER_SIDE_SERVER;
 
-	toggleCommand.endpointId=5;
+	toggleCommand.endpointId=2;
 	toggleCommand.id=ZCL_ONOFF_CLUSTER_TOGGLE_COMMAND_ID;
 	toggleCommand.ZCL_Notify=ZCL_CommandResp;
 }
@@ -222,14 +230,14 @@ void interruptHandlerINT3(void){
 static void initEndpoint(){
 	endPoint.simpleDescriptor.AppDeviceId =1;
 	endPoint.simpleDescriptor.AppProfileId = 0x0104;
-	endPoint.simpleDescriptor.endpoint = 5;
+	endPoint.simpleDescriptor.endpoint = 1;
 	endPoint.simpleDescriptor.AppDeviceVersion = 1;
 	endPoint.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterIds);
 	endPoint.simpleDescriptor.AppInClustersList = serverClusterIds;
-	endPoint.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterIds);
-	endPoint.simpleDescriptor.AppOutClustersList = clientClusterIds;
+	endPoint.simpleDescriptor.AppOutClustersCount = 0;
+	endPoint.simpleDescriptor.AppOutClustersList = NULL;
 	endPoint.serverCluster = serverClusters;
-	endPoint.clientCluster = clientClusters;
+	endPoint.clientCluster = NULL;
 }
 
 static void setPWMOutput(uint8_t duty)
