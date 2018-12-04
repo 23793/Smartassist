@@ -44,11 +44,17 @@ void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo){
 }
 
 static ZCL_DeviceEndpoint_t endPoint;
+//static ClusterId_t clientClusterIds[] = {TEMPERATURE_MEASUREMENT_CLUSTER_ID, ONOFF_CLUSTER_ID};
 static ClusterId_t clientClusterIds[] = {TEMPERATURE_MEASUREMENT_CLUSTER_ID, ONOFF_CLUSTER_ID};
+/*
 static ZCL_Cluster_t clientClusters[]={
 DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL),
-DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-
+DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)
+};
+*/
+static ZCL_Cluster_t clientClusters[]={
+	DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)
+};
 static uint8_t temp[] = "Value: XXX.XXXCelsius\n\r";
 
 static void temperatureMeasurementReportInd(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload)
@@ -66,8 +72,10 @@ static void temperatureMeasurementReportInd(ZCL_Addressing_t *addressing, uint8_
   temp[12]=temp[13];
   temp[13]=' ';
   char lul[] = "1;1;24.25;2;0;31.75;3;0;27.00\n";
-  appWriteDataToUsart(lul, sizeof(lul));
-  /*HAL_WriteUsart(&usartDesc, temp, sizeof(temp));*/
+//  appWriteDataToUsart(lul, sizeof(lul));
+//	appWriteDataToUsart(temp, sizeof(temp));
+
+  HAL_WriteUsart(&usartDesc, temp, sizeof(temp));
 
   (void)addressing, (void)reportLength, (void)rep;
 	/*
@@ -122,7 +130,8 @@ void APL_TaskHandler(void){
 	switch(appstate){
 	case INIT:
 		BSP_OpenLeds();
-		appInitUsartManager();
+		//appInitUsartManager();
+		initUsart();
 		HAL_OpenUsart(&usartDesc);
 		initEndpoint();
 		appstate = JOIN_NETWORK;
