@@ -21,6 +21,7 @@ public class Lichtkonfig extends Application implements EventHandler<ActionEvent
 	Button save = new Button("OK"); //Speichern button
 	String temperatur = ""; //String temp
 	ToggleSwitch toggleswitch = new ToggleSwitch(); //onoffbutton
+	ToggleSwitch button = new ToggleSwitch();
 
 	public void start(Stage primaryStage) throws Exception {
 
@@ -33,6 +34,12 @@ public class Lichtkonfig extends Application implements EventHandler<ActionEvent
 
 		toggleswitch.setMaxWidth(100); //breite des on off buttons
 		root.getChildren().add(toggleswitch); //einbetten
+
+		Label lichtschalter = new Label("Licht: ");
+		root.getChildren().add(lichtschalter); //Label mit text einbetten
+
+		button.setMaxWidth(100);
+		root.getChildren().add(button);
 
 		Label licht = new Label ("Lichtkonfig: ");
 		root.getChildren().add(licht);
