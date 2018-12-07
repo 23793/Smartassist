@@ -2,20 +2,19 @@ package GUI.src;
 
 public class Raum {
 
-	private float position_x; // von links aus
-	private float position_y; // von oben aus
+	private double position_x; // von links aus
+	private double position_y; // von oben aus
 	private int RaumID;
-	private float height;
-	private float width;
-	private boolean Raumstatus; // aktiv/inaktiv
+	private double height;
+	private double width;
 
-	private Modul modul = new Modul();
-	private Licht licht = new Licht();
+	private Modul modul = null;
+	private Licht licht = null;
 	private Klima klima = new Klima();
 
 	/**
 	 * Erstellt ein Raumobjekt mit den gegebenen Parametern.
-	 * 
+	 *
 	 * @param id
 	 *            die ID des Raums
 	 * @param temp
@@ -25,11 +24,15 @@ public class Raum {
 	 * @param lightswitch
 	 *            boolean der angibt, ob der Lichtschalter betätigt wurde
 	 */
-	public Raum(int id, float temp, int lichtwert, int lightswitch) {
+	public Raum(int id, Modul modul, Licht licht) {
 		this.RaumID = id;
-		this.modul.settemperatur(temp);
-		this.modul.setlichtwert(lichtwert);
-		lightswitch(lightswitch);
+		this.modul = modul;
+		this.licht = licht;
+	}
+
+	public Raum(int id, Modul modul){
+		this.RaumID = id;
+		this.modul = modul;
 	}
 
 	public Raum() {
@@ -42,19 +45,19 @@ public class Raum {
 		}
 	}
 
-	public void setposition_x(float pos_x) {
+	public void setposition_x(double pos_x) {
 		position_x = pos_x;
 	}
 
-	public float getposition_x() {
+	public double getposition_x() {
 		return position_x;
 	}
 
-	public void setpositiony(float pos_y) {
+	public void setpositiony(double pos_y) {
 		position_y = pos_y;
 	}
 
-	public float getposition_y() {
+	public double getposition_y() {
 		return position_y;
 	}
 
@@ -66,28 +69,20 @@ public class Raum {
 		return RaumID;
 	}
 
-	public void setheight(float h) {
+	public void setheight(double h) {
 		height = h;
 	}
 
-	public float getheight() {
+	public double getheight() {
 		return height;
 	}
 
-	public void setwidth(float w) {
+	public void setwidth(double w) {
 		width = w;
 	}
 
-	public float getwidth() {
+	public double getwidth() {
 		return width;
-	}
-
-	public void setRaumstatus(boolean state) {
-		Raumstatus = state;
-	}
-
-	public boolean getRaumstatus() {
-		return Raumstatus;
 	}
 
 }
