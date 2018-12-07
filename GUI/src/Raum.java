@@ -85,4 +85,12 @@ public class Raum {
 		return width;
 	}
 
+	public boolean getState () {
+		if (this.modul == null) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 }
