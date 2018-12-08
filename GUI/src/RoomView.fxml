@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.canvas.*?>
 <?import javafx.scene.web.*?>
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
@@ -11,7 +12,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<fx:root prefHeight="800.0" prefWidth="800.0" type="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="smartassist.controller.FxFXML.java">
+<AnchorPane prefHeight="800.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.src.Main">
    <children>
       <SplitPane dividerPositions="0.3157894736842105" layoutX="100.0" layoutY="220.0" prefHeight="800.0" prefWidth="800.0" style="-fx-background-color: black;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
@@ -85,14 +86,15 @@
             </VBox>
             <AnchorPane>
                <children>
-                  <Button alignment="BOTTOM_RIGHT" contentDisplay="BOTTOM" layoutX="491.0" layoutY="759.0" mnemonicParsing="false" style="-fx-background-color: ck;" text="CLEAR" textFill="WHITE">
+                  <Button alignment="BOTTOM_RIGHT" contentDisplay="BOTTOM" layoutX="491.0" layoutY="759.0" mnemonicParsing="false" text="CLEAR" textFill="WHITE">
                      <font>
                         <Font name="Open Sans" size="12.0" />
                      </font>
                   </Button>
+                  <Canvas fx:id="canvas1" height="200.0" layoutX="173.0" layoutY="279.0" width="200.0" />
                </children>
             </AnchorPane>
         </items>
       </SplitPane>
    </children>
-</fx:root>
+</AnchorPane>

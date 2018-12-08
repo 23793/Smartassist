@@ -1,4 +1,4 @@
-package application;
+package GUI.src;
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -39,7 +39,7 @@ public class Tempkonfig extends Application implements EventHandler<ActionEvent>
 
 		Slider slider = new Slider(0, 1, 0.5); //slider
 		root.getChildren().add(slider);
-		slider.setMax(40.0);	//höchster wert 40
+		slider.setMax(40.0);	//hï¿½chster wert 40
 		slider.setMaxWidth(300);	//breite des sliders
 		slider.setShowTickLabels(true); //Zahlen werden angezeigt
 		slider.setShowTickMarks(true); //einzelne Striche (marks)
@@ -63,7 +63,7 @@ public class Tempkonfig extends Application implements EventHandler<ActionEvent>
 		root.getChildren().add(save);
 		save.setOnAction(this);
 
-		Scene scene = new Scene(root,400,250);  //größe der anwendung
+		Scene scene = new Scene(root,400,250);  //grï¿½ï¿½e der anwendung
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
@@ -83,7 +83,7 @@ public class Tempkonfig extends Application implements EventHandler<ActionEvent>
 	}
 
 	public static void main(String[] args) {
-		launch(args); //währen die anwendung läuft
+		launch(args); //wï¿½hren die anwendung lï¿½uft
 	}
 }
 

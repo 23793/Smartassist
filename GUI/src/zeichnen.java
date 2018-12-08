@@ -1,4 +1,4 @@
-package application;
+package GUI.src;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
@@ -29,7 +29,7 @@ public class Main extends Application {
 	double pressedY;
 	double releasedX;
 	double releasedY;
-	int countgc = 0; // Counter, der jeden erstellten Raum zählt
+	int countgc = 0; // Counter, der jeden erstellten Raum zï¿½hlt
 	static ArrayList<Rectangle> raumliste = new ArrayList<Rectangle>();
 
 	public void start(Stage primaryStage) throws Exception {
@@ -44,7 +44,7 @@ public class Main extends Application {
 		root.getChildren().add(canvas);
 
 		/**
-		 * X, Y Werte, wenn Maus gedrückt ist
+		 * X, Y Werte, wenn Maus gedrï¿½ckt ist
 		 *
 		 */
 		scene.setOnMousePressed(new EventHandler<MouseEvent>() {
@@ -78,7 +78,7 @@ public class Main extends Application {
 
 	private void drawRectangle(GraphicsContext gc) {
 
-		// Höhe und Breite berechnen
+		// Hï¿½he und Breite berechnen
 		double breite = releasedX - pressedX;
 		double hoehe = releasedY - pressedY;
 
@@ -108,11 +108,11 @@ public class Main extends Application {
 
 		System.out.println("Raumliste:" + raumliste.size());
 		System.out.println("Breite: " + breite);
-		System.out.println("Höhe: " + hoehe);
+		System.out.println("Hï¿½he: " + hoehe);
 
 	}
 
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		launch(args);
-	}
+	}*/
 }
