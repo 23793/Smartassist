@@ -1,4 +1,4 @@
-package application;
+package GUI.src;
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -22,6 +22,7 @@ public class Lichtkonfig extends Application implements EventHandler<ActionEvent
 	String temperatur = ""; //String temp
 	ToggleSwitch toggleswitch = new ToggleSwitch(); //onoffbutton
 	ToggleSwitch button = new ToggleSwitch();
+	Button close = new Button("Close");
 
 	public void start(Stage primaryStage) throws Exception {
 
@@ -46,7 +47,7 @@ public class Lichtkonfig extends Application implements EventHandler<ActionEvent
 
 		Slider slider = new Slider(0, 0, 1); //slider
 		root.getChildren().add(slider);
-		slider.setMax(3);	//höchster wert 40
+		slider.setMax(3);	//hï¿½chster wert 40
 		slider.setMaxWidth(300);	//breite des sliders
 		slider.setShowTickLabels(true); //Zahlen werden angezeigt
 		slider.setShowTickMarks(true); //einzelne Striche (marks)
@@ -69,8 +70,11 @@ public class Lichtkonfig extends Application implements EventHandler<ActionEvent
 		root.getChildren().add(value);
 		root.getChildren().add(save);
 		save.setOnAction(this);
+		Label lb = new Label("Licht schlieÃŸen:");
+		root.getChildren().add(lb);
+		root.getChildren().add(close);
 
-		Scene scene = new Scene(root,500,400);  //größe der anwendung
+		Scene scene = new Scene(root,500,400);  //grï¿½ï¿½e der anwendung
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
@@ -90,7 +94,7 @@ public class Lichtkonfig extends Application implements EventHandler<ActionEvent
 	}
 
 	public static void main(String[] args) {
-		launch(args); //während die anwendung läuft
+		launch(args); //wï¿½hrend die anwendung lï¿½uft
 	}
 }
 

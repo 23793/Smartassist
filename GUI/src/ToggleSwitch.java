@@ -1,4 +1,4 @@
-package application;
+package GUI.src;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Pos;

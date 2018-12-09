@@ -12,7 +12,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="800.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane prefHeight="800.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.Main">
    <children>
       <SplitPane dividerPositions="0.3157894736842105" layoutX="100.0" layoutY="220.0" prefHeight="800.0" prefWidth="800.0" style="-fx-background-color: black;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
@@ -24,7 +24,7 @@
                            <graphic>
                               <ImageView fitHeight="94.0" fitWidth="105.0" opacity="0.98" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../../GUI-Logos/smart%20home%20-logo.png" />
+                                    <Image url="@../GUI-Logos/smart%20home%20-logo.png" />
                                  </image>
                               </ImageView>
                            </graphic>
@@ -54,8 +54,7 @@
                                     <Font name="Open Sans Extrabold" size="12.0" />
                                  </font>
                               </Text>
-                           </children>
-                        </Pane>
+                           </children></Pane>
                      </children></AnchorPane>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0">
                      <children>
@@ -74,7 +73,7 @@
                            <graphic>
                               <ImageView fitHeight="101.0" fitWidth="104.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../../GUI-Logos/lampe.jpg" />
+                                    <Image url="@../GUI-Logos/lampe.jpg" />
                                  </image>
                               </ImageView>
                            </graphic>
