@@ -3,6 +3,7 @@ package GUI;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 
+import GUI.src.Lichtkonfig;
 import javafx.scene.Node;
 
 import javafx.application.Application;
@@ -13,12 +14,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import smartassist.model.Popup;
 
 public class Main extends Application{
 	
@@ -59,7 +62,10 @@ public class Main extends Application{
         Canvas canvas = (Canvas) anchorpane.getChildren().get(1);
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setStroke(Color.RED);
-        
+//        Button licht =  (Button) anchorpane.getChildren().get(2);
+//        licht.setOnAction(event -> GUI.src.Lichtkonfig.display());
+//        Button temperature = (Button) anchorpane.getChildren().get(3);
+//        temperature.setOnAction(event -> GUI.src.Tempkonfig.display());
         /*
          * First set the mouse event on the right side of the splitpane
          * and get the X and Y on mouse pressed and print these out.

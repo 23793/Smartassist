@@ -14,6 +14,7 @@ import javafx.scene.control.Slider;
 //import javafx.scene.layout.GridPane;
 //import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class Lichtkonfig extends Application implements EventHandler<ActionEvent> {
@@ -22,10 +23,10 @@ public class Lichtkonfig extends Application implements EventHandler<ActionEvent
 	String temperatur = ""; //String temp
 	ToggleSwitch toggleswitch = new ToggleSwitch(); //onoffbutton
 	ToggleSwitch button = new ToggleSwitch();
-	Button close = new Button("Close");
+//	Button close = new Button("Close");
 
 	public void start(Stage primaryStage) throws Exception {
-
+//		primaryStage.initModality(Modality.APPLICATION_MODAL);
 		primaryStage.setTitle("Lichtkonfiguration"); //Titel
 		VBox root = new VBox(); //vertikale box
 		root.setAlignment(Pos.CENTER); //Position der Objekte
@@ -70,12 +71,14 @@ public class Lichtkonfig extends Application implements EventHandler<ActionEvent
 		root.getChildren().add(value);
 		root.getChildren().add(save);
 		save.setOnAction(this);
-		Label lb = new Label("Licht schließen:");
-		root.getChildren().add(lb);
-		root.getChildren().add(close);
+//		Label lb = new Label("Licht schließen:");
+//		root.getChildren().add(lb);
+//		close.setOnAction(event -> primaryStage.close());
+//		root.getChildren().add(close);
 
 		Scene scene = new Scene(root,500,400);  //gr��e der anwendung
 		primaryStage.setScene(scene);
+//		primaryStage.showAndWait();
 		primaryStage.show();
 	}
 

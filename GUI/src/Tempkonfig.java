@@ -14,6 +14,7 @@ import javafx.scene.control.Slider;
 //import javafx.scene.layout.GridPane;
 //import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class Tempkonfig extends Application implements EventHandler<ActionEvent> {
@@ -21,9 +22,10 @@ public class Tempkonfig extends Application implements EventHandler<ActionEvent>
 	Button save = new Button("OK"); //Speichern button
 	String temperatur = ""; //String temp
 	ToggleSwitch toggleswitch = new ToggleSwitch(); //onoffbutton
-
+	Button temperature = new Button("close");
+	
 	public void start(Stage primaryStage) throws Exception {
-
+//		primaryStage.initModality(Modality.APPLICATION_MODAL);
 		primaryStage.setTitle("Temperaturkonfiguration"); //Titel
 		VBox root = new VBox(); //vertikale box
 		root.setAlignment(Pos.CENTER); //Position der Objekte
@@ -62,7 +64,10 @@ public class Tempkonfig extends Application implements EventHandler<ActionEvent>
 		root.getChildren().add(value);
 		root.getChildren().add(save);
 		save.setOnAction(this);
-
+//		Label lb = new Label("Temperatur Fenster schließen:");
+//		root.getChildren().add(lb);
+//		temperature.setOnAction(event -> primaryStage.close());
+//		root.getChildren().add(temperature);
 		Scene scene = new Scene(root,400,250);  //gr��e der anwendung
 		primaryStage.setScene(scene);
 		primaryStage.show();
