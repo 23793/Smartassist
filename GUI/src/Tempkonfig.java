@@ -14,7 +14,9 @@ import javafx.scene.control.Slider;
 //import javafx.scene.layout.GridPane;
 //import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
+import javafx.scene.paint.Color;
+//import javafx.scene.paint.Color;
+//import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class Tempkonfig extends Application implements EventHandler<ActionEvent> {
@@ -29,7 +31,7 @@ public class Tempkonfig extends Application implements EventHandler<ActionEvent>
 		primaryStage.setTitle("Temperaturkonfiguration"); //Titel
 		VBox root = new VBox(); //vertikale box
 		root.setAlignment(Pos.CENTER); //Position der Objekte
-
+//		root.setStyle("black");;
 		Label manuell = new Label("Manuell: ");
 		root.getChildren().add(manuell); //Label mit text einbetten
 

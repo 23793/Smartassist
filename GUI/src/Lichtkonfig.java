@@ -14,7 +14,7 @@ import javafx.scene.control.Slider;
 //import javafx.scene.layout.GridPane;
 //import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
+//import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class Lichtkonfig extends Application implements EventHandler<ActionEvent> {
@@ -29,6 +29,7 @@ public class Lichtkonfig extends Application implements EventHandler<ActionEvent
 //		primaryStage.initModality(Modality.APPLICATION_MODAL);
 		primaryStage.setTitle("Lichtkonfiguration"); //Titel
 		VBox root = new VBox(); //vertikale box
+//		root.setStyle("Black");
 		root.setAlignment(Pos.CENTER); //Position der Objekte
 
 		Label manuell = new Label("Manuell: ");
