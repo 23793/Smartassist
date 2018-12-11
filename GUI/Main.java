@@ -111,29 +111,54 @@ public class Main extends Application {
 
 	private void drawRectangle(GraphicsContext gc) {
 
-		// H�he und Breite berechnen
-		double breite = releasedX - pressedX;
-		double hoehe = releasedY - pressedY;
+		// Hoehe und Breite berechnen
+		Rectangle viereck = new Rectangle();
+
+		if (releasedX > pressedX && releasedY > pressedY) {
+			// Oben links nach unten rechts
+			viereck.width = (int) (releasedX - pressedX);
+			viereck.height = (int) (releasedY - pressedY);
+			viereck.x = (int) (pressedX);
+			viereck.y = (int) (pressedY);
+		} else if (pressedX > releasedX && pressedY > releasedY) {
+			// Unten rechts nach oben links
+			viereck.width = (int) (pressedX - releasedX);
+			viereck.height = (int) (pressedY - releasedY);
+			viereck.x = (int) (pressedX - viereck.width);
+			viereck.y = (int) (releasedY);
+		} else if (pressedX > releasedX && pressedY < releasedY) {
+			// Oben rechts nach unten links
+			viereck.width = (int) (pressedX - releasedX);
+			viereck.height = (int) (releasedY - pressedY);
+			viereck.x = (int) (releasedX);
+			viereck.y = (int) (releasedY - viereck.height);
+		} else {
+			// Unten links nach oben rechts
+			viereck.width = (int) (releasedX - pressedX);
+			viereck.height = (int) (pressedY - releasedY);
+			viereck.x = (int) (releasedX - viereck.width);
+			viereck.y = (int) (pressedY - viereck.height);
+		}
 
 		// gc.setLineDashes(0); //Breite der Linie
 		gc.setStroke(Color.RED);
 
-		Rectangle viereck = new Rectangle();
-		viereck.x = (int) pressedX;
-		viereck.y = (int) pressedY;
-		viereck.width = (int) breite;
-		viereck.height = (int) hoehe;
-
 		Boolean intersect = false;
 		for (Rectangle r : rectangles) {
-			if (r.intersects(viereck) || breite < 50 || hoehe < 50) {
+			if (r.intersects(viereck) || viereck.width < 50 || viereck.height < 50) {
 				intersect = true;
 				break;
 			}
 		}
 		if (!intersect) {
-			gc.strokeRect(pressedX, pressedY, breite, hoehe);
-			raumListe.add(new Raum(idCounter, viereck.x + viereck.width, viereck.y + viereck.height));
+			gc.strokeRect(viereck.x, viereck.y, viereck.width, viereck.height);
+			raumListe.add(new Raum(idCounter, viereck.x + viereck.width, viereck.y + viereck.height)); // Punkt
+																										// f�r
+																										// den
+																										// eigentlichen
+																										// Raum
+																										// rechts
+																										// unten
 			rectangles.add(viereck);
 			System.out.println("Raum: " + raumListe.get(idCounter - 1).getID() + ", "
 					+ raumListe.get(idCounter - 1).getposition_x() + ", "
@@ -142,8 +167,8 @@ public class Main extends Application {
 		}
 
 		System.out.println("Raumliste:" + rectangles.size());
-		System.out.println("Breite: " + breite);
-		System.out.println("Höhe: " + hoehe);
+		System.out.println("Breite: " + viereck.width);
+		System.out.println("Höhe: " + viereck.height);
 
 	}
 
