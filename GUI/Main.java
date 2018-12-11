@@ -140,8 +140,8 @@ public class Main extends Application {
 			viereck.y = (int) (pressedY - viereck.height);
 		}
 
-		// gc.setLineDashes(0); //Breite der Linie
-		gc.setStroke(Color.RED);
+		gc.setLineDashes(5);
+		gc.setStroke(Color.WHITE);
 
 		Boolean intersect = false;
 		for (Rectangle r : rectangles) {
