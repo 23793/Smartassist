@@ -46,8 +46,8 @@
 //#define APP_FRAGMENTATION 1
 
 // Enables or disables binding support.
-#define APP_USE_BINDING 0
-//#define APP_USE_BINDING 1
+//#define APP_USE_BINDING 0
+#define APP_USE_BINDING 1
 
 #define APP_BLINK_PERIOD 1000
 
@@ -552,7 +552,7 @@
 // as destinations for group bindings. If the binding is going to be applied to
 // send a data frame, then the corresponding entry shall be first inserted into the
 // table via the APS_BindingReq() function.
-#define CS_APS_BINDING_TABLE_SIZE 3
+#define CS_APS_BINDING_TABLE_SIZE 10
 
 // MAC ban table size
 #define CS_BAN_TABLE_SIZE 1
@@ -587,7 +587,7 @@
 #define CS_NWK_BUFFERS_AMOUNT 4
 
 // Amount of ZCL memory buffers
-#define CS_ZCL_MEMORY_BUFFERS_AMOUNT 5
+#define CS_ZCL_MEMORY_BUFFERS_AMOUNT 20
 
 // MAC transaction persistence time.The parameter determines the maximum interval
 // (in ms) a frame addressed to a sleeping end device can be stored on the parent
