@@ -2,8 +2,8 @@ package GUI.src;
 
 public class Raum {
 
-	private double position_x; // von links aus
-	private double position_y; // von oben aus
+	private double position_x;	
+	private double position_y; // Punkt rechts unten	
 	private int RaumID;
 	private double height;
 	private double width;
@@ -24,15 +24,11 @@ public class Raum {
 	 * @param lightswitch
 	 *            boolean der angibt, ob der Lichtschalter betätigt wurde
 	 */
-	public Raum(int id, Modul modul, Licht licht) {
-		this.RaumID = id;
-		this.modul = modul;
-		this.licht = licht;
-	}
 
-	public Raum(int id, Modul modul){
+	public Raum(int id, double x, double y){
 		this.RaumID = id;
-		this.modul = modul;
+		this.position_x = x;
+		this.position_y = y;
 	}
 
 	public Raum() {

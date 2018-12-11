@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import GUI.src.Lichtkonfig;
+import GUI.src.Raum;
 import javafx.scene.Node;
 
 import javafx.application.Application;
@@ -23,54 +24,55 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import smartassist.model.Popup;
 
-public class Main extends Application{
-	
+public class Main extends Application {
+
 	double pressedX;
 	double pressedY;
 	double releasedX;
 	double releasedY;
-	static ArrayList<Rectangle> raumliste = new ArrayList<Rectangle>();
-	
+	static ArrayList<Rectangle> rectangles = new ArrayList<Rectangle>();
+	static ArrayList<Raum> raumListe = new ArrayList<Raum>();
+	static int idCounter = 1;
+
 	public static void main(String[] args) {
-        launch(args);
-    }
+		launch(args);
+	}
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
+	@Override
+	public void start(Stage primaryStage) throws Exception {
 
-        /*
-         * create the AnchorPane and all details and
-         * load the Path of the FXML File
-         * */
-        AnchorPane root = (AnchorPane)FXMLLoader.load(getClass().getResource("RoomView.fxml"));
-        /*
-         * add the AnchorPane into a Scene
-         */
-        Scene scene = new Scene(root);
-        /*
-         * get the single child of the the root
-         */
-        ObservableList<Node> obs = root.getChildren();
-        SplitPane splitpane = (SplitPane) obs.get(0);
-        
-        /*
-         * get the right child of the splitpane and
-         * connect a Graphicscontext to the Canvas and finally
-         * set the color of the stroke to red.
-         */
-        AnchorPane anchorpane = (AnchorPane) splitpane.getItems().get(1);
-        Canvas canvas = (Canvas) anchorpane.getChildren().get(1);
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setStroke(Color.RED);
-//        Button licht =  (Button) anchorpane.getChildren().get(2);
-//        licht.setOnAction(event -> GUI.src.Lichtkonfig.display());
-//        Button temperature = (Button) anchorpane.getChildren().get(3);
-//        temperature.setOnAction(event -> GUI.src.Tempkonfig.display());
-        /*
-         * First set the mouse event on the right side of the splitpane
-         * and get the X and Y on mouse pressed and print these out.
-         */
- 
+		/*
+		 * create the AnchorPane and all details and load the Path of the FXML
+		 * File
+		 */
+		AnchorPane root = (AnchorPane) FXMLLoader.load(getClass().getResource("RoomView.fxml"));
+		/*
+		 * add the AnchorPane into a Scene
+		 */
+		Scene scene = new Scene(root);
+		/*
+		 * get the single child of the the root
+		 */
+		ObservableList<Node> obs = root.getChildren();
+		SplitPane splitpane = (SplitPane) obs.get(0);
+
+		/*
+		 * get the right child of the splitpane and connect a Graphicscontext to
+		 * the Canvas and finally set the color of the stroke to red.
+		 */
+		AnchorPane anchorpane = (AnchorPane) splitpane.getItems().get(1);
+		Canvas canvas = (Canvas) anchorpane.getChildren().get(1);
+		GraphicsContext gc = canvas.getGraphicsContext2D();
+		gc.setStroke(Color.RED);
+		// Button licht = (Button) anchorpane.getChildren().get(2);
+		// licht.setOnAction(event -> GUI.src.Lichtkonfig.display());
+		// Button temperature = (Button) anchorpane.getChildren().get(3);
+		// temperature.setOnAction(event -> GUI.src.Tempkonfig.display());
+		/*
+		 * First set the mouse event on the right side of the splitpane and get
+		 * the X and Y on mouse pressed and print these out.
+		 */
+
 		anchorpane.setOnMousePressed(new EventHandler<MouseEvent>() {
 
 			public void handle(MouseEvent event) {
@@ -81,10 +83,10 @@ public class Main extends Application{
 			}
 		});
 
-        /*
-         * secondly set the mouse event on the right side of the splitpane
-         * and get the X and Y on mouse released and print these out.
-         */
+		/*
+		 * secondly set the mouse event on the right side of the splitpane and
+		 * get the X and Y on mouse released and print these out.
+		 */
 		anchorpane.setOnMouseReleased(new EventHandler<MouseEvent>() {
 
 			public void handle(MouseEvent event) {
@@ -96,25 +98,25 @@ public class Main extends Application{
 			}
 		});
 
-        //Set the scene to the stage
-        primaryStage.setScene(scene);
+		// Set the scene to the stage
+		primaryStage.setScene(scene);
 
-        // Set the title of the stage
-        primaryStage.setTitle("SmartAsssit");
+		// Set the title of the stage
+		primaryStage.setTitle("SmartAsssit");
 
-        //Display the stage
-        primaryStage.show();
+		// Display the stage
+		primaryStage.show();
 
-    }
-    
-    private void drawRectangle(GraphicsContext gc) {
+	}
+
+	private void drawRectangle(GraphicsContext gc) {
 
 		// H�he und Breite berechnen
 		double breite = releasedX - pressedX;
 		double hoehe = releasedY - pressedY;
 
-	//	 gc.setLineDashes(0); //Breite der Linie
-		 gc.setStroke(Color.RED);
+		// gc.setLineDashes(0); //Breite der Linie
+		gc.setStroke(Color.RED);
 
 		Rectangle viereck = new Rectangle();
 		viereck.x = (int) pressedX;
@@ -122,24 +124,27 @@ public class Main extends Application{
 		viereck.width = (int) breite;
 		viereck.height = (int) hoehe;
 
-
 		Boolean intersect = false;
-		for (Rectangle r : raumliste) {
-			if (r.intersects(viereck)) {
+		for (Rectangle r : rectangles) {
+			if (r.intersects(viereck) || breite < 50 || hoehe < 50) {
 				intersect = true;
 				break;
 			}
 		}
 		if (!intersect) {
 			gc.strokeRect(pressedX, pressedY, breite, hoehe);
-			raumliste.add(viereck);
-
+			raumListe.add(new Raum(idCounter, viereck.x + viereck.width, viereck.y + viereck.height));
+			rectangles.add(viereck);
+			System.out.println("Raum: " + raumListe.get(idCounter - 1).getID() + ", "
+					+ raumListe.get(idCounter - 1).getposition_x() + ", "
+					+ raumListe.get(idCounter - 1).getposition_y());
+			idCounter++;
 		}
 
-		System.out.println("Raumliste:" + raumliste.size());
+		System.out.println("Raumliste:" + rectangles.size());
 		System.out.println("Breite: " + breite);
 		System.out.println("Höhe: " + hoehe);
 
 	}
-		
+
 }
