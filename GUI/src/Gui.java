@@ -17,6 +17,17 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+/**
+ * Die Gui Klasse enthält die gesamte FXML basierte GUI inklusive aller
+ * Funktionalitäten. Die Funktion getRaumListe() gibt eine ArrayList mit allen
+ * Räumen zurück.
+ * 
+ * @see javafx.application.Application
+ * @see Raum
+ * 
+ * @author MinhMax & Gaitan
+ *
+ */
 public class Gui extends Application {
 
 	private double pressedX;
@@ -56,11 +67,10 @@ public class Gui extends Application {
 		// licht.setOnAction(event -> GUI.src.Lichtkonfig.display());
 		// Button temperature = (Button) anchorpane.getChildren().get(3);
 		// temperature.setOnAction(event -> GUI.src.Tempkonfig.display());
-		/*
-		 * First set the mouse event on the right side of the splitpane and get
-		 * the X and Y on mouse pressed and print these out.
-		 */
 
+		/*
+		 * Setzt die X und Y Werte für den Punkt des Klickens der Maus fest.
+		 */
 		anchorpane.setOnMousePressed(new EventHandler<MouseEvent>() {
 
 			public void handle(MouseEvent event) {
@@ -72,8 +82,7 @@ public class Gui extends Application {
 		});
 
 		/*
-		 * secondly set the mouse event on the right side of the splitpane and
-		 * get the X and Y on mouse released and print these out.
+		 * Setzt die X und Y Werte für den Punkt des Loslassens der Maus fest.
 		 */
 		anchorpane.setOnMouseReleased(new EventHandler<MouseEvent>() {
 
@@ -97,6 +106,14 @@ public class Gui extends Application {
 
 	}
 
+	/**
+	 * Zeichnet ein sichtbares Rectangle in das Grundrissfenster und erstellt
+	 * ein Objekt vom Typ Raum. Gezeichnete Räume müssen mindestens 50x50 Pixel
+	 * groß sein und dürfen sich nicht überschneiden.
+	 * 
+	 * @see Raum
+	 * @param gc
+	 */
 	private void drawRectangle(GraphicsContext gc) {
 
 		// Hoehe und Breite berechnen
