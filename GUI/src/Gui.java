@@ -19,13 +19,13 @@ import javafx.stage.Stage;
 
 public class Gui extends Application {
 
-	double pressedX;
-	double pressedY;
-	double releasedX;
-	double releasedY;
-	static ArrayList<Rectangle> rectangles = new ArrayList<Rectangle>();
-	static ArrayList<Raum> raumListe = new ArrayList<Raum>();
-	static int idCounter = 1;
+	private double pressedX;
+	private double pressedY;
+	private double releasedX;
+	private double releasedY;
+	private static ArrayList<Rectangle> rectangles = new ArrayList<Rectangle>();
+	private static ArrayList<Raum> raumListe = new ArrayList<Raum>();
+	private static int idCounter = 1;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -154,5 +154,13 @@ public class Gui extends Application {
 		System.out.println("Breite: " + viereck.width);
 		System.out.println("Höhe: " + viereck.height);
 
+	}
+
+	public static ArrayList<Raum> getRaumListe() {
+		return raumListe;
+	}
+
+	public static void setRaumListe(ArrayList<Raum> raumListe) {
+		Gui.raumListe = raumListe;
 	}
 }
