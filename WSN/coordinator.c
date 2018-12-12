@@ -12,10 +12,23 @@
 #include <zclTemperatureMeasurementCluster.h>
 
 
-static AppState_t appstate = INIT;
+static ZCL_DeviceEndpoint_t endPointTemperatureMeasurementClient;
+static ZCL_DeviceEndpoint_t endPointOnOffLightClient;
+static ZCL_DeviceEndpoint_t endPointIlluminanceClient;
+static ZCL_DeviceEndpoint_t endPointOnOffStatusClient;
+static ZCL_DeviceEndpoint_t endPointOnOffMode_climateClient;
+static ZCL_DeviceEndpoint_t endPointOnOffMode_lightClient;
 
+
+static AppState_t appstate = INIT;
+static uint8_t temp[] = "Value: XXX.XXXCelsius\n\r";
 static HAL_UsartDescriptor_t usartDesc;
 static uint8_t usartRxBuffer[36];
+
+
+static ZDO_StartNetworkReq_t networkParams;
+
+static void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo);
 
 void initUsart(){
 	usartDesc.tty            = USART_CHANNEL_1;
@@ -33,9 +46,6 @@ void initUsart(){
 	usartDesc.txCallback     = NULL;  // Callback function, confirming data writing
 }
 
-static ZDO_StartNetworkReq_t networkParams;
-
-static void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo);
 
 void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo){
 	if(ZDO_SUCCESS_STATUS == confirmInfo->status){
@@ -44,14 +54,17 @@ void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo){
 	SYS_PostTask(APL_TASK_ID);
 }
 
-static ZCL_DeviceEndpoint_t endPointTemp;
-static ZCL_DeviceEndpoint_t endPointOnOffLight;
-static ZCL_DeviceEndpoint_t endPointIlluminance;
+
 
 //static ClusterId_t clientClusterIds[] = {TEMPERATURE_MEASUREMENT_CLUSTER_ID, ONOFF_CLUSTER_ID};
-static ClusterId_t clientClusterTempIds[] = {TEMPERATURE_MEASUREMENT_CLUSTER_ID};
-static ClusterId_t clientClusterOnOffLightIds[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t clientClusterIlluminanceIds[] = {ILLUMINANCE_MEASUREMENT_CLUSTER_ID};
+static ClusterId_t clientClusterTemperatureId[] = {TEMPERATURE_MEASUREMENT_CLUSTER_ID};
+static ClusterId_t clientClusterOnOffLightId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t clientClusterIlluminanceId[] = {ILLUMINANCE_MEASUREMENT_CLUSTER_ID};
+static ClusterId_t clientClusterOnOffStatusId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t clientClusterOnOffMode_climateId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t clientClusterOnOffMode_lightId[] = {ONOFF_CLUSTER_ID};
+
+
 
 /*
 static ZCL_Cluster_t clientClusters[]={
@@ -59,11 +72,15 @@ DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL),
 DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)
 };
 */
-static ZCL_Cluster_t clientClustersTemp[]={DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
+static ZCL_Cluster_t clientClustersTemperatureMeasurement[]={DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
 static ZCL_Cluster_t clientClustersOnOffLight[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersIlluminance[]={DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
-	
-static uint8_t temp[] = "Value: XXX.XXXCelsius\n\r";
+static ZCL_Cluster_t clientClustersIlluminanceMeasurement[]={DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
+static ZCL_Cluster_t clientClustersOnOffStatus[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffMode_climate[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffMode_light[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+
+
+
 
 static void temperatureMeasurementReportInd(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload)
 {
@@ -120,40 +137,73 @@ static void temperatureMeasurementReportInd(ZCL_Addressing_t *addressing, uint8_
 }
 
 static void initEndpoint(void){
-	clientClustersTemp[0].ZCL_ReportInd = temperatureMeasurementReportInd;
+	clientClustersTemperatureMeasurement[0].ZCL_ReportInd = temperatureMeasurementReportInd;
 	
-	endPointTemp.simpleDescriptor.AppDeviceId = 1;
-	endPointTemp.simpleDescriptor.AppProfileId = 0x0104;
-	endPointTemp.simpleDescriptor.endpoint = 1;
-	endPointTemp.simpleDescriptor.AppDeviceVersion = 1;
-	endPointTemp.simpleDescriptor.AppInClustersCount = 0;
-	endPointTemp.simpleDescriptor.AppInClustersList = NULL;
-	endPointTemp.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterTempIds);
-	endPointTemp.simpleDescriptor.AppOutClustersList = clientClusterTempIds;
-	endPointTemp.serverCluster = NULL;
-	endPointTemp.clientCluster = clientClustersTemp;
+	endPointTemperatureMeasurementClient.simpleDescriptor.AppDeviceId = 1;
+	endPointTemperatureMeasurementClient.simpleDescriptor.AppProfileId = 0x0104;
+	endPointTemperatureMeasurementClient.simpleDescriptor.endpoint = srcTemperature_Measurement_Client;
+	endPointTemperatureMeasurementClient.simpleDescriptor.AppDeviceVersion = 1;
+	endPointTemperatureMeasurementClient.simpleDescriptor.AppInClustersCount = 0;
+	endPointTemperatureMeasurementClient.simpleDescriptor.AppInClustersList = NULL;
+	endPointTemperatureMeasurementClient.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterTemperatureId);
+	endPointTemperatureMeasurementClient.simpleDescriptor.AppOutClustersList = clientClusterTemperatureId;
+	endPointTemperatureMeasurementClient.serverCluster = NULL;
+	endPointTemperatureMeasurementClient.clientCluster = clientClustersTemperatureMeasurement;
 	
-	endPointOnOffLight.simpleDescriptor.AppDeviceId = 1;
-	endPointOnOffLight.simpleDescriptor.AppProfileId = 0x0104;
-	endPointOnOffLight.simpleDescriptor.endpoint = 2;
-	endPointOnOffLight.simpleDescriptor.AppDeviceVersion = 1;
-	endPointOnOffLight.simpleDescriptor.AppInClustersCount = 0;
-	endPointOnOffLight.simpleDescriptor.AppInClustersList = NULL;
-	endPointOnOffLight.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterOnOffLightIds);
-	endPointOnOffLight.simpleDescriptor.AppOutClustersList = clientClusterOnOffLightIds;
-	endPointOnOffLight.serverCluster = NULL;
-	endPointOnOffLight.clientCluster = clientClustersOnOffLight;
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceId = 1;
+	endPointOnOffLightClient.simpleDescriptor.AppProfileId = 0x0104;
+	endPointOnOffLightClient.simpleDescriptor.endpoint = srcOnOff_Light_Client;
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceVersion = 1;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersCount = 0;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersList = NULL;
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterOnOffLightId);
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersList = clientClusterOnOffLightId;
+	endPointOnOffLightClient.serverCluster = NULL;
+	endPointOnOffLightClient.clientCluster = clientClustersOnOffLight;
 	
-	endPointIlluminance.simpleDescriptor.AppDeviceId = 1;
-	endPointIlluminance.simpleDescriptor.AppProfileId = 0x0104;
-	endPointIlluminance.simpleDescriptor.endpoint = 4;
-	endPointIlluminance.simpleDescriptor.AppDeviceVersion = 1;
-	endPointIlluminance.simpleDescriptor.AppInClustersCount = 0;
-	endPointIlluminance.simpleDescriptor.AppInClustersList = NULL;
-	endPointIlluminance.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterIlluminanceIds);
-	endPointIlluminance.simpleDescriptor.AppOutClustersList = clientClusterIlluminanceIds;
-	endPointIlluminance.serverCluster = NULL;
-	endPointIlluminance.clientCluster = clientClustersIlluminance;
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceId = 1;
+	endPointOnOffLightClient.simpleDescriptor.AppProfileId = 0x0104;
+	endPointOnOffLightClient.simpleDescriptor.endpoint = srcOnOff_Status_Client;
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceVersion = 1;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersCount = 0;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersList = NULL;
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterOnOffStatusId);
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersList = clientClusterOnOffStatusId;
+	endPointOnOffLightClient.serverCluster = NULL;
+	endPointOnOffLightClient.clientCluster = clientClustersOnOffStatus;
+	
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceId = 1;
+	endPointOnOffLightClient.simpleDescriptor.AppProfileId = 0x0104;
+	endPointOnOffLightClient.simpleDescriptor.endpoint = srcOnOff_Mode_Climate_Client;
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceVersion = 1;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersCount = 0;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersList = NULL;
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterOnOffMode_climateId);
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersList = clientClusterOnOffMode_climateId;
+	endPointOnOffLightClient.serverCluster = NULL;
+	endPointOnOffLightClient.clientCluster = clientClustersOnOffMode_climate;
+	
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceId = 1;
+	endPointOnOffLightClient.simpleDescriptor.AppProfileId = 0x0104;
+	endPointOnOffLightClient.simpleDescriptor.endpoint = srcOnOff_Mode_Light_Client;
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceVersion = 1;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersCount = 0;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersList = NULL;
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterOnOffMode_lightId);
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersList = clientClusterOnOffMode_lightId;
+	endPointOnOffLightClient.serverCluster = NULL;
+	endPointOnOffLightClient.clientCluster = clientClustersOnOffMode_light;
+	
+	endPointIlluminanceClient.simpleDescriptor.AppDeviceId = 1;
+	endPointIlluminanceClient.simpleDescriptor.AppProfileId = 0x0104;
+	endPointIlluminanceClient.simpleDescriptor.endpoint = srcIlluminance_Measurement_Client;
+	endPointIlluminanceClient.simpleDescriptor.AppDeviceVersion = 1;
+	endPointIlluminanceClient.simpleDescriptor.AppInClustersCount = 0;
+	endPointIlluminanceClient.simpleDescriptor.AppInClustersList = NULL;
+	endPointIlluminanceClient.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterIlluminanceId);
+	endPointIlluminanceClient.simpleDescriptor.AppOutClustersList = clientClusterIlluminanceId;
+	endPointIlluminanceClient.serverCluster = NULL;
+	endPointIlluminanceClient.clientCluster = clientClustersIlluminanceMeasurement;
 }
 
 void APL_TaskHandler(void){
@@ -170,9 +220,9 @@ void APL_TaskHandler(void){
 	case JOIN_NETWORK:
 		networkParams.ZDO_StartNetworkConf = ZDO_StartNetworkConf;
 		ZDO_StartNetworkReq(&networkParams);
-		ZCL_RegisterEndpoint(&endPointTemp);
-		ZCL_RegisterEndpoint(&endPointOnOffLight);
-		ZCL_RegisterEndpoint(&endPointIlluminance);
+		ZCL_RegisterEndpoint(&endPointTemperatureMeasurementClient);
+		ZCL_RegisterEndpoint(&endPointOnOffLightClient);
+		ZCL_RegisterEndpoint(&endPointIlluminanceClient);
 		appstate = NOTHING;
 		break;
 	case NOTHING:
