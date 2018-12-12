@@ -169,7 +169,7 @@ public class Gui extends Application {
 
 		System.out.println("Raumliste:" + raumListe.size());
 		System.out.println("Breite: " + viereck.width);
-		System.out.println("Höhe: " + viereck.height);
+		System.out.println("Hoehe: " + viereck.height);
 
 	}
 
