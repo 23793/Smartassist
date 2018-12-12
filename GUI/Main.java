@@ -1,6 +1,6 @@
 package GUI;
 
-import GUI.src.Gui;
+import GUI.src.*;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
