@@ -11,15 +11,31 @@
 #define isOn(PIN)		(PINE & (1<<PIN))
 #define isOff(PIN)		(!(PINE & (1<<PIN)))
 
-// Endpoints
+// Endpoints Server
 #define srcTemperature_Measurement_Server 1
 #define srcIlluminance_Measurement_Server 2
 #define srcFan_Conrol_Server 3
 #define srcOnOff_Light_Server 4
 #define srcOnOff_COOLING_Server 6
 #define srcOnOff_HEATING_Server 7
-#define srcOnOff_Light_Client 8
 #define srcApp_OnOff_Light_Server 9
+#define srcOnOff_Status_Server 10
+#define srcOnOff_Mode_Climate_Server 11
+#define srcOnOff_Mode_Light_Server 12
+
+// Endpoints Client
+#define srcOnOff_Light_Client 8
+
+// Endpoints Destination
+
+#define dstTemperature_Measurement_Client 1
+#define dstIlluminance_Measurement_Client 4
+#define dstOnOff_Light_Client 2
+#define dstOnOff_Status_Client 3
+#define dstOnOff_Mode_Climate 5
+#define dstOnOff_Mode_Light_Client 6
+
+
 
 //Addresse TemperatureSensor
 #define LM73_DEVICE_ADDRESS 0x4D
@@ -39,7 +55,7 @@
 
 typedef struct{
 	uint64_t ID;
-	bool status;		// 1==active, 0 == inactive 
+	bool status;		// 1==active, 0 == inactive
 	bool mode_light;			// 1 == automatisch, 0==manuell
 	bool mode_climate;
 	bool LEDWHITE_status;
