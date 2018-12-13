@@ -514,7 +514,7 @@ void initBinding(void){
 }
 
 static void initModule(){
-	module.ID = CS_UID;
+	module.ID = MODULE_ID;
 	module.status = true;
 	module.mode_climate = true;
 	module.mode_light = true;
