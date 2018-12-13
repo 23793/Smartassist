@@ -165,8 +165,8 @@ static ZCL_OnOffClusterServerAttributes_t onOffStatusAttributes = {ZCL_DEFINE_ON
 static ZCL_OnOffClusterServerAttributes_t onOffMode_climateAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
 static ZCL_OnOffClusterServerAttributes_t onOffMode_lightAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
 				
-static ZCL_TemperatureMeasurementClusterAttributes_t temperatureMeasurementAttributes ={ZCL_DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 0)};
-static ZCL_IlluminanceMeasurementClusterServerAttributes_t illuminanceMeasurementAttributes ={ZCL_DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 0)};
+static ZCL_TemperatureMeasurementClusterAttributes_t temperatureMeasurementAttributes ={ZCL_DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 2)};
+static ZCL_IlluminanceMeasurementClusterServerAttributes_t illuminanceMeasurementAttributes ={ZCL_DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 2)};
 static ZCL_OnOffClusterServerAttributes_t onOffCoolingAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
 static ZCL_OnOffClusterServerAttributes_t onOffHeatingAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
 
@@ -218,6 +218,15 @@ static ZCL_DeviceEndpoint_t endPointIlluminanceServer;
 static ZCL_DeviceEndpoint_t endPointOnOffLightClient;
 static ZCL_DeviceEndpoint_t endPointOnOffCoolingServer;
 static ZCL_DeviceEndpoint_t endPointOnOffHeatingServer;
+
+// Endpoint und Descriptor zum Empfang der Zielwerte
+static SimpleDescriptor_t simpleDescriptorTemp;
+static APS_RegisterEndpointReq_t endPointTemperatureZielwert;
+void APS_DataIndTemp(APS_DataInd_t *indData);
+
+static SimpleDescriptor_t simpleDescriptorIlluminance;
+static APS_RegisterEndpointReq_t endPointIlluminanceZielwert;
+void APS_DataIndIlluminance(APS_DataInd_t *indData);
 
 //Funktion zur Initialisierung des Endpunktes
 static void initEndpoints();
@@ -360,6 +369,19 @@ static void updateTimerFired(){
 				offPWMOutput(&LEDWHITE);
 			}
 		}
+	} else {
+		setOnOffState(&onOffHeatingAttributes, false);
+		setOnOffState(&onOffCoolingAttributes, false);
+		turnOff(LEDRED);
+		module.LEDRED_status = false;
+		turnOff(LEDBLUE);
+		module.LEDBLUE_status = false;
+		turnOff(FAN);
+		module.FAN_status = false;
+		
+		setOnOffState(&onOffLightAttributes, false);
+		offPWMOutput(&LEDWHITE);
+		
 	}
 }
 
@@ -367,16 +389,6 @@ void readIlluminanceSensorDoneCb(){
 	BSP_ToggleLed(LED_RED);
 	illuminanceMeasurementAttributes.measuredValue.value = LightData;
 	
-	
-	
-/*	
-	ZCL_WriteAttributeValue(srcIlluminance_Measurement_Server,
-	ILLUMINANCE_MEASUREMENT_CLUSTER_ID,
-	ZCL_CLUSTER_SIDE_SERVER,
-	ZCL_ILLUMINANCE_MEASUREMENT_CLUSTER_MEASURED_VALUE_SERVER_ATTRIBUTE_ID,
-	ZCL_U16BIT_DATA_TYPE_ID,
-	(uint8_t*)(& LightData));
-*/
 }
 
 int16_t calcTemperature(void){
@@ -398,16 +410,6 @@ int16_t calcTemperature(void){
 void readTempSensorDoneCb(){
 	
 	temperatureMeasurementAttributes.measuredValue.value = calcTemperature();
-	
-//	ZCL_ReportOnChangeIfNeeded(&temperatureMeasurementAttributes);
-/*
-	ZCL_WriteAttributeValue(srcTemperature_Measurement_Server,
-	TEMPERATURE_MEASUREMENT_CLUSTER_ID,
-	ZCL_CLUSTER_SIDE_SERVER,
-	ZCL_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_MEASURED_VALUE_ATTRIBUTE_ID,
-	ZCL_S16BIT_DATA_TYPE_ID,
-	(uint8_t*)(& j));
-*/	
 	
 }
 // Temperaturclusterinit
@@ -641,8 +643,34 @@ static void initEndpoints(){
 	endPointOnOffMode_lightServer.simpleDescriptor.AppOutClustersList = NULL;
 	endPointOnOffMode_lightServer.serverCluster = serverClustersOnOffClimate_light;
 	endPointOnOffMode_lightServer.clientCluster = NULL;
+	
+	
+	
+	simpleDescriptorTemp.AppDeviceId = 1;
+	simpleDescriptorTemp.AppProfileId = 1;
+	simpleDescriptorTemp.endpoint = srcTemperature_Zielwert;
+	simpleDescriptorTemp.AppDeviceVersion = 1;
+	endPointTemperatureZielwert.simpleDescriptor = &simpleDescriptorTemp;
+	endPointTemperatureZielwert.APS_DataInd = APS_DataIndTemp;
+	APS_RegisterEndpointReq(&endPointTemperatureZielwert);
+
+	simpleDescriptorIlluminance.AppDeviceId = 1;
+	simpleDescriptorIlluminance.AppProfileId = 1;
+	simpleDescriptorIlluminance.endpoint = srcIlluminance_Zielwert;
+	simpleDescriptorIlluminance.AppDeviceVersion = 1;
+	endPointIlluminanceZielwert.simpleDescriptor = &simpleDescriptorIlluminance;
+	endPointIlluminanceZielwert.APS_DataInd = APS_DataIndIlluminance;
+	APS_RegisterEndpointReq(&endPointIlluminanceZielwert);
 }
 
+void APS_DataIndTemp(APS_DataInd_t *indData){
+	BSP_ToggleLed(LED_YELLOW);	
+	module.temperatureReference = ((int16_t) indData->asdu/100 + (int16_t)indData->asdu%100)/100;
+}
+void APS_DataIndIlluminance(APS_DataInd_t *indData){
+	BSP_ToggleLed(LED_YELLOW);
+	module.illuminanceReference = (uint16_t) indData->asdu;
+}
 void wait()
 {
 	_delay_loop_2(10000);
