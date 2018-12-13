@@ -430,6 +430,33 @@ void clusterInit(void){
 	onOffCoolingAttributes.onOff.reportableChange = true;
 	onOffHeatingAttributes.onOff.reportableChange = true;
 }
+//Initial, first Report
+void statusReportNotify(){
+	
+}
+
+static uint8_t statusAttrBuff[STATUS_ATTRIBUTE_BUFFER_SIZE];
+ZCL_Report_t *reportAttrElement = (ZCL_Report_t*) statusAttrBuff;
+void initReport(){
+	reportAttrElement->id = ZCL_ONOFF_CLUSTER_ONOFF_SERVER_ATTRIBUTE_ID;
+	reportAttrElement->type = ZCL_BOOLEAN_DATA_TYPE_ID;
+	reportAttrElement->value[0] = onOffStatusAttributes.onOff.value;
+}
+static ZCL_Request_t statusAttrReq = {
+	.id = ZCL_REPORT_ATTRIBUTES_COMMAND_ID,
+	.ZCL_Notify = statusReportNotify,
+	.dstAddressing.addrMode = APS_EXT_ADDRESS,
+	.dstAddressing.addr.extAddress = 0x50000000A04LL,
+	.endpointId = srcOnOff_Status_Server,
+	.dstAddressing.clusterId = ONOFF_CLUSTER_ID,
+	.dstAddressing.profileId = PROFILE_ID_HOME_AUTOMATION,
+	.dstAddressing.clusterSide = ZCL_CLUSTER_SIDE_CLIENT,
+	.dstAddressing.endpointId = dstOnOff_Status_Client,
+	.requestLength = sizeof(ZCL_Report_t),
+	.requestPayload = statusAttrBuff,
+	.defaultResponse = ZCL_FRAME_CONTROL_DISABLE_DEFAULT_RESPONSE,
+};
+
 // Binding f?r Tempertur und OnOff initialisieren
 void initBinding(void){
 	CS_ReadParameter(CS_UID_ID, &bindIlluminance.srcAddr);
@@ -516,6 +543,7 @@ void initBinding(void){
 static void initModule(){
 	module.ID = MODULE_ID;
 	module.status = true;
+	onOffStatusAttributes.onOff.value = true;
 	module.mode_climate = true;
 	module.mode_light = true;
 	module.illuminanceReference = 100;
@@ -988,6 +1016,8 @@ void APL_TaskHandler(){
 			initButton();
             initBinding(); //Binding initialisieren
 			ZCL_StartReporting(); //Automatisches Reporting starten
+			initReport();
+			ZCL_AttributeReq(&statusAttrReq);
 			appstate = NOTHING;
 			break;
 		

@@ -1,10 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\GUI",
     "\\WSN",
     "\\WSN\\configfiles"
   ],
-  "SelectedNode": "\\WSN\\configfiles\\configuration_koordinator.h",
+  "SelectedNode": "\\WSN\\module1.c",
   "PreviewInSolutionExplorer": false
 }

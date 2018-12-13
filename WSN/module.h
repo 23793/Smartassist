@@ -38,7 +38,7 @@
 #define dstOnOff_Mode_Light_Client 6
 
 #define MODULE_ID 1
-
+#define STATUS_ATTRIBUTE_BUFFER_SIZE 10
 //Addresse TemperatureSensor
 #define LM73_DEVICE_ADDRESS 0x4D
 
