@@ -22,6 +22,8 @@
 #define srcOnOff_Status_Server 10
 #define srcOnOff_Mode_Climate_Server 11
 #define srcOnOff_Mode_Light_Server 12
+#define srcTemperature_Zielwert 13
+#define srcIlluminance_Zielwert 14
 
 // Endpoints Client
 #define srcOnOff_Light_Client 8
