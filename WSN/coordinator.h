@@ -27,6 +27,8 @@ typedef struct{
 	bool FAN_status;
 } Module;
 
+
+
 typedef enum{
 	INIT,
 	JOIN_NETWORK,
