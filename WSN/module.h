@@ -37,7 +37,7 @@
 #define dstOnOff_Mode_Climate 5
 #define dstOnOff_Mode_Light_Client 6
 
-
+#define MODULE_ID 1
 
 //Addresse TemperatureSensor
 #define LM73_DEVICE_ADDRESS 0x4D
@@ -56,7 +56,7 @@
 #define ILLUMINANCE_MEASUREMENT_TOLERANCE_ATTRIBUTE_VALUE            0x0000
 
 typedef struct{
-	uint64_t ID;
+	uint8_t ID;
 	bool status;		// 1==active, 0 == inactive
 	bool mode_light;			// 1 == automatisch, 0==manuell
 	bool mode_climate;
