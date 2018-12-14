@@ -7,25 +7,19 @@ import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -69,10 +63,12 @@ public class Gui extends Application {
 		 * File
 		 */
 		AnchorPane root = (AnchorPane) FXMLLoader.load(getClass().getResource("RoomView.fxml"));
+		
 		/*
 		 * add the AnchorPane into a Scene
 		 */
 		scene = new Scene(root);
+		
 		/*
 		 * get the single child of the the root
 		 */
@@ -312,7 +308,6 @@ public class Gui extends Application {
 			idCounter++;
 		}
 
-		System.out.println("Raumliste:" + raumListe.size());
 		System.out.println("Breite: " + viereck.width);
 		System.out.println("Hoehe: " + viereck.height);
 
