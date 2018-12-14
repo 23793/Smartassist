@@ -217,6 +217,20 @@ public class Gui extends Application {
 					} else {
 						tempRaum.setModul(new Modul(tempModulID));
 						System.out.println("Modul " + tempRaum.getModul().getModulID() + " hinzugefügt!");
+						switch (tempModulID) {
+						case 1:
+							list.get(0).setOpacity(0.2);
+							list.get(0).setDisable(true);
+							break;
+						case 2:
+							list.get(1).setOpacity(0.2);
+							list.get(1).setDisable(true);
+							break;
+						case 3:
+							list.get(2).setOpacity(0.2);
+							list.get(2).setDisable(true);
+							break;
+						}
 						tempModulID = 0;
 						tempRaum = null;
 					}
