@@ -24,7 +24,7 @@
                            <graphic>
                               <ImageView fitHeight="94.0" fitWidth="105.0" opacity="0.98" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../../../../Desktop/Informatik/versionraw1.png" />
+                                    <Image url="@../resources/versionraw1.png" />
                                  </image>
                               </ImageView>
                            </graphic>
@@ -74,7 +74,7 @@
                            <graphic>
                               <ImageView fitHeight="101.0" fitWidth="104.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../../../../Desktop/idea.png" />
+                                    <Image url="@../resources/idea.png" />
                                  </image>
                               </ImageView>
                            </graphic>
