@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 
+import application.Modul;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,13 +14,18 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -28,10 +34,10 @@ import javafx.stage.Stage;
  * Die Gui Klasse enth�lt die gesamte FXML basierte GUI inklusive aller
  * Funktionalit�ten. Die Funktion getRaumListe() gibt eine ArrayList mit allen
  * R�umen zur�ck.
- * 
+ *
  * @see javafx.application.Application
  * @see Raum
- * 
+ *
  * @author MinhMax & Gaitan
  *
  */
@@ -50,11 +56,29 @@ public class Gui extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
+		Image fire = new Image("/fire.png", true);
+		Image perfect = new Image("/perfect.png", true);
+		Image snow = new Image("/snow.png", true);
+		Image temp = new Image("/temp.png", true);
+
+		ImageView iv1 = new ImageView();
+		ImageView iv2 = new ImageView();
+		iv2.setFitWidth(50);
+		iv2.setFitHeight(50);
+		iv1.setFitHeight(21);
+		iv1.setFitWidth(21);
+		iv2.setImage(temp);
+
+		Button settings = new Button(null, new ImageView(temp));
+
+
 		/*
 		 * create the AnchorPane and all details and load the Path of the FXML
 		 * File
 		 */
 		AnchorPane root = (AnchorPane) FXMLLoader.load(getClass().getResource("RoomView.fxml"));
+		VBox vebox = new VBox();
+		HBox box = new HBox();
 		/*
 		 * add the AnchorPane into a Scene
 		 */
@@ -76,6 +100,16 @@ public class Gui extends Application {
 		// licht.setOnAction(event -> GUI.src.Lichtkonfig.display());
 		// Button temperature = (Button) anchorpane.getChildren().get(3);
 		// temperature.setOnAction(event -> GUI.src.Tempkonfig.display());
+		root.getChildren().add(vebox);
+		vebox.getChildren().add(settings);		//Temperaturicon
+		vebox.getChildren().add(box);
+		Label temps = new Label();
+		settings.setBackground(null);
+		Modul modul = new Modul(0);
+
+		modul.settemperatur(25.00f);
+		modul.tempsettings.set_temp_zielwert(22.00f);
+		temps.setText(String.format("%.2f", modul.gettemperatur()));
 
 		/*
 		 * Setzt die X und Y Werte f�r den Punkt des Klickens der Maus fest.
@@ -191,7 +225,7 @@ public class Gui extends Application {
 	 * Zeichnet ein sichtbares Rectangle in das Grundrissfenster und erstellt
 	 * ein Objekt vom Typ Raum. Gezeichnete R�ume m�ssen mindestens 50x50 Pixel
 	 * gro� sein und d�rfen sich nicht �berschneiden.
-	 * 
+	 *
 	 * @see Raum
 	 * @param gc
 	 */
