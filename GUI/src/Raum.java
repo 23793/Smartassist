@@ -1,7 +1,9 @@
 package GUI.src;
 
+import java.awt.Rectangle;
+
 /**
- * Die Raumklasse ist für die Logik und Funktionalitäten von Räumen zuständig.
+ * Die Raumklasse ist fï¿½r die Logik und Funktionalitï¿½ten von Rï¿½umen zustï¿½ndig.
  * 
  * @author Minh
  *
@@ -11,8 +13,7 @@ public class Raum {
 	private double position_x;
 	private double position_y; // Punkt rechts unten
 	private int RaumID;
-	private double height;
-	private double width;
+	private Rectangle rect;
 
 	private Modul modul = null;
 	private Licht licht = null;
@@ -28,13 +29,14 @@ public class Raum {
 	 * @param lichtwert
 	 *            der aktuelle Lichtwert im Raum
 	 * @param lightswitch
-	 *            boolean der angibt, ob der Lichtschalter betätigt wurde
+	 *            boolean der angibt, ob der Lichtschalter betï¿½tigt wurde
 	 */
 
-	public Raum(int id, double x, double y) {
+	public Raum(int id, double x, double y, Rectangle rectangle) {
 		this.RaumID = id;
 		this.position_x = x;
 		this.position_y = y;
+		this.rect = rectangle;
 	}
 
 	public Raum() {
@@ -71,20 +73,12 @@ public class Raum {
 		return RaumID;
 	}
 
-	public void setheight(double h) {
-		height = h;
+	public Rectangle getRect() {
+		return rect;
 	}
 
-	public double getheight() {
-		return height;
-	}
-
-	public void setwidth(double w) {
-		width = w;
-	}
-
-	public double getwidth() {
-		return width;
+	public void setRect(Rectangle rect) {
+		this.rect = rect;
 	}
 
 	public boolean getState() {

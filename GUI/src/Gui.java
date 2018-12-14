@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -12,15 +13,20 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.SplitPane;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /**
- * Die Gui Klasse enthält die gesamte FXML basierte GUI inklusive aller
- * Funktionalitäten. Die Funktion getRaumListe() gibt eine ArrayList mit allen
- * Räumen zurück.
+ * Die Gui Klasse enthï¿½lt die gesamte FXML basierte GUI inklusive aller
+ * Funktionalitï¿½ten. Die Funktion getRaumListe() gibt eine ArrayList mit allen
+ * Rï¿½umen zurï¿½ck.
  * 
  * @see javafx.application.Application
  * @see Raum
@@ -69,7 +75,7 @@ public class Gui extends Application {
 		// temperature.setOnAction(event -> GUI.src.Tempkonfig.display());
 
 		/*
-		 * Setzt die X und Y Werte für den Punkt des Klickens der Maus fest.
+		 * Setzt die X und Y Werte fï¿½r den Punkt des Klickens der Maus fest.
 		 */
 		anchorpane.setOnMousePressed(new EventHandler<MouseEvent>() {
 
@@ -82,7 +88,7 @@ public class Gui extends Application {
 		});
 
 		/*
-		 * Setzt die X und Y Werte für den Punkt des Loslassens der Maus fest.
+		 * Setzt die X und Y Werte fï¿½r den Punkt des Loslassens der Maus fest.
 		 */
 		anchorpane.setOnMouseReleased(new EventHandler<MouseEvent>() {
 
@@ -92,6 +98,130 @@ public class Gui extends Application {
 				System.out.println("Release X = " + releasedX);
 				System.out.println("Release Y = " + releasedY);
 				drawRectangle(gc);
+			}
+		});
+
+		/*
+		 * Drag and Drop feature. Starting the Drag-and-Drop Gesture on every
+		 * child of the VBox except the logo.
+		 */
+
+		VBox vbox = (VBox) splitpane.getItems().get(0);
+		ObservableList<Node> list = FXCollections.observableArrayList();
+
+		list.add(vbox.getChildren().get(1));
+		list.add(vbox.getChildren().get(2));
+		list.add(vbox.getChildren().get(3));
+		list.add(vbox.getChildren().get(4));
+
+		for (Node n : list) {
+			n.setOnDragDetected(new EventHandler<MouseEvent>() {
+				public void handle(MouseEvent event) {
+					Dragboard db = n.startDragAndDrop(TransferMode.MOVE);
+					ClipboardContent content = new ClipboardContent();
+					content.putString("Hallo");
+					db.setContent(content);
+					System.out.println("event.getX()  : " + event.getX());
+					System.out.println("event.getY()  : " + event.getY());
+					System.out.println("event.getTarget() : " + event.getTarget());
+					System.out.println("event.getSource() : " + event.getSource());
+					// event.ge
+					event.consume();
+					// event.isConsumed();
+				}
+			});
+		}
+		anchorpane.setOnDragOver(new EventHandler<DragEvent>() {
+			public void handle(DragEvent event) {
+				if (event.getGestureSource() != anchorpane && event.getDragboard().hasString()) {
+					/*
+					 * allow for both copying and moving, whatever user chooses
+					 */
+					event.acceptTransferModes(TransferMode.MOVE);
+				}
+
+				System.out.println("event.getX()  : " + event.getX());
+				System.out.println("event.getY()  : " + event.getY());
+				System.out.println("event.getTarget() : " + event.getTarget());
+				System.out.println("event.getSource() : " + event.getSource());
+
+				event.consume();
+			}
+		});
+
+		anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
+			public void handle(DragEvent event) {
+				Dragboard db = event.getDragboard();
+				boolean success = true;
+				// if (db.hasString()) {
+				// rightAnchorPane.setAccessibleText(db.getString());
+				//// rightAnchorPane.setText(db.getString());
+				// success = true;
+				// }
+
+				event.setDropCompleted(success);
+				System.out.println("event.getX()  : " + event.getX());
+				System.out.println("event.getY()  : " + event.getY());
+				System.out.println("event.getTarget() : " + event.getTarget());
+				System.out.println("event.getSource() : " + event.getSource());
+				event.consume();
+			}
+		});
+
+		vbox.setOnDragDone(new EventHandler<DragEvent>() {
+			public void handle(DragEvent event) {
+				/* the drag and drop gesture ended */
+				/* if the data was successfully moved, clear it */
+				if (event.getTransferMode() == TransferMode.MOVE) {
+					// vbox.setText("");
+
+				}
+				System.out.println("event.getX()  : " + event.getX());
+				System.out.println("event.getY()  : " + event.getY());
+				System.out.println("event.getTarget() : " + event.getTarget());
+				System.out.println("event.getSource() : " + event.getSource());
+				event.consume();
+			}
+		});
+
+		/*
+		 * Handling the DRAG_OVER Event on the right AnchorPane.
+		 */
+		// canvas.setOnDragOver(value);
+		anchorpane.setOnDragOver(new EventHandler<DragEvent>() {
+			public void handle(DragEvent event) {
+				/* data is dragged over the target */
+				/*
+				 * accept it only if it is not dragged from the same node and if
+				 * it has a string data
+				 */
+				if (event.getGestureSource() != anchorpane && event.getDragboard().hasString()) {
+					/*
+					 * allow for both copying and moving, whatever user chooses
+					 */
+					event.acceptTransferModes(TransferMode.MOVE);
+				}
+
+				event.consume();
+			}
+		});
+
+		anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
+			public void handle(DragEvent event) {
+				Dragboard db = event.getDragboard();
+				boolean success = true;
+				// if (db.hasString()) {
+				// rightAnchorPane.setAccessibleText(db.getString());
+				//// rightAnchorPane.setText(db.getString());
+				// success = true;
+				// }
+
+				event.setDropCompleted(success);
+				System.out.println("event.getX()  : " + event.getX());
+				System.out.println("event.getY()  : " + event.getY());
+				System.out.println("event.getTarget() : " + event.getTarget());
+				System.out.println("event.getSource() : " + event.getSource());
+				event.consume();
 			}
 		});
 
@@ -108,8 +238,8 @@ public class Gui extends Application {
 
 	/**
 	 * Zeichnet ein sichtbares Rectangle in das Grundrissfenster und erstellt
-	 * ein Objekt vom Typ Raum. Gezeichnete Räume müssen mindestens 50x50 Pixel
-	 * groß sein und dürfen sich nicht überschneiden.
+	 * ein Objekt vom Typ Raum. Gezeichnete Rï¿½ume mï¿½ssen mindestens 50x50 Pixel
+	 * groï¿½ sein und dï¿½rfen sich nicht ï¿½berschneiden.
 	 * 
 	 * @see Raum
 	 * @param gc
@@ -158,8 +288,8 @@ public class Gui extends Application {
 		}
 		if (!intersect) {
 			gc.strokeRect(viereck.x, viereck.y, viereck.width, viereck.height);
-			// Punkt für eigentlichen Raum unten rechts
-			raumListe.add(new Raum(idCounter, viereck.x + viereck.width, viereck.y + viereck.height));
+			// Punkt fï¿½r eigentlichen Raum unten rechts
+			raumListe.add(new Raum(idCounter, viereck.x + viereck.width, viereck.y + viereck.height, viereck));
 			rectangles.add(viereck);
 			System.out.println("Raum: " + raumListe.get(idCounter - 1).getID() + ", "
 					+ raumListe.get(idCounter - 1).getposition_x() + ", "
