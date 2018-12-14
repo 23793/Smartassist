@@ -1,5 +1,6 @@
 package GUI.src;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 
@@ -43,6 +44,8 @@ public class Gui extends Application {
 	private static ArrayList<Rectangle> rectangles = new ArrayList<Rectangle>();
 	private static ArrayList<Raum> raumListe = new ArrayList<Raum>();
 	private static int idCounter = 1;
+	private static int tempModulID = 0;
+	private static ObservableList<Node> list = FXCollections.observableArrayList();
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -107,7 +110,6 @@ public class Gui extends Application {
 		 */
 
 		VBox vbox = (VBox) splitpane.getItems().get(0);
-		ObservableList<Node> list = FXCollections.observableArrayList();
 
 		list.add(vbox.getChildren().get(1));
 		list.add(vbox.getChildren().get(2));
@@ -125,102 +127,51 @@ public class Gui extends Application {
 					System.out.println("event.getY()  : " + event.getY());
 					System.out.println("event.getTarget() : " + event.getTarget());
 					System.out.println("event.getSource() : " + event.getSource());
-					// event.ge
+					if (n.getId() == list.get(0).getId()) {
+						tempModulID = 1;
+					} else if (n.getId() == list.get(1).getId()) {
+						tempModulID = 2;
+					} else if (n.getId() == list.get(2).getId()) {
+						tempModulID = 3;
+					} else if (n.getId() == list.get(3).getId()) {
+						tempModulID = 0;
+					}
 					event.consume();
-					// event.isConsumed();
+
 				}
 			});
 		}
 		anchorpane.setOnDragOver(new EventHandler<DragEvent>() {
 			public void handle(DragEvent event) {
 				if (event.getGestureSource() != anchorpane && event.getDragboard().hasString()) {
-					/*
-					 * allow for both copying and moving, whatever user chooses
-					 */
+
 					event.acceptTransferModes(TransferMode.MOVE);
 				}
-
-				System.out.println("event.getX()  : " + event.getX());
-				System.out.println("event.getY()  : " + event.getY());
-				System.out.println("event.getTarget() : " + event.getTarget());
-				System.out.println("event.getSource() : " + event.getSource());
-
 				event.consume();
 			}
 		});
 
 		anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
 			public void handle(DragEvent event) {
-				Dragboard db = event.getDragboard();
+				// Dragboard db = event.getDragboard();
 				boolean success = true;
-				// if (db.hasString()) {
-				// rightAnchorPane.setAccessibleText(db.getString());
-				//// rightAnchorPane.setText(db.getString());
-				// success = true;
-				// }
-
-				event.setDropCompleted(success);
-				System.out.println("event.getX()  : " + event.getX());
-				System.out.println("event.getY()  : " + event.getY());
-				System.out.println("event.getTarget() : " + event.getTarget());
-				System.out.println("event.getSource() : " + event.getSource());
-				event.consume();
-			}
-		});
-
-		vbox.setOnDragDone(new EventHandler<DragEvent>() {
-			public void handle(DragEvent event) {
-				/* the drag and drop gesture ended */
-				/* if the data was successfully moved, clear it */
-				if (event.getTransferMode() == TransferMode.MOVE) {
-					// vbox.setText("");
-
+				Point p = new Point();
+				p.setLocation(event.getX(), event.getY());
+				int index = 0;
+				for (Raum r : raumListe) {
+					if (r.getRect().contains(p) && r.getModul() == null) {
+						if (tempModulID == 0) {
+							r.setLicht(new Licht());
+						} else {
+							r.setModul(new Modul(tempModulID));
+							System.out.println(" Modul : " + r.getModul().getModulID());
+							tempModulID = 0;
+							break;
+						}
+					}
+					index++;
 				}
-				System.out.println("event.getX()  : " + event.getX());
-				System.out.println("event.getY()  : " + event.getY());
-				System.out.println("event.getTarget() : " + event.getTarget());
-				System.out.println("event.getSource() : " + event.getSource());
-				event.consume();
-			}
-		});
-
-		/*
-		 * Handling the DRAG_OVER Event on the right AnchorPane.
-		 */
-		// canvas.setOnDragOver(value);
-		anchorpane.setOnDragOver(new EventHandler<DragEvent>() {
-			public void handle(DragEvent event) {
-				/* data is dragged over the target */
-				/*
-				 * accept it only if it is not dragged from the same node and if
-				 * it has a string data
-				 */
-				if (event.getGestureSource() != anchorpane && event.getDragboard().hasString()) {
-					/*
-					 * allow for both copying and moving, whatever user chooses
-					 */
-					event.acceptTransferModes(TransferMode.MOVE);
-				}
-
-				event.consume();
-			}
-		});
-
-		anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
-			public void handle(DragEvent event) {
-				Dragboard db = event.getDragboard();
-				boolean success = true;
-				// if (db.hasString()) {
-				// rightAnchorPane.setAccessibleText(db.getString());
-				//// rightAnchorPane.setText(db.getString());
-				// success = true;
-				// }
-
 				event.setDropCompleted(success);
-				System.out.println("event.getX()  : " + event.getX());
-				System.out.println("event.getY()  : " + event.getY());
-				System.out.println("event.getTarget() : " + event.getTarget());
-				System.out.println("event.getSource() : " + event.getSource());
 				event.consume();
 			}
 		});
@@ -229,7 +180,7 @@ public class Gui extends Application {
 		primaryStage.setScene(scene);
 
 		// Set the title of the stage
-		primaryStage.setTitle("SmartAsssit");
+		primaryStage.setTitle("SmartAssist");
 
 		// Display the stage
 		primaryStage.show();

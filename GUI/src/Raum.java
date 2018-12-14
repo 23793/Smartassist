@@ -89,4 +89,39 @@ public class Raum {
 		}
 	}
 
+	/**
+	 * @return the modul
+	 */
+	public Modul getModul() {
+		return modul;
+	}
+
+	/**
+	 * @param modul the modul to set
+	 */
+	public void setModul(Modul modul) {
+		this.modul = modul;
+	}
+
+	/**
+	 * @return the licht
+	 */
+	public Licht getLicht() {
+		return licht;
+	}
+
+	/**
+	 * @param licht the licht to set
+	 */
+	public void setLicht(Licht licht) {
+		this.licht = licht;
+	}
+
+	/**
+	 * @return the klima
+	 */
+	public Klima getKlima() {
+		return klima;
+	}
+
 }

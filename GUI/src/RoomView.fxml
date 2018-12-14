@@ -34,22 +34,22 @@
                         </Label>
                      </children>
                   </AnchorPane>
-                  <AnchorPane layoutX="10.0" layoutY="10.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                  <AnchorPane id="1" layoutX="10.0" layoutY="10.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                      <children>
                         <Pane prefHeight="138.0" prefWidth="235.0" style="-fx-background-color: grey;" AnchorPane.bottomAnchor="13.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
-                              <Text fill="WHITE" layoutX="99.0" layoutY="74.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Zimmer 1">
+                              <Text fill="WHITE" layoutX="99.0" layoutY="74.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Modul 1">
                                  <font>
                                     <Font name="Open Sans Extrabold" size="12.0" />
                                  </font>
                               </Text>
                            </children></Pane>
                      </children></AnchorPane>
-                  <AnchorPane layoutX="10.0" layoutY="170.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                  <AnchorPane id="2" layoutX="10.0" layoutY="170.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                      <children>
                         <Pane prefHeight="138.0" prefWidth="235.0" style="-fx-background-color: grey;" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
-                              <Text fill="WHITE" layoutX="99.0" layoutY="74.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Zimmer 2">
+                              <Text fill="WHITE" layoutX="99.0" layoutY="74.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Modul 2">
                                  <font>
                                     <Font name="Open Sans Extrabold" size="12.0" />
                                  </font>
@@ -57,18 +57,18 @@
                            </children>
                         </Pane>
                      </children></AnchorPane>
-                  <AnchorPane prefHeight="200.0" prefWidth="200.0">
+                  <AnchorPane id="3" prefHeight="200.0" prefWidth="200.0">
                      <children>
                         <Pane prefHeight="138.0" prefWidth="235.0" style="-fx-background-color: grey;" AnchorPane.bottomAnchor="54.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
-                              <Text fill="WHITE" layoutX="95.0" layoutY="74.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Zimmer 3">
+                              <Text fill="WHITE" layoutX="95.0" layoutY="74.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Modul 3">
                                  <font>
                                     <Font name="Open Sans Extrabold" size="12.0" />
                                  </font>
                               </Text>
                            </children></Pane>
                      </children></AnchorPane>
-                  <AnchorPane layoutX="10.0" layoutY="490.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                  <AnchorPane id="4" layoutX="10.0" layoutY="490.0" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                      <children>
                         <Label alignment="CENTER" contentDisplay="TOP" prefHeight="160.0" prefWidth="233.0" text="Lampe" textAlignment="CENTER" textFill="WHITE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <graphic>
@@ -87,7 +87,7 @@
             </VBox>
             <AnchorPane>
                <children>
-                  <Button alignment="BOTTOM_RIGHT" contentDisplay="BOTTOM" layoutX="491.0" layoutY="759.0" mnemonicParsing="false" style="-fx-background-color: grey;" stylesheets="@smartassist.css" text="CLEAR" textFill="WHITE">
+                  <Button alignment="BOTTOM_RIGHT" contentDisplay="BOTTOM" layoutX="491.0" layoutY="759.0" mnemonicParsing="false" style="-fx-background-color: grey;" stylesheets="@smartassist.css" text="RESET" textFill="WHITE">
                      <font>
                         <Font name="Open Sans" size="12.0" />
                      </font>
