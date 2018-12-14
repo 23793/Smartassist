@@ -224,27 +224,23 @@ public class Gui extends Application {
 	}
 
 	/*
-	 * TEST FÜR TEMPERATURANZEIGE IM RAUM
+	 * TEMPERATURANZEIGE IM RAUM
 	 */
-	// Falls mindestens ein Raum mit Modul existiert
 	private void createTempAnzeige(Raum r) {
-
+		// Falls Raum ein Modul hat (nur um sicher zu gehen)
 		if (r.getModul() != null) {
 
-			String temperatur = raumListe.get(0).getModul().temperaturanzeige(22.00f);
-			raumListe.get(0).getKlima().setImageAndLabel(temperatur,
-					String.format("%.2f", raumListe.get(0).getModul().gettemperatur()));
+			String temperatur = r.getModul().temperaturanzeige(22.00f);
+			r.getKlima().setImageAndLabel(temperatur, String.format("%.2f", r.getModul().gettemperatur()));
 
-			anchorpane.getChildren().add(raumListe.get(0).getKlima().getVebox());
+			anchorpane.getChildren().add(r.getKlima().getVebox());
 			// TemperaturIcon
-			raumListe.get(0).getKlima().getVebox().getChildren().add(raumListe.get(0).getKlima().getSettings());
-			raumListe.get(0).getKlima().getVebox().getChildren().add(raumListe.get(0).getKlima().getBox());
+			r.getKlima().getVebox().getChildren().add(r.getKlima().getSettings());
+			r.getKlima().getVebox().getChildren().add(r.getKlima().getBox());
 			// Aktuelle Temperatur
-			raumListe.get(0).getKlima().getBox().getChildren().add(raumListe.get(0).getKlima().getTemps());
+			r.getKlima().getBox().getChildren().add(r.getKlima().getTemps());
 			// Aktuelles Icon
-			raumListe.get(0).getKlima().getBox().getChildren().add(raumListe.get(0).getKlima().getIv1());
-
-			System.out.println("Temperaturanzeige sollte da sein.");
+			r.getKlima().getBox().getChildren().add(r.getKlima().getIv1());
 		}
 	}
 
