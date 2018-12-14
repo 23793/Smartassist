@@ -7,19 +7,25 @@ import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -28,10 +34,10 @@ import javafx.stage.Stage;
  * Die Gui Klasse enthï¿½lt die gesamte FXML basierte GUI inklusive aller
  * Funktionalitï¿½ten. Die Funktion getRaumListe() gibt eine ArrayList mit allen
  * Rï¿½umen zurï¿½ck.
- * 
+ *
  * @see javafx.application.Application
  * @see Raum
- * 
+ *
  * @author MinhMax & Gaitan
  *
  */
@@ -47,8 +53,38 @@ public class Gui extends Application {
 	private static int tempModulID = 0;
 	private static ObservableList<Node> list = FXCollections.observableArrayList();
 
+	Image fire = new Image("/GUI/resources/fire.png", true);
+	Image temp = new Image("/GUI/resources/temp.png", true);
+	Image snow = new Image("/GUI/resources/snow.png", true);
+	Image perfect = new Image("/GUI/resources/perfect.png", true);
+
+	ImageView iv1 = new ImageView();
+	ImageView iv2 = new ImageView();
+
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+
+
+		/*
+		 * Skalierung der Bilder
+		 */
+		iv2.setFitWidth(50);
+		iv2.setFitHeight(50);
+		iv1.setFitHeight(21);
+		iv1.setFitWidth(21);
+
+		/*
+		 * Button als Thermometerbild
+		 */
+		iv2.setImage(temp);
+		Button settings = new Button(null, new ImageView(temp));
+		settings.setBackground(null);
+
+		/*
+		 * Vbox und Hbox für Temperaturanzeige
+		 */
+		VBox vebox = new VBox();
+		HBox box = new HBox();
 
 		/*
 		 * create the AnchorPane and all details and load the Path of the FXML
@@ -176,6 +212,66 @@ public class Gui extends Application {
 			}
 		});
 
+
+
+		/*
+		 * Position der Temperaturanzeige
+		 * HIER: ersetzten mit X und Y Werten eines Raumes.
+		 */
+		vebox.setLayoutX(200);
+		vebox.setLayoutY(200);
+
+		/*
+		 * TESTMODUL ERSTELLT
+		 */
+		Modul modul = new Modul(0);
+		modul.settemperatur(22.00f);
+		modul.tempsettings.set_temp_zielwert(22.00f);
+		Label temps = new Label(); 				//temperatur in Grad anzeigen
+		temps.setText(String.format("%.2f", modul.gettemperatur()) +"°C");
+
+		/*
+		 * Methode aufrufen und aktuelle Temperatur übergeben und als String speichern
+		 */
+		String test = modul.temperaturanzeige(modul.gettemperatur());
+
+		/**
+		 * checkt den returnwert von temperaturanzeige() und gibt entsprechendes
+		 * Bild aus.
+		 */
+		if(test.equals("kalt")) {
+			iv1.setImage(snow);
+		} else if (test.equals("heiss")) {
+			iv1.setImage(fire);
+		} else if (test.equals("perfekt")) {
+			iv1.setImage(perfect);
+		}
+
+		settings.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("Test");
+			}
+
+		});
+
+		/*
+		 * Falls Modulstatus = aktiv, Temperaturanzeige hinzufügen
+		 */
+		//If(Modulstatus==1) {
+		anchorpane.getChildren().add(vebox);
+		vebox.getChildren().add(settings);		//Temperaturicon
+		vebox.getChildren().add(box);
+		box.getChildren().add(temps);  //Aktuelle Temperatur
+		box.getChildren().add(iv1);	//currenticon
+
+		//		}
+
+
+
+
 		// Set the scene to the stage
 		primaryStage.setScene(scene);
 
@@ -191,7 +287,7 @@ public class Gui extends Application {
 	 * Zeichnet ein sichtbares Rectangle in das Grundrissfenster und erstellt
 	 * ein Objekt vom Typ Raum. Gezeichnete Rï¿½ume mï¿½ssen mindestens 50x50 Pixel
 	 * groï¿½ sein und dï¿½rfen sich nicht ï¿½berschneiden.
-	 * 
+	 *
 	 * @see Raum
 	 * @param gc
 	 */

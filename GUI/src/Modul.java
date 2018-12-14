@@ -10,7 +10,7 @@ public class Modul {
 
 	Temppop tempsettings = new Temppop();
 	Lichtpop lichtsettings = new Lichtpop();
-	
+
 	public Modul( int ModulID )
 	{
 		this.ModulID = ModulID;
@@ -46,20 +46,24 @@ public class Modul {
 	}
 
 
-	public void temperaturanzeige(float tmp) {
+	public String temperaturanzeige(float tmp) {
 
 		if(tmp < tempsettings.get_temp_zielwert()) {
 			System.out.println("Es ist gerade " + tmp+" Grad, die Zieltemperatur ist "
 					+ tempsettings.get_temp_zielwert() +". Es ist zu kalt."+" Es muss geheizt werden."); // wird zum modul gesendet
+			return "kalt";
 
 		} else if (tmp > tempsettings.get_temp_zielwert()) {
 			System.out.println("Es ist " + tmp + " Grad, die Zieltemperatur ist "
-					+ tempsettings.get_temp_zielwert() +". Es ist zu heiï¿½."+ " Es muss gekï¿½hlt werden.");
+					+ tempsettings.get_temp_zielwert() +". Es ist zu heiß."+ " Es muss gekühlt werden.");
+			return "heiss";
 		} else {
 			System.out.println("Perfekte Raumemperatur.");
+			return "perfekt";
 		}
-	}
 
+
+	}
 
 
 	public void settemperatur(float temp) {
