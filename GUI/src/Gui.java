@@ -281,10 +281,14 @@ public class Gui extends Application {
 		gc.setLineDashes(5);
 		gc.setStroke(Color.WHITE);
 
-		// Check if drawn room is viable
+		// Check if drawn room is viable (big enough, not intersecting, in
+		// bounds)
 		Boolean intersect = false;
-		if (viereck.width < 50 || viereck.height < 50 || (releasedX > 554 || releasedX < 0)
-				|| (releasedY > 746 || releasedY < 0)) {
+		if (viereck.width < 58 || viereck.height < 72) {
+			intersect = true;
+			System.out.println("Room too small!");
+		}
+		if ((releasedX > 554 || releasedX < 0) || (releasedY > 746 || releasedY < 0)) {
 			intersect = true;
 			System.out.println("Rooms cannot be out of bounds!");
 		}
