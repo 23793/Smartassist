@@ -1,5 +1,6 @@
 package GUI.src;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 
 /**
@@ -103,7 +104,7 @@ public class Raum {
 	 */
 	public void setModul(Modul modul) {
 		this.modul = modul;
-		this.klima = new Klima();
+		this.klima = new Klima(new Point((int) (position_x), (int) (position_y)));
 	}
 
 	/**
