@@ -63,12 +63,12 @@ public class Gui extends Application {
 		 * File
 		 */
 		AnchorPane root = (AnchorPane) FXMLLoader.load(getClass().getResource("RoomView.fxml"));
-		
+
 		/*
 		 * add the AnchorPane into a Scene
 		 */
 		scene = new Scene(root);
-		
+
 		/*
 		 * get the single child of the the root
 		 */
@@ -181,6 +181,11 @@ public class Gui extends Application {
 						System.out.println("Modul " + tempRaum.getModul().getModulID() + " hinzugefügt!");
 						// FÜGT TEMPERATURANZEIGE HINZU
 						createTempAnzeige(tempRaum);
+						// MALE RAUM AUS
+						gc.setFill(Color.WHITE);
+						gc.fillRect(tempRaum.getRect().getX() + 1, tempRaum.getRect().getY() + 1,
+								tempRaum.getRect().getWidth() - 2, tempRaum.getRect().getHeight() - 2);
+						// DEAKTIVIERE BEREITS BENUTZTE MODULE
 						switch (tempModulID) {
 						case 1:
 							list.get(0).setOpacity(0.2);
@@ -195,6 +200,7 @@ public class Gui extends Application {
 							list.get(2).setDisable(true);
 							break;
 						}
+						// RESET TEMP VARIABLES
 						tempModulID = 0;
 						tempRaum = null;
 					}
@@ -274,8 +280,9 @@ public class Gui extends Application {
 			viereck.y = (int) (pressedY - viereck.height);
 		}
 
-		gc.setLineDashes(5);
-		gc.setStroke(Color.WHITE);
+		gc.setLineDashes(8);
+		gc.setLineWidth(3);
+		gc.setStroke(Color.LIGHTGREY);
 
 		// Check if drawn room is viable (big enough, not intersecting, in
 		// bounds)
