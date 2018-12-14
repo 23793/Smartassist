@@ -95,8 +95,6 @@ public class Gui extends Application {
 			public void handle(MouseEvent event) {
 				pressedX = event.getX();
 				pressedY = event.getY();
-				// System.out.println("X = " + pressedX);
-				// System.out.println("Y = " + pressedY);
 			}
 		});
 
@@ -108,8 +106,6 @@ public class Gui extends Application {
 			public void handle(MouseEvent event) {
 				releasedX = event.getX();
 				releasedY = event.getY();
-				// System.out.println("Release X = " + releasedX);
-				// System.out.println("Release Y = " + releasedY);
 				drawRectangle(gc);
 			}
 		});
@@ -220,7 +216,6 @@ public class Gui extends Application {
 
 		// Display the stage
 		primaryStage.show();
-
 	}
 
 	/*
