@@ -2,8 +2,8 @@ package GUI.src;
 
 public class Modul {
 
-	private float temperatur;
-	private int lichtwert;
+	private float temperatur = 20.00f;
+	private int lichtwert = 200;
 	private int ModulID;
 
 	Temppop tempsettings = new Temppop();
