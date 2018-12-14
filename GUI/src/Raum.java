@@ -3,7 +3,8 @@ package GUI.src;
 import java.awt.Rectangle;
 
 /**
- * Die Raumklasse ist f�r die Logik und Funktionalit�ten von R�umen zust�ndig.
+ * Die Raumklasse ist f�r die Logik und Funktionalit�ten von R�umen
+ * zust�ndig.
  * 
  * @author Minh
  *
@@ -17,7 +18,7 @@ public class Raum {
 
 	private Modul modul = null;
 	private Licht licht = null;
-	private Klima klima = new Klima();
+	private Klima klima = null;
 
 	/**
 	 * Erstellt ein Raumobjekt mit den gegebenen Parametern.
@@ -97,10 +98,12 @@ public class Raum {
 	}
 
 	/**
-	 * @param modul the modul to set
+	 * @param modul
+	 *            the modul to set
 	 */
 	public void setModul(Modul modul) {
 		this.modul = modul;
+		this.klima = new Klima();
 	}
 
 	/**
@@ -111,7 +114,8 @@ public class Raum {
 	}
 
 	/**
-	 * @param licht the licht to set
+	 * @param licht
+	 *            the licht to set
 	 */
 	public void setLicht(Licht licht) {
 		this.licht = licht;

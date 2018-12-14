@@ -201,7 +201,8 @@ public class Gui extends Application {
 			}
 		});
 
-		// Handling the drop and adding new objects to the room
+		// Handling the drop and adding new objects to the room aswell as making
+		// already used modules unavailable
 		anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
 			public void handle(DragEvent event) {
 				boolean success = false;
@@ -239,7 +240,7 @@ public class Gui extends Application {
 				event.consume();
 			}
 		});
-
+		
 		/*
 		 * Position der Temperaturanzeige HIER: ersetzten mit X und Y Werten
 		 * eines Raumes.
@@ -349,14 +350,22 @@ public class Gui extends Application {
 		gc.setLineDashes(5);
 		gc.setStroke(Color.WHITE);
 
+		// Check if drawn room is viable
 		Boolean intersect = false;
+		if (viereck.width < 50 || viereck.height < 50 || (releasedX > 554 || releasedX < 0)
+				|| (releasedY > 746 || releasedY < 0)) {
+			intersect = true;
+			System.out.println("Rooms cannot be out of bounds!");
+		}
 		for (Rectangle r : rectangles) {
-			if (r.intersects(viereck) || viereck.width < 50 || viereck.height < 50) {
+			if (r.intersects(viereck)) {
 				intersect = true;
 				System.out.println("Rooms cannot intersect!");
 				break;
 			}
 		}
+
+		// Draw room if viable
 		if (!intersect) {
 			gc.strokeRect(viereck.x, viereck.y, viereck.width, viereck.height);
 			// Punkt f�r eigentlichen Raum unten rechts
