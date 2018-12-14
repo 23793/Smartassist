@@ -20,11 +20,11 @@
                <children>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                      <children>
-                        <Label alignment="CENTER" contentDisplay="TOP" prefHeight="159.0" prefWidth="235.0" stylesheets="@smartassist.css" text="SmartAssist" textAlignment="CENTER" textFill="WHITE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <Label alignment="CENTER" contentDisplay="TOP" prefHeight="159.0" prefWidth="235.0" stylesheets="@smartassist.css" text="SMARTASSIST" textAlignment="CENTER" textFill="WHITE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <graphic>
                               <ImageView fitHeight="94.0" fitWidth="105.0" opacity="0.98" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../../GUI-Logos/smart%20home%20-logo.png" />
+                                    <Image url="@../../../../Desktop/Informatik/versionraw1.png" />
                                  </image>
                               </ImageView>
                            </graphic>
@@ -74,7 +74,7 @@
                            <graphic>
                               <ImageView fitHeight="101.0" fitWidth="104.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../../GUI-Logos/lampe.jpg" />
+                                    <Image url="@../../../../Desktop/idea.png" />
                                  </image>
                               </ImageView>
                            </graphic>
