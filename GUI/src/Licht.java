@@ -1,28 +1,20 @@
 package GUI.src;
 
+import java.awt.Point;
 
 public class Licht {
 
-	private boolean licht_status;
-	private float licht_position_x;
-	private float licht_position_y;
+	private boolean lichtStatus = false;
+	private Point lichtPoint;
 
-/*	public void toggle(boolean s) {
-		if(s == true) {
-			setlicht_status(false);
-			System.out.println("Off");
-		}
-		else if(s == false) {
-			setlicht_status(true);
-			System.out.println("On");
-		}
-
-	}*/
+	public Licht(Point p) {
+		lichtPoint = p;
+	}
 
 	public void toggle() {
-		licht_status = !licht_status;
+		lichtStatus = !lichtStatus;
 
-		if(licht_status) {
+		if (lichtStatus) {
 			System.out.println("Licht an");
 		} else {
 			System.out.println("Licht aus");
@@ -30,28 +22,20 @@ public class Licht {
 		}
 	}
 
-	public void setlicht_status(boolean state) {
-		licht_status = state;
+	public void setLichtStatus(boolean state) {
+		lichtStatus = state;
 	}
 
-	public boolean getlicht_status() {
-		return licht_status;
+	public boolean getLichtStatus() {
+		return lichtStatus;
 	}
 
-	public void set_licht_position_x(float x) {
-		licht_position_x = x;
+	public void setLichtPoint(Point p) {
+		lichtPoint = p;
 	}
 
-	public float get_licht_position_x() {
-		return licht_position_x;
-	}
-
-	public void set_licht_position_y(float y) {
-		licht_position_y = y;
-	}
-
-	public float get_licht_position_y() {
-		return licht_position_y;
+	public Point getLichtPoint() {
+		return lichtPoint;
 	}
 
 }

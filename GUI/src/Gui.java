@@ -51,6 +51,7 @@ public class Gui extends Application {
 	private static ArrayList<Raum> raumListe = new ArrayList<Raum>();
 	private static int idCounter = 1;
 	private static int tempModulID = 0;
+	private static Raum tempRaum = null;
 	private static ObservableList<Node> list = FXCollections.observableArrayList();
 
 	Image fire = new Image("/GUI/resources/fire.png", true);
@@ -63,7 +64,6 @@ public class Gui extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-
 
 		/*
 		 * Skalierung der Bilder
@@ -121,8 +121,8 @@ public class Gui extends Application {
 			public void handle(MouseEvent event) {
 				pressedX = event.getX();
 				pressedY = event.getY();
-				System.out.println("X = " + pressedX);
-				System.out.println("Y = " + pressedY);
+				// System.out.println("X = " + pressedX);
+				// System.out.println("Y = " + pressedY);
 			}
 		});
 
@@ -134,8 +134,8 @@ public class Gui extends Application {
 			public void handle(MouseEvent event) {
 				releasedX = event.getX();
 				releasedY = event.getY();
-				System.out.println("Release X = " + releasedX);
-				System.out.println("Release Y = " + releasedY);
+				// System.out.println("Release X = " + releasedX);
+				// System.out.println("Release Y = " + releasedY);
 				drawRectangle(gc);
 			}
 		});
@@ -144,14 +144,14 @@ public class Gui extends Application {
 		 * Drag and Drop feature. Starting the Drag-and-Drop Gesture on every
 		 * child of the VBox except the logo.
 		 */
-
+		// Hardcoded list of all the dragable items on the left pane
 		VBox vbox = (VBox) splitpane.getItems().get(0);
-
 		list.add(vbox.getChildren().get(1));
 		list.add(vbox.getChildren().get(2));
 		list.add(vbox.getChildren().get(3));
 		list.add(vbox.getChildren().get(4));
 
+		// Loop for determining which module or if a light is being dragged
 		for (Node n : list) {
 			n.setOnDragDetected(new EventHandler<MouseEvent>() {
 				public void handle(MouseEvent event) {
@@ -159,10 +159,12 @@ public class Gui extends Application {
 					ClipboardContent content = new ClipboardContent();
 					content.putString("Hallo");
 					db.setContent(content);
-					System.out.println("event.getX()  : " + event.getX());
-					System.out.println("event.getY()  : " + event.getY());
-					System.out.println("event.getTarget() : " + event.getTarget());
-					System.out.println("event.getSource() : " + event.getSource());
+					// System.out.println("event.getX() : " + event.getX());
+					// System.out.println("event.getY() : " + event.getY());
+					// System.out.println("event.getTarget() : " +
+					// event.getTarget());
+					// System.out.println("event.getSource() : " +
+					// event.getSource());
 					if (n.getId() == list.get(0).getId()) {
 						tempModulID = 1;
 					} else if (n.getId() == list.get(1).getId()) {
@@ -173,50 +175,60 @@ public class Gui extends Application {
 						tempModulID = 0;
 					}
 					event.consume();
-
 				}
 			});
 		}
+
+		// Handling illegal drop positions (\)
 		anchorpane.setOnDragOver(new EventHandler<DragEvent>() {
 			public void handle(DragEvent event) {
-				if (event.getGestureSource() != anchorpane && event.getDragboard().hasString()) {
-
-					event.acceptTransferModes(TransferMode.MOVE);
+				Point p = new Point();
+				p.setLocation(event.getX(), event.getY());
+				for (Raum r : raumListe) {
+					if (tempModulID != 0) {
+						if (r.getRect().contains(p) && r.getModul() == null) {
+							tempRaum = r;
+							event.acceptTransferModes(TransferMode.MOVE);
+						}
+					} else {
+						if (r.getRect().contains(p) && r.getModul() != null && r.getLicht() == null) {
+							tempRaum = r;
+							event.acceptTransferModes(TransferMode.MOVE);
+						}
+					}
 				}
 				event.consume();
 			}
 		});
 
+		// Handling the drop and adding new objects to the room
 		anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
 			public void handle(DragEvent event) {
-				// Dragboard db = event.getDragboard();
-				boolean success = true;
+				boolean success = false;
+
 				Point p = new Point();
 				p.setLocation(event.getX(), event.getY());
-				int index = 0;
-				for (Raum r : raumListe) {
-					if (r.getRect().contains(p) && r.getModul() == null) {
-						if (tempModulID == 0) {
-							r.setLicht(new Licht());
-						} else {
-							r.setModul(new Modul(tempModulID));
-							System.out.println(" Modul : " + r.getModul().getModulID());
-							tempModulID = 0;
-							break;
-						}
+
+				if (tempRaum.getRect().contains(p)) {
+					if (tempModulID == 0) {
+						tempRaum.setLicht(new Licht(p));
+						System.out.println("Licht hinzugefügt!");
+						tempRaum = null;
+					} else {
+						tempRaum.setModul(new Modul(tempModulID));
+						System.out.println("Modul " + tempRaum.getModul().getModulID() + " hinzugefügt!");
+						tempModulID = 0;
+						tempRaum = null;
 					}
-					index++;
 				}
 				event.setDropCompleted(success);
 				event.consume();
 			}
 		});
 
-
-
 		/*
-		 * Position der Temperaturanzeige
-		 * HIER: ersetzten mit X und Y Werten eines Raumes.
+		 * Position der Temperaturanzeige HIER: ersetzten mit X und Y Werten
+		 * eines Raumes.
 		 */
 		vebox.setLayoutX(200);
 		vebox.setLayoutY(200);
@@ -227,11 +239,12 @@ public class Gui extends Application {
 		Modul modul = new Modul(0);
 		modul.settemperatur(22.00f);
 		modul.tempsettings.set_temp_zielwert(22.00f);
-		Label temps = new Label(); 				//temperatur in Grad anzeigen
-		temps.setText(String.format("%.2f", modul.gettemperatur()) +"°C");
+		Label temps = new Label(); // temperatur in Grad anzeigen
+		temps.setText(String.format("%.2f", modul.gettemperatur()) + "°C");
 
 		/*
-		 * Methode aufrufen und aktuelle Temperatur übergeben und als String speichern
+		 * Methode aufrufen und aktuelle Temperatur übergeben und als String
+		 * speichern
 		 */
 		String test = modul.temperaturanzeige(modul.gettemperatur());
 
@@ -239,7 +252,7 @@ public class Gui extends Application {
 		 * checkt den returnwert von temperaturanzeige() und gibt entsprechendes
 		 * Bild aus.
 		 */
-		if(test.equals("kalt")) {
+		if (test.equals("kalt")) {
 			iv1.setImage(snow);
 		} else if (test.equals("heiss")) {
 			iv1.setImage(fire);
@@ -260,17 +273,14 @@ public class Gui extends Application {
 		/*
 		 * Falls Modulstatus = aktiv, Temperaturanzeige hinzufügen
 		 */
-		//If(Modulstatus==1) {
+		// If(Modulstatus==1) {
 		anchorpane.getChildren().add(vebox);
-		vebox.getChildren().add(settings);		//Temperaturicon
+		vebox.getChildren().add(settings); // Temperaturicon
 		vebox.getChildren().add(box);
-		box.getChildren().add(temps);  //Aktuelle Temperatur
-		box.getChildren().add(iv1);	//currenticon
+		box.getChildren().add(temps); // Aktuelle Temperatur
+		box.getChildren().add(iv1); // currenticon
 
-		//		}
-
-
-
+		// }
 
 		// Set the scene to the stage
 		primaryStage.setScene(scene);
@@ -285,8 +295,8 @@ public class Gui extends Application {
 
 	/**
 	 * Zeichnet ein sichtbares Rectangle in das Grundrissfenster und erstellt
-	 * ein Objekt vom Typ Raum. Gezeichnete Rï¿½ume mï¿½ssen mindestens 50x50 Pixel
-	 * groï¿½ sein und dï¿½rfen sich nicht ï¿½berschneiden.
+	 * ein Objekt vom Typ Raum. Gezeichnete Rï¿½ume mï¿½ssen mindestens 50x50
+	 * Pixel groï¿½ sein und dï¿½rfen sich nicht ï¿½berschneiden.
 	 *
 	 * @see Raum
 	 * @param gc
