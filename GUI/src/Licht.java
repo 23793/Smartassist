@@ -97,10 +97,8 @@ public class Licht {
 
 		if (lichtStatus) {
 			settings.setGraphic(anBild);
-			System.out.println("Licht an");
 		} else {
 			settings.setGraphic(ausBild);
-			System.out.println("Licht aus");
 
 		}
 	}
@@ -109,10 +107,8 @@ public class Licht {
 		lichtStatus = state;
 		if (lichtStatus) {
 			settings.setGraphic(anBild);
-			System.out.println("Licht an");
 		} else {
 			settings.setGraphic(ausBild);
-			System.out.println("Licht aus");
 
 		}
 	}
