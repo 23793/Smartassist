@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -165,15 +166,16 @@ public class Gui extends Application {
 		// already used modules unavailable
 		anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
 			public void handle(DragEvent event) {
-				boolean success = false;
-
 				Point p = new Point();
 				p.setLocation(event.getX(), event.getY());
 
 				if (tempRaum.getRect().contains(p)) {
 					if (tempModulID == 0) {
-						tempRaum.setLicht(new Licht(p));
-						System.out.println("Licht hinzugefügt!");
+						// FÜGT EIN LICHT HINZU
+						tempRaum.setLicht(new Licht(p, tempRaum, anchorpane));
+						createLichtAnzeige(tempRaum);
+						System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugefügt!");
+						tempModulID = 0;
 						tempRaum = null;
 					} else {
 						// ERSTELLT DEN RAUM
@@ -205,7 +207,7 @@ public class Gui extends Application {
 						tempRaum = null;
 					}
 				}
-				event.setDropCompleted(success);
+				event.setDropCompleted(true);
 				event.consume();
 			}
 		});
@@ -239,6 +241,13 @@ public class Gui extends Application {
 			// Aktuelles Icon
 			r.getKlima().getBox().getChildren().add(r.getKlima().getIv1());
 		}
+	}
+
+	private void createLichtAnzeige(Raum r) {
+		anchorpane.getChildren().add(r.getLicht().getVebox());
+		// LichtIcon
+		r.getLicht().getVebox().getChildren().add(r.getLicht().getSettings());
+		r.getLicht().getVebox().getChildren().add(r.getLicht().getBox());
 	}
 
 	/**
