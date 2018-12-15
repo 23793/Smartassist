@@ -50,7 +50,6 @@ public class Gui extends Application {
 	private static ObservableList<Node> list = FXCollections.observableArrayList();
 	private static Lichtkonfig lichtkonfig = null;
 	private static Tempkonfig tempkonfig = null;
-	
 
 	private static AnchorPane root;
 	private static Scene scene;
@@ -115,6 +114,7 @@ public class Gui extends Application {
 			}
 		});
 
+		// PREVIEW FÜR DAS GRUNDRISSZEICHNEN
 		anchorpane.setOnMouseDragged(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {
 				gc2.clearRect(0, 0, 554, 746);
@@ -172,7 +172,6 @@ public class Gui extends Application {
 					Dragboard db = n.startDragAndDrop(TransferMode.MOVE);
 					ClipboardContent content = new ClipboardContent();
 					content.putString("Hallo");
-					System.out.println("Picked up Component");
 					db.setContent(content);
 					if (n.getId() == list.get(0).getId()) {
 						tempModulID = 1;
@@ -190,7 +189,6 @@ public class Gui extends Application {
 						public void handle(DragEvent event) {
 							Point p = new Point();
 							p.setLocation(event.getX(), event.getY());
-							System.out.println("Dragging component");
 							for (Raum r : raumListe) {
 								if (tempModulID != 0) {
 									if (r.getRect().contains(p) && r.getModul() == null) {
@@ -340,7 +338,7 @@ public class Gui extends Application {
 
 			anchorpane.getChildren().add(r.getKlima().getVebox());
 			// Temperture settings
-			r.getKlima().getSettings().setOnAction(event -> Tempkonfig.this.display(Stage primaryStage)));
+//			r.getKlima().getSettings().setOnAction(event -> Tempkonfig.this.display(Stage primaryStage))); 
 			// TemperaturIcon
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getSettings());
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getBox());
