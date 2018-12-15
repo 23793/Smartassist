@@ -279,12 +279,10 @@ public class Gui extends Application {
 						// F�GT EIN LICHT HINZU
 						tempRaum.setLicht(new Licht(p, tempRaum, anchorpane));
 						createLichtAnzeige(tempRaum);
-						System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugef�gt!");
 						tempRaum = null;
 					} else {
 						// ERSTELLT DEN RAUM
 						tempRaum.setModul(new Modul(tempModulID));
-						System.out.println("Modul " + tempRaum.getModul().getModulID() + " hinzugef�gt!");
 						// F�GT TEMPERATURANZEIGE HINZU
 						createTempAnzeige(tempRaum);
 						// MALE RAUM AUS
@@ -338,7 +336,9 @@ public class Gui extends Application {
 
 			anchorpane.getChildren().add(r.getKlima().getVebox());
 			// Temperture settings
-//			r.getKlima().getSettings().setOnAction(event -> Tempkonfig.this.display(Stage primaryStage))); 
+//			r.getKlima().getSettings().setOnAction(event -> Tempkonfig.this.display(Stage primaryStage)));  
+			// Gaitan hier klappt etwas nicht ^^^^^^^^^^ Warum wird das gebraucht?
+			
 			// TemperaturIcon
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getSettings());
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getBox());
