@@ -1,6 +1,5 @@
 package GUI.src;
 
-import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -20,14 +19,14 @@ import javafx.stage.Modality;
 //import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-public class Tempkonfig extends Application implements EventHandler<ActionEvent> {
+public class Tempkonfig implements EventHandler<ActionEvent> {
 
 	Button save = new Button("OK"); //Speichern button
 	String temperatur = ""; //String temp
 	ToggleSwitch toggleswitch = new ToggleSwitch(); //onoffbutton
 	Button temperature = new Button("close");
 	
-	public void start(Stage primaryStage) throws Exception {
+	public void display(Stage primaryStage) throws Exception {
 		primaryStage.initModality(Modality.APPLICATION_MODAL);
 		primaryStage.setTitle("Temperaturkonfiguration"); //Titel
 		VBox root = new VBox(); //vertikale box
@@ -73,7 +72,7 @@ public class Tempkonfig extends Application implements EventHandler<ActionEvent>
 		root.getChildren().add(temperature);
 		Scene scene = new Scene(root,400,250);  //gr��e der anwendung
 		primaryStage.setScene(scene);
-		primaryStage.show();
+		primaryStage.showAndWait();
 
 	}
 
@@ -90,8 +89,5 @@ public class Tempkonfig extends Application implements EventHandler<ActionEvent>
 		System.out.println("bin in der Init");
 	}
 
-	public static void main(String[] args) {
-		launch(args); //w�hren die anwendung l�uft
-	}
 }
 

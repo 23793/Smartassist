@@ -48,6 +48,9 @@ public class Gui extends Application {
 	private static int tempModulID = 0;
 	private static Raum tempRaum = null;
 	private static ObservableList<Node> list = FXCollections.observableArrayList();
+	private static Lichtkonfig lichtkonfig = null;
+	private static Tempkonfig tempkonfig = null;
+	
 
 	private static AnchorPane root;
 	private static Scene scene;
@@ -213,17 +216,17 @@ public class Gui extends Application {
 
 									if (tempRaum.getRect().contains(p)) {
 										if (tempModulID == 0) {
-											// FÜGT EIN LICHT HINZU
+											// Fï¿½GT EIN LICHT HINZU
 											tempRaum.setLicht(new Licht(p, tempRaum, anchorpane));
 											createLichtAnzeige(tempRaum);
-											System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugefügt!");
+											System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugefï¿½gt!");
 											tempRaum = null;
 										} else {
 											// ERSTELLT DEN RAUM
 											tempRaum.setModul(new Modul(tempModulID));
 											System.out.println(
-													"Modul " + tempRaum.getModul().getModulID() + " hinzugefügt!");
-											// FÜGT TEMPERATURANZEIGE HINZU
+													"Modul " + tempRaum.getModul().getModulID() + " hinzugefï¿½gt!");
+											// Fï¿½GT TEMPERATURANZEIGE HINZU
 											createTempAnzeige(tempRaum);
 											// MALE RAUM AUS
 											gc.setFill(Color.WHITE);
@@ -275,16 +278,16 @@ public class Gui extends Application {
 
 				if (tempRaum.getRect().contains(p)) {
 					if (tempModulID == 0) {
-						// FÜGT EIN LICHT HINZU
+						// Fï¿½GT EIN LICHT HINZU
 						tempRaum.setLicht(new Licht(p, tempRaum, anchorpane));
 						createLichtAnzeige(tempRaum);
-						System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugefügt!");
+						System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugefï¿½gt!");
 						tempRaum = null;
 					} else {
 						// ERSTELLT DEN RAUM
 						tempRaum.setModul(new Modul(tempModulID));
-						System.out.println("Modul " + tempRaum.getModul().getModulID() + " hinzugefügt!");
-						// FÜGT TEMPERATURANZEIGE HINZU
+						System.out.println("Modul " + tempRaum.getModul().getModulID() + " hinzugefï¿½gt!");
+						// Fï¿½GT TEMPERATURANZEIGE HINZU
 						createTempAnzeige(tempRaum);
 						// MALE RAUM AUS
 						gc.setFill(Color.WHITE);
@@ -336,6 +339,8 @@ public class Gui extends Application {
 			r.getKlima().setImageAndLabel(temperatur, String.format("%.2f", r.getModul().gettemperatur()));
 
 			anchorpane.getChildren().add(r.getKlima().getVebox());
+			// Temperture settings
+			r.getKlima().getSettings().setOnAction(event -> Tempkonfig.this.display(Stage primaryStage)));
 			// TemperaturIcon
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getSettings());
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getBox());
