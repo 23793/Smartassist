@@ -173,18 +173,18 @@ public class Gui extends Application {
 					db.setContent(content);
 					if (n.getId() == list.get(0).getId()) {
 						tempModulID = 1;
-						// assuming to be in a living room
-						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/living-room.png");
+						// dropping modul 1
+						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/modul1.png");
 						db.setDragView(image);
 					} else if (n.getId() == list.get(1).getId()) {
 						tempModulID = 2;
-						// assuming to be in a bedroom
-						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/bed.png");
+						// dropping modul 2
+						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/modul2.png");
 						db.setDragView(image);
 					} else if (n.getId() == list.get(2).getId()) {
 						tempModulID = 3;
-						// assuming to be in a kitchen
-						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/kitchen.png");
+						//dropping modul 3
+						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/modul3.png");
 						db.setDragView(image);
 					} else if (n.getId() == list.get(3).getId()) {
 						tempModulID = 0;
