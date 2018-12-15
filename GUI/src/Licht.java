@@ -59,7 +59,6 @@ public class Licht {
 		 */
 		settings.setOnDragDetected(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {
-				System.out.println("Picked up Lamp");
 				Dragboard db = settings.startDragAndDrop(TransferMode.MOVE);
 				ClipboardContent content = new ClipboardContent();
 				content.putString("Hallo");
@@ -67,7 +66,6 @@ public class Licht {
 
 				ap.setOnDragOver(new EventHandler<DragEvent>() {
 					public void handle(DragEvent event) {
-						System.out.println("dragging light");
 						Point p = new Point();
 						p.setLocation(event.getX(), event.getY());
 						if (r.getRect().contains(p)) {
@@ -92,15 +90,6 @@ public class Licht {
 			}
 		});
 
-		ap.setOnDragDropped(new EventHandler<DragEvent>() {
-			public void handle(DragEvent event) {
-				Point p = new Point();
-				p.setLocation(event.getX() - 28, event.getY() - 30);
-				setLichtPoint(p);
-				event.setDropCompleted(true);
-				event.consume();
-			}
-		});
 	}
 
 	public void toggle() {
