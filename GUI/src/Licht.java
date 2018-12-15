@@ -3,6 +3,7 @@ package GUI.src;
 import java.awt.Point;
 
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
@@ -31,12 +32,9 @@ public class Licht {
 	private VBox vebox = new VBox();
 	private HBox box = new HBox();
 
-	private AnchorPane anchorPane;
-
 	public Licht(Point p, Raum r, AnchorPane ap) {
 		lichtPoint = p;
 		raum = r;
-		anchorPane = ap;
 
 		anBild.setFitHeight(40);
 		anBild.setFitWidth(40);
@@ -61,21 +59,35 @@ public class Licht {
 		 */
 		settings.setOnDragDetected(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {
+				System.out.println("Picked up Lamp");
 				Dragboard db = settings.startDragAndDrop(TransferMode.MOVE);
 				ClipboardContent content = new ClipboardContent();
-				content.putString("Wat");
+				content.putString("Hallo");
 				db.setContent(content);
-				event.consume();
-			}
-		});
 
-		ap.setOnDragOver(new EventHandler<DragEvent>() {
-			public void handle(DragEvent event) {
-				Point p = new Point();
-				p.setLocation(event.getX(), event.getY());
-				if (r.getRect().contains(p)) {
-					event.acceptTransferModes(TransferMode.MOVE);
-				}
+				ap.setOnDragOver(new EventHandler<DragEvent>() {
+					public void handle(DragEvent event) {
+						System.out.println("dragging light");
+						Point p = new Point();
+						p.setLocation(event.getX(), event.getY());
+						if (r.getRect().contains(p)) {
+							event.acceptTransferModes(TransferMode.MOVE);
+						}
+
+						ap.setOnDragDropped(new EventHandler<DragEvent>() {
+							public void handle(DragEvent event) {
+								Point p = new Point();
+								p.setLocation(event.getX() - 28, event.getY() - 30);
+								setLichtPoint(p);
+								event.setDropCompleted(true);
+								event.consume();
+							}
+						});
+
+						event.consume();
+					}
+				});
+
 				event.consume();
 			}
 		});
