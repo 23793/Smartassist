@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -53,8 +54,8 @@ public class Gui extends Application {
 	private static ObservableList<Node> obs;
 	private static SplitPane splitpane;
 	private static AnchorPane anchorpane;
-	private static Canvas canvas;
-	private static GraphicsContext gc;
+	private static Canvas canvas, canvas2;
+	private static GraphicsContext gc, gc2;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -81,7 +82,11 @@ public class Gui extends Application {
 		 */
 		anchorpane = (AnchorPane) splitpane.getItems().get(1);
 		canvas = (Canvas) anchorpane.getChildren().get(1);
+		canvas2 = new Canvas(554, 746);
+		anchorpane.getChildren().add(canvas2);
+
 		gc = canvas.getGraphicsContext2D();
+		gc2 = canvas2.getGraphicsContext2D();
 
 		/*
 		 * Setzt die X und Y Werte fï¿½r den Punkt des Klickens der Maus fest.
@@ -100,10 +105,49 @@ public class Gui extends Application {
 		anchorpane.setOnMouseReleased(new EventHandler<MouseEvent>() {
 
 			public void handle(MouseEvent event) {
+				gc2.clearRect(0, 0, 554, 746);
 				releasedX = event.getX();
 				releasedY = event.getY();
 				drawRectangle(gc);
 			}
+		});
+
+		anchorpane.setOnMouseDragged(new EventHandler<MouseEvent>() {
+			public void handle(MouseEvent event) {
+				gc2.clearRect(0, 0, 554, 746);
+				Point p = new Point();
+				p.setLocation(event.getX(), event.getY());
+				double x, y, w, h;
+				if (event.getX() > pressedX && event.getY() > pressedY) {
+					// Oben links nach unten rechts
+					w = event.getX() - pressedX;
+					h = event.getY() - pressedY;
+					x = event.getX() - w;
+					y = pressedY;
+				} else if (pressedX > event.getX() && pressedY > event.getY()) {
+					// Unten rechts nach oben links
+					w = pressedX - event.getX();
+					h = pressedY - event.getY();
+					x = pressedX - (pressedX - event.getX());
+					y = event.getY();
+				} else if (pressedX > event.getX() && pressedY < event.getY()) {
+					// Oben rechts nach unten links
+					w = pressedX - event.getX();
+					h = event.getY() - pressedY;
+					x = event.getX();
+					y = event.getY() - (event.getY() - pressedY);
+				} else {
+					// Unten links nach oben rechts
+					w = event.getX() - pressedX;
+					h = pressedY - event.getY();
+					x = event.getX() - (event.getX() - pressedX);
+					y = pressedY - (pressedY - event.getY());
+				}
+				gc2.setStroke(Color.WHITE);
+				gc2.strokeRect(x, y, w, h);
+				event.consume();
+			}
+
 		});
 
 		/*
@@ -120,10 +164,12 @@ public class Gui extends Application {
 		// Loop for determining which module or if a light is being dragged
 		for (Node n : list) {
 			n.setOnDragDetected(new EventHandler<MouseEvent>() {
+				@Override
 				public void handle(MouseEvent event) {
 					Dragboard db = n.startDragAndDrop(TransferMode.MOVE);
 					ClipboardContent content = new ClipboardContent();
 					content.putString("Hallo");
+					System.out.println("Picked up Component");
 					db.setContent(content);
 					if (n.getId() == list.get(0).getId()) {
 						tempModulID = 1;
@@ -134,46 +180,105 @@ public class Gui extends Application {
 					} else if (n.getId() == list.get(3).getId()) {
 						tempModulID = 0;
 					}
+
+					// Handling illegal drop positions (\)
+					anchorpane.setOnDragOver(new EventHandler<DragEvent>() {
+						@Override
+						public void handle(DragEvent event) {
+							Point p = new Point();
+							p.setLocation(event.getX(), event.getY());
+							System.out.println("Dragging component");
+							for (Raum r : raumListe) {
+								if (tempModulID != 0) {
+									if (r.getRect().contains(p) && r.getModul() == null) {
+										tempRaum = r;
+										event.acceptTransferModes(TransferMode.MOVE);
+									}
+								} else {
+									if (r.getRect().contains(p) && r.getModul() != null && r.getLicht() == null) {
+										tempRaum = r;
+										event.acceptTransferModes(TransferMode.MOVE);
+									}
+								}
+							}
+
+							// Handling the drop and adding new objects to the
+							// room aswell as making
+							// already used modules unavailable
+							anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
+								@Override
+								public void handle(DragEvent event) {
+									Point p = new Point();
+									p.setLocation(event.getX(), event.getY());
+
+									if (tempRaum.getRect().contains(p)) {
+										if (tempModulID == 0) {
+											// FÜGT EIN LICHT HINZU
+											tempRaum.setLicht(new Licht(p, tempRaum, anchorpane));
+											createLichtAnzeige(tempRaum);
+											System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugefügt!");
+											tempRaum = null;
+										} else {
+											// ERSTELLT DEN RAUM
+											tempRaum.setModul(new Modul(tempModulID));
+											System.out.println(
+													"Modul " + tempRaum.getModul().getModulID() + " hinzugefügt!");
+											// FÜGT TEMPERATURANZEIGE HINZU
+											createTempAnzeige(tempRaum);
+											// MALE RAUM AUS
+											gc.setFill(Color.WHITE);
+											gc.fillRect(tempRaum.getRect().getX() + 1, tempRaum.getRect().getY() + 1,
+													tempRaum.getRect().getWidth() - 2,
+													tempRaum.getRect().getHeight() - 2);
+											// DEAKTIVIERE BEREITS BENUTZTE
+											// MODULE
+											switch (tempModulID) {
+											case 1:
+												list.get(0).setOpacity(0.2);
+												list.get(0).setDisable(true);
+												break;
+											case 2:
+												list.get(1).setOpacity(0.2);
+												list.get(1).setDisable(true);
+												break;
+											case 3:
+												list.get(2).setOpacity(0.2);
+												list.get(2).setDisable(true);
+												break;
+											}
+											// RESET TEMP VARIABLES
+											tempModulID = 0;
+											tempRaum = null;
+										}
+									}
+									event.setDropCompleted(true);
+									event.consume();
+								}
+							});
+
+							event.consume();
+						}
+					});
+
 					event.consume();
 				}
 			});
 		}
 
-		// Handling illegal drop positions (\)
-		anchorpane.setOnDragOver(new EventHandler<DragEvent>() {
-			public void handle(DragEvent event) {
-				Point p = new Point();
-				p.setLocation(event.getX(), event.getY());
-				for (Raum r : raumListe) {
-					if (tempModulID != 0) {
-						if (r.getRect().contains(p) && r.getModul() == null) {
-							tempRaum = r;
-							event.acceptTransferModes(TransferMode.MOVE);
-						}
-					} else {
-						if (r.getRect().contains(p) && r.getModul() != null && r.getLicht() == null) {
-							tempRaum = r;
-							event.acceptTransferModes(TransferMode.MOVE);
-						}
-					}
-				}
-				event.consume();
-			}
-		});
-
 		// Handling the drop and adding new objects to the room aswell as making
 		// already used modules unavailable
 		anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
+			@Override
 			public void handle(DragEvent event) {
-				boolean success = false;
-
 				Point p = new Point();
 				p.setLocation(event.getX(), event.getY());
 
 				if (tempRaum.getRect().contains(p)) {
 					if (tempModulID == 0) {
-						tempRaum.setLicht(new Licht(p));
-						System.out.println("Licht hinzugefügt!");
+						// FÜGT EIN LICHT HINZU
+						tempRaum.setLicht(new Licht(p, tempRaum, anchorpane));
+						createLichtAnzeige(tempRaum);
+						System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugefügt!");
 						tempRaum = null;
 					} else {
 						// ERSTELLT DEN RAUM
@@ -205,7 +310,7 @@ public class Gui extends Application {
 						tempRaum = null;
 					}
 				}
-				event.setDropCompleted(success);
+				event.setDropCompleted(true);
 				event.consume();
 			}
 		});
@@ -239,6 +344,13 @@ public class Gui extends Application {
 			// Aktuelles Icon
 			r.getKlima().getBox().getChildren().add(r.getKlima().getIv1());
 		}
+	}
+
+	private void createLichtAnzeige(Raum r) {
+		anchorpane.getChildren().add(r.getLicht().getVebox());
+		// LichtIcon
+		r.getLicht().getVebox().getChildren().add(r.getLicht().getSettings());
+		r.getLicht().getVebox().getChildren().add(r.getLicht().getBox());
 	}
 
 	/**
