@@ -15,6 +15,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
+import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -48,16 +49,13 @@ public class Gui extends Application {
 	private static int tempModulID = 0;
 	private static Raum tempRaum = null;
 	private static ObservableList<Node> list = FXCollections.observableArrayList();
-	private static Lichtkonfig lichtkonfig = null;
-	private static Tempkonfig tempkonfig = null;
 
-	private static AnchorPane root;
 	private static Scene scene;
-	private static ObservableList<Node> obs;
 	private static SplitPane splitpane;
 	private static AnchorPane anchorpane;
 	private static Canvas canvas, canvas2;
 	private static GraphicsContext gc, gc2;
+	private static Button reset;
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -114,7 +112,7 @@ public class Gui extends Application {
 			}
 		});
 
-		// PREVIEW FÜR DAS GRUNDRISSZEICHNEN
+		// PREVIEW Fï¿½R DAS GRUNDRISSZEICHNEN
 		anchorpane.setOnMouseDragged(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {
 				gc2.clearRect(0, 0, 554, 746);
@@ -175,12 +173,23 @@ public class Gui extends Application {
 					db.setContent(content);
 					if (n.getId() == list.get(0).getId()) {
 						tempModulID = 1;
+						// assuming to be in a living room
+						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/living-room.png");
+						db.setDragView(image);
 					} else if (n.getId() == list.get(1).getId()) {
 						tempModulID = 2;
+						// assuming to be in a bedroom
+						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/bed.png");
+						db.setDragView(image);
 					} else if (n.getId() == list.get(2).getId()) {
 						tempModulID = 3;
+						// assuming to be in a kitchen
+						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/kitchen.png");
+						db.setDragView(image);
 					} else if (n.getId() == list.get(3).getId()) {
 						tempModulID = 0;
+						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/light.png");
+						db.setDragView(image);
 					}
 
 					// Handling illegal drop positions (\)
@@ -313,8 +322,15 @@ public class Gui extends Application {
 				event.consume();
 			}
 		});
-
+		
+		/*
+		 * reset Button
+		 */
+		reset = (Button) anchorpane.getChildren().get(0);
 		// Set the scene to the stage
+		
+//		reset.setOnMouseClicked(ven);
+		
 		primaryStage.setScene(scene);
 
 		// Set the title of the stage
