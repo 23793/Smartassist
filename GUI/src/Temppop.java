@@ -17,6 +17,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class Temppop {
 
@@ -27,8 +29,8 @@ public class Temppop {
 	String temperatur = "";
 	AnchorPane test;
 
-	public Temppop() {
-		
+	public void display(Stage primaryStage) throws Exception {
+
 		try {
 			test = (AnchorPane) FXMLLoader.load(getClass().getResource("Temptest.fxml"));
 		} catch (IOException e) {
@@ -80,6 +82,9 @@ public class Temppop {
 				System.out.println("Zieltemp: " + temperatur);
 			}
 		});
+		primaryStage.setScene(scene);
+		primaryStage.initModality(Modality.APPLICATION_MODAL);
+		primaryStage.showAndWait();
 	}
 
 	public void set_temp_zielwert(float wert) {

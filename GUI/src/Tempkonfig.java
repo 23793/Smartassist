@@ -79,7 +79,7 @@ public class Tempkonfig implements EventHandler<ActionEvent> {
 		root.getChildren().add(lb); // add the label lb into the vbox
 		temperature.setOnAction(event -> primaryStage.close()); // close the popUp window
 		root.getChildren().add(temperature);
-		Scene scene = new Scene(test);  //gr��e der anwendung
+		Scene scene = new Scene(test);
 		primaryStage.setScene(scene);
 		primaryStage.showAndWait();
 

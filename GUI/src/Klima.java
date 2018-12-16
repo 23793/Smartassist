@@ -10,6 +10,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class Klima {
 
@@ -58,6 +60,16 @@ public class Klima {
 		settings.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
+				Temppop tk = new Temppop();
+				Stage stage = new Stage();
+				stage.setTitle("Temperaturkonfiguartion");
+				stage.initModality(Modality.WINDOW_MODAL);
+				try {
+					tk.display(stage);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				if (tpop != null) {
 					//Do nothing
 				} else {
