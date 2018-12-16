@@ -1,10 +1,86 @@
 package GUI.src;
 
+import java.io.IOException;
+
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 public class Temppop {
 
 	private float temp_zielwert;
 	private boolean temp_automatik;
+
+	Scene scene;
+	String temperatur = "";
+	AnchorPane test;
+
+	public Temppop() {
+		
+		try {
+			test = (AnchorPane) FXMLLoader.load(getClass().getResource("Temptest.fxml"));
+		} catch (IOException e) {
+			System.out.println("Konnte Temptest.fxml nicht finden!");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		/*
+		 * add the AnchorPane into a Scene
+		 */
+		scene = new Scene(test);
+		/*
+		 * get the single child of the the root
+		 */
+
+		ObservableList<Node> obj = test.getChildren();
+		ToggleSwitch ts = new ToggleSwitch();
+		VBox b = (VBox) obj.get(0);
+		HBox hb = (HBox) b.getChildren().get(0); // HBox Objekt
+		hb.getChildren().add(1, ts); // in die HBox hinzufügen
+
+		Slider slider = (Slider) b.getChildren().get(2);
+		Label value = new Label(Double.toString(slider.getValue()));
+		value.setTextFill(Color.ANTIQUEWHITE);
+
+		slider.valueProperty().addListener(new ChangeListener<Number>() {
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number NewValue) {
+
+				value.setText(String.format("%.2f", NewValue)); // Wert wird auf
+																// dem
+																// Bildschirm
+																// ausgegeben
+				System.out.println(String.format("%.2f", NewValue)); // in der
+																		// Konsole
+				temperatur = String.format("%.2f", NewValue); // wert wird in
+																// temp
+																// eingespeichert
+			}
+		});
+
+		b.getChildren().add(3, value);
+		Button button = (Button) b.getChildren().get(4);
+
+		button.setOnAction(new EventHandler<ActionEvent>() {
+
+			public void handle(ActionEvent event) {
+				System.out.println("saved.");
+				System.out.println("Zieltemp: " + temperatur);
+			}
+		});
+	}
 
 	public void set_temp_zielwert(float wert) {
 		temp_zielwert = wert;

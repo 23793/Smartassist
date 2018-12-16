@@ -20,13 +20,11 @@ public class Klima {
 	private Image temp = new Image("/GUI/resources/temp.png", true);
 	private Image snow = new Image("/GUI/resources/snow.png", true);
 	private Image perfect = new Image("/GUI/resources/perfect.png", true);
-
 	private ImageView iv1 = new ImageView();
 	private ImageView iv2 = new ImageView();
-
 	private Label temps = new Label();
-
 	private Button settings = new Button(null, new ImageView(temp));
+	private Temppop tpop = null;
 
 	/*
 	 * Vbox und Hbox für Temperaturanzeige
@@ -34,7 +32,7 @@ public class Klima {
 	private VBox vebox = new VBox();
 	private HBox box = new HBox();
 
-	public Klima(Point p) {
+	public Klima(Point p) throws Exception {
 		/*
 		 * Skalierung der Bilder
 		 */
@@ -60,8 +58,12 @@ public class Klima {
 		settings.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				// TODO Auto-generated method stub
-				System.out.println("Test");
+				if (tpop != null) {
+					//Do nothing
+				} else {
+					tpop = new Temppop();
+				}
+				System.out.println("tpop: "+tpop);
 			}
 		});
 	}
