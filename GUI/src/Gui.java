@@ -64,15 +64,18 @@ public class Gui extends Application {
 		 * File
 		 */
 		AnchorPane root = (AnchorPane) FXMLLoader.load(getClass().getResource("RoomView.fxml"));
+	//	AnchorPane test = (AnchorPane) FXMLLoader.load(getClass().getResource("Temptest.fxml"));
 
 		/*
 		 * add the AnchorPane into a Scene
 		 */
-		scene = new Scene(root);
 
+		scene = new Scene(root);
+	//	scene = new Scene(test);
 		/*
 		 * get the single child of the the root
 		 */
+	//	ObservableList<Node> obj = test.getChildren();
 		ObservableList<Node> obs = root.getChildren();
 		splitpane = (SplitPane) obs.get(0);
 
@@ -80,6 +83,7 @@ public class Gui extends Application {
 		 * get the right child of the splitpane and connect a Graphicscontext to
 		 * the Canvas and finally set the color of the stroke to red.
 		 */
+		ToggleSwitch button = new ToggleSwitch();
 		anchorpane = (AnchorPane) splitpane.getItems().get(1);
 		canvas = (Canvas) anchorpane.getChildren().get(1);
 		canvas2 = new Canvas(554, 746);
