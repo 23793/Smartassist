@@ -53,8 +53,8 @@ public class Klima {
 		 * Position der Temperaturanzeige HIER: ersetzten mit X und Y Werten
 		 * eines Raumes.
 		 */
-		vebox.setLayoutX(p.x - 61);
-		vebox.setLayoutY(p.y - 78);
+		vebox.setLayoutX(p.x - 71);
+		vebox.setLayoutY(p.y - 80);
 
 		// Clickable icon for TempPopup
 		settings.setOnAction(new EventHandler<ActionEvent>() {
