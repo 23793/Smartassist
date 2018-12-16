@@ -278,9 +278,28 @@ public class Gui extends Application {
 		 * reset Button
 		 */
 		reset = (Button) anchorpane.getChildren().get(0);
-		// Set the scene to the stage
 
-		// reset.setOnMouseClicked(ven);
+		reset.setOnMouseClicked(new EventHandler<MouseEvent>(){
+			@Override
+			public void handle(MouseEvent event)
+			{
+				// clear the canvas.
+				gc.clearRect(0, 0, 554, 746);
+				gc2.clearRect(0, 0, 554, 746);
+				
+				//remove all elements of the list
+				rectangles.clear();
+				
+				// reset all module's visibilties.
+				for(Node n : list)
+				{
+					if(n.isDisable() == true) {
+						n.setDisable(false);
+						n.setOpacity(1);
+					}
+				}								
+			}
+		});
 
 		primaryStage.setScene(scene);
 
