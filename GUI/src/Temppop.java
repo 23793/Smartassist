@@ -80,6 +80,7 @@ public class Temppop {
 			public void handle(ActionEvent event) {
 				System.out.println("saved.");
 				System.out.println("Zieltemp: " + temperatur);
+				primaryStage.close();
 			}
 		});
 		primaryStage.setScene(scene);
