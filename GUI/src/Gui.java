@@ -174,21 +174,21 @@ public class Gui extends Application {
 					if (n.getId() == list.get(0).getId()) {
 						tempModulID = 1;
 						// dropping modul 1
-						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/modul1.png");
+						Image image = new Image("/GUI/resources/modul1.png");
 						db.setDragView(image);
 					} else if (n.getId() == list.get(1).getId()) {
 						tempModulID = 2;
 						// dropping modul 2
-						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/modul2.png");
+						Image image = new Image("/GUI/resources/modul2.png");
 						db.setDragView(image);
 					} else if (n.getId() == list.get(2).getId()) {
 						tempModulID = 3;
 						//dropping modul 3
-						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/modul3.png");
+						Image image = new Image("/GUI/resources/modul3.png");
 						db.setDragView(image);
 					} else if (n.getId() == list.get(3).getId()) {
 						tempModulID = 0;
-						Image image = new Image("file:/Users/gaitannana/GitHub/smartassist/gui/resources/light.png");
+						Image image = new Image("/GUI/resources/light.png");
 						db.setDragView(image);
 					}
 
@@ -322,15 +322,15 @@ public class Gui extends Application {
 				event.consume();
 			}
 		});
-		
+
 		/*
 		 * reset Button
 		 */
 		reset = (Button) anchorpane.getChildren().get(0);
 		// Set the scene to the stage
-		
+
 //		reset.setOnMouseClicked(ven);
-		
+
 		primaryStage.setScene(scene);
 
 		// Set the title of the stage
@@ -352,9 +352,9 @@ public class Gui extends Application {
 
 			anchorpane.getChildren().add(r.getKlima().getVebox());
 			// Temperture settings
-//			r.getKlima().getSettings().setOnAction(event -> Tempkonfig.this.display(Stage primaryStage)));  
+//			r.getKlima().getSettings().setOnAction(event -> Tempkonfig.this.display(Stage primaryStage)));
 			// Gaitan hier klappt etwas nicht ^^^^^^^^^^ Warum wird das gebraucht?
-			
+
 			// TemperaturIcon
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getSettings());
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getBox());
