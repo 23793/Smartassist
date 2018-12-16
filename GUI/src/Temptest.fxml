@@ -10,7 +10,7 @@
 
 <AnchorPane prefHeight="251.0" prefWidth="443.0" style="-fx-background-color: #343434;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.Main">
    <children>
-      <VBox alignment="CENTER" fillWidth="false" layoutX="2.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="318.0" prefWidth="443.0" scaleShape="false" spacing="25.0" style="-fx-background-color: #343434;">
+      <VBox alignment="CENTER" fillWidth="false" layoutX="2.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="318.0" prefWidth="443.0" scaleShape="false" spacing="20.0" style="-fx-background-color: #343434;">
          <children>
             <HBox alignment="CENTER_LEFT" centerShape="false" prefHeight="33.0" prefWidth="313.0" spacing="20.0" VBox.vgrow="NEVER">
                <children>
@@ -19,7 +19,11 @@
                         <Font name="Segoe UI" size="20.0" />
                      </font>
                   </Label>
-                  <CheckBox mnemonicParsing="false" />
+                  <Label text="AUTO" textFill="WHITE">
+                     <font>
+                        <Font name="Segoe UI" size="20.0" />
+                     </font>
+                  </Label>
                </children>
             </HBox>
             <Label prefHeight="24.0" prefWidth="342.0" text="ZIELTERMPERATUR" textFill="WHITE">

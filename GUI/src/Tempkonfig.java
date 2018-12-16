@@ -2,14 +2,18 @@ package GUI.src;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.layout.AnchorPane;
 //import javafx.scene.layout.GridPane;
 //import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -25,8 +29,13 @@ public class Tempkonfig implements EventHandler<ActionEvent> {
 	String temperatur = ""; //String temp
 	ToggleSwitch toggleswitch = new ToggleSwitch(); //onoffbutton
 	Button temperature = new Button("close");
-	
+
+
 	public void display(Stage primaryStage) throws Exception {
+	AnchorPane test = (AnchorPane) FXMLLoader.load(getClass().getResource("Temptest.fxml"));
+//	Scene scene = new Scene(test);
+	ObservableList<Node> obj = test.getChildren();
+
 		primaryStage.initModality(Modality.APPLICATION_MODAL);
 		primaryStage.setTitle("Temperaturkonfiguration"); //Titel
 		VBox root = new VBox(); //vertikale box
@@ -66,11 +75,11 @@ public class Tempkonfig implements EventHandler<ActionEvent> {
 		root.getChildren().add(value);
 		root.getChildren().add(save);
 		save.setOnAction(this);
-		Label lb = new Label("Temperatur Fenster schließen:"); 
+		Label lb = new Label("Temperatur Fenster schließen:");
 		root.getChildren().add(lb); // add the label lb into the vbox
 		temperature.setOnAction(event -> primaryStage.close()); // close the popUp window
 		root.getChildren().add(temperature);
-		Scene scene = new Scene(root,400,250);  //gr��e der anwendung
+		Scene scene = new Scene(test);  //gr��e der anwendung
 		primaryStage.setScene(scene);
 		primaryStage.showAndWait();
 

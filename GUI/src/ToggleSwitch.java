@@ -20,7 +20,7 @@ import javafx.scene.layout.HBox;
 
 		private void init() {
 
-			label.setText("OFF");
+		//	label.setText("OFF");
 
 			getChildren().addAll(label, button);
 			button.setOnAction((e) -> {
@@ -69,12 +69,12 @@ import javafx.scene.layout.HBox;
 			init();
 			switchedOn.addListener((a,b,c) -> {
 				if (c) {
-	                		label.setText("ON");
+	                	//	label.setText("ON");
 	                		setStyle("-fx-background-color: green;");
 	                		label.toFront();
 	            		}
 	            		else {
-	            			label.setText("OFF");
+	            		//	label.setText("OFF");
 	        			setStyle("-fx-background-color: grey;");
 	                		button.toFront();
 	            		}

@@ -5,8 +5,11 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -14,6 +17,8 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
@@ -22,6 +27,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -56,6 +62,7 @@ public class Gui extends Application {
 	private static Canvas canvas, canvas2;
 	private static GraphicsContext gc, gc2;
 	private static Button reset;
+	String temperatur = "";
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -64,18 +71,48 @@ public class Gui extends Application {
 		 * File
 		 */
 		AnchorPane root = (AnchorPane) FXMLLoader.load(getClass().getResource("RoomView.fxml"));
-	//	AnchorPane test = (AnchorPane) FXMLLoader.load(getClass().getResource("Temptest.fxml"));
+//		AnchorPane test = (AnchorPane) FXMLLoader.load(getClass().getResource("Temptest.fxml"));
 
 		/*
 		 * add the AnchorPane into a Scene
 		 */
 
 		scene = new Scene(root);
-	//	scene = new Scene(test);
+//		scene = new Scene(test);
 		/*
 		 * get the single child of the the root
 		 */
-	//	ObservableList<Node> obj = test.getChildren();
+
+//		ObservableList<Node> obj = test.getChildren();
+//		ToggleSwitch ts = new ToggleSwitch();
+//		VBox b = (VBox) obj.get(0);
+//		HBox hb = (HBox) b.getChildren().get(0); //HBox Objekt
+//		hb.getChildren().add(1,ts);				//in die HBox hinzufügen
+//
+//		Slider slider = (Slider) b.getChildren().get(2);
+//		Label value = new Label(Double.toString(slider.getValue()));
+//		value.setTextFill(Color.ANTIQUEWHITE);
+//
+//		slider.valueProperty().addListener(new ChangeListener<Number>() {
+//			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number NewValue) {
+//
+//				value.setText(String.format("%.2f", NewValue)); //Wert wird auf dem Bildschirm ausgegeben
+//				System.out.println(String.format("%.2f", NewValue)); //in der Konsole
+//				temperatur = String.format("%.2f", NewValue);	//wert wird in temp eingespeichert
+//			}
+//		});
+//
+//		b.getChildren().add(3, value);
+//		Button button = (Button) b.getChildren().get(4);
+//
+//		button.setOnAction(new EventHandler<ActionEvent>() {
+//
+//			public void handle(ActionEvent event) {
+//				System.out.println("saved.");
+//				System.out.println("Zieltemp: " +temperatur);
+//			}
+//		});
+
 		ObservableList<Node> obs = root.getChildren();
 		splitpane = (SplitPane) obs.get(0);
 
@@ -83,7 +120,6 @@ public class Gui extends Application {
 		 * get the right child of the splitpane and connect a Graphicscontext to
 		 * the Canvas and finally set the color of the stroke to red.
 		 */
-		ToggleSwitch button = new ToggleSwitch();
 		anchorpane = (AnchorPane) splitpane.getItems().get(1);
 		canvas = (Canvas) anchorpane.getChildren().get(1);
 		canvas2 = new Canvas(554, 746);
