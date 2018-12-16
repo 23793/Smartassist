@@ -183,7 +183,7 @@ public class Gui extends Application {
 						db.setDragView(image);
 					} else if (n.getId() == list.get(2).getId()) {
 						tempModulID = 3;
-						//dropping modul 3
+						// dropping modul 3
 						Image image = new Image("/GUI/resources/modul3.png");
 						db.setDragView(image);
 					} else if (n.getId() == list.get(3).getId()) {
@@ -275,61 +275,13 @@ public class Gui extends Application {
 			});
 		}
 
-		// Handling the drop and adding new objects to the room aswell as making
-		// already used modules unavailable
-		anchorpane.setOnDragDropped(new EventHandler<DragEvent>() {
-			@Override
-			public void handle(DragEvent event) {
-				Point p = new Point();
-				p.setLocation(event.getX(), event.getY());
-
-				if (tempRaum.getRect().contains(p)) {
-					if (tempModulID == 0) {
-						// F�GT EIN LICHT HINZU
-						tempRaum.setLicht(new Licht(p, tempRaum, anchorpane));
-						createLichtAnzeige(tempRaum);
-						tempRaum = null;
-					} else {
-						// ERSTELLT DEN RAUM
-						tempRaum.setModul(new Modul(tempModulID));
-						// F�GT TEMPERATURANZEIGE HINZU
-						createTempAnzeige(tempRaum);
-						// MALE RAUM AUS
-						gc.setFill(Color.WHITE);
-						gc.fillRect(tempRaum.getRect().getX() + 1, tempRaum.getRect().getY() + 1,
-								tempRaum.getRect().getWidth() - 2, tempRaum.getRect().getHeight() - 2);
-						// DEAKTIVIERE BEREITS BENUTZTE MODULE
-						switch (tempModulID) {
-						case 1:
-							list.get(0).setOpacity(0.2);
-							list.get(0).setDisable(true);
-							break;
-						case 2:
-							list.get(1).setOpacity(0.2);
-							list.get(1).setDisable(true);
-							break;
-						case 3:
-							list.get(2).setOpacity(0.2);
-							list.get(2).setDisable(true);
-							break;
-						}
-						// RESET TEMP VARIABLES
-						tempModulID = 0;
-						tempRaum = null;
-					}
-				}
-				event.setDropCompleted(true);
-				event.consume();
-			}
-		});
-
 		/*
 		 * reset Button
 		 */
 		reset = (Button) anchorpane.getChildren().get(0);
 		// Set the scene to the stage
 
-//		reset.setOnMouseClicked(ven);
+		// reset.setOnMouseClicked(ven);
 
 		primaryStage.setScene(scene);
 
@@ -352,8 +304,10 @@ public class Gui extends Application {
 
 			anchorpane.getChildren().add(r.getKlima().getVebox());
 			// Temperture settings
-//			r.getKlima().getSettings().setOnAction(event -> Tempkonfig.this.display(Stage primaryStage)));
-			// Gaitan hier klappt etwas nicht ^^^^^^^^^^ Warum wird das gebraucht?
+			// r.getKlima().getSettings().setOnAction(event ->
+			// Tempkonfig.this.display(Stage primaryStage)));
+			// Gaitan hier klappt etwas nicht ^^^^^^^^^^ Warum wird das
+			// gebraucht?
 
 			// TemperaturIcon
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getSettings());
