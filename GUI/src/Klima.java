@@ -71,11 +71,10 @@ public class Klima {
 					e1.printStackTrace();
 				}
 				if (tpop != null) {
-					//Do nothing
+					// Do nothing
 				} else {
 					tpop = new Temppop();
 				}
-				System.out.println("tpop: "+tpop);
 			}
 		});
 	}

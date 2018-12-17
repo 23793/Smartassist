@@ -117,7 +117,11 @@ public class Gui extends Application {
 				gc2.clearRect(0, 0, 554, 746);
 				Point p = new Point();
 				p.setLocation(event.getX(), event.getY());
+
 				double x, y, w, h;
+				Rectangle tempTangle = new Rectangle();
+				Boolean intersects = false;
+
 				if (event.getX() > pressedX && event.getY() > pressedY) {
 					// Oben links nach unten rechts
 					w = event.getX() - pressedX;
@@ -143,7 +147,30 @@ public class Gui extends Application {
 					x = event.getX() - (event.getX() - pressedX);
 					y = pressedY - (pressedY - event.getY());
 				}
-				gc2.setStroke(Color.WHITE);
+
+				tempTangle.x = (int) x;
+				tempTangle.y = (int) y;
+				tempTangle.width = (int) w;
+				tempTangle.height = (int) h;
+
+				// RED PREVIEW IF ROOM INVALID
+				for (Rectangle r : rectangles) {
+					if (r.intersects(tempTangle)) {
+						intersects = true;
+						break;
+					}
+				}
+
+				if (tempTangle.width < 58 || tempTangle.height < 72) {
+					gc2.setStroke(Color.RED);
+				} else if ((event.getX() > 554 || event.getX() < 0) || (event.getY() > 746 || event.getY() < 0)) {
+					gc2.setStroke(Color.RED);
+				} else if (intersects) {
+					gc2.setStroke(Color.RED);
+				} else {
+					gc2.setStroke(Color.WHITE);
+				}
+
 				gc2.strokeRect(x, y, w, h);
 				event.consume();
 			}
@@ -279,25 +306,23 @@ public class Gui extends Application {
 		 */
 		reset = (Button) anchorpane.getChildren().get(0);
 
-		reset.setOnMouseClicked(new EventHandler<MouseEvent>(){
+		reset.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
-			public void handle(MouseEvent event)
-			{
+			public void handle(MouseEvent event) {
 				// clear the canvas.
 				gc.clearRect(0, 0, 554, 746);
 				gc2.clearRect(0, 0, 554, 746);
-				
-				//remove all elements of the list
+
+				// remove all elements of the list
 				rectangles.clear();
-				
+
 				// reset all module's visibilties.
-				for(Node n : list)
-				{
-					if(n.isDisable() == true) {
+				for (Node n : list) {
+					if (n.isDisable() == true) {
 						n.setDisable(false);
 						n.setOpacity(1);
 					}
-				}								
+				}
 			}
 		});
 
