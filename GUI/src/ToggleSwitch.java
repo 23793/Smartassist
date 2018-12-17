@@ -14,37 +14,27 @@ import javafx.scene.layout.HBox;
 		private final Label label = new Label();
 		private final Button button = new Button();
 		private int modus = 1; //default true = automatisch
+		boolean mode = false;
 
 		private SimpleBooleanProperty switchedOn = new SimpleBooleanProperty(false);
 		public SimpleBooleanProperty switchOnProperty() { return switchedOn; }
 
 		private void init() {
 
-		//	label.setText("OFF");
-
 			getChildren().addAll(label, button);
 			button.setOnAction((e) -> {
 				switchedOn.set(!switchedOn.get());
-				setmodus(true); //modus wird automatisch (1) gesetzt
+				mode = !mode;
+				System.out.println(mode); //modus wird automatisch (1) gesetzt
 			});
 			label.setOnMouseClicked((e) -> {
 				switchedOn.set(!switchedOn.get());
-				setmodus(false); //modus wird manuell (0) gesetzt
+				mode =!mode;
+				System.out.println(mode);
 			});
 			setStyle();
 			bindProperties();
 		}
-
-		public void setmodus(boolean b) {
-			if(b == true) {
-				modus = 0;
-				System.out.println("manuell");
-			}
-				else {
-					System.out.println("auto");
-					modus = 1;
-				}
-			}
 
 			public int get_modus() {
 				return modus;
@@ -69,12 +59,10 @@ import javafx.scene.layout.HBox;
 			init();
 			switchedOn.addListener((a,b,c) -> {
 				if (c) {
-	                	//	label.setText("ON");
 	                		setStyle("-fx-background-color: green;");
 	                		label.toFront();
 	            		}
 	            		else {
-	            		//	label.setText("OFF");
 	        			setStyle("-fx-background-color: grey;");
 	                		button.toFront();
 	            		}
