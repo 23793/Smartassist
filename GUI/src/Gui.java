@@ -346,11 +346,6 @@ public class Gui extends Application {
 			r.getKlima().setImageAndLabel(temperatur, String.format("%.2f", r.getModul().gettemperatur()));
 
 			anchorpane.getChildren().add(r.getKlima().getVebox());
-			// Temperture settings
-			// r.getKlima().getSettings().setOnAction(event ->
-			// Tempkonfig.this.display(Stage primaryStage)));
-			// Gaitan hier klappt etwas nicht ^^^^^^^^^^ Warum wird das
-			// gebraucht?
 
 			// TemperaturIcon
 			r.getKlima().getVebox().getChildren().add(r.getKlima().getSettings());
