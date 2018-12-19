@@ -3,7 +3,6 @@ package GUI.src;
 import java.awt.Point;
 
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
@@ -16,14 +15,15 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class Licht {
 
 	private Raum raum;
 
-	private boolean lichtStatus = false;
+	private boolean lichtAnAus = false;
+	private boolean lichtModus = false;
+	private int lichtZielWert = 2;
 	private Point lichtPoint;
 
 	private ImageView anBild = new ImageView(new Image("/GUI/resources/idea.png", true));
@@ -52,7 +52,7 @@ public class Licht {
 		settings.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				Lichtpop lp = new Lichtpop();
+				Lichtpop lp = new Lichtpop(raum);
 				Stage stage = new Stage();
 				stage.setTitle("Lichtkonfiguartion");
 				try {
@@ -72,7 +72,7 @@ public class Licht {
 				Dragboard db = settings.startDragAndDrop(TransferMode.MOVE);
 				ClipboardContent content = new ClipboardContent();
 				content.putString("Hallo");
-				Image image = new Image("/GUI/resources/bw.png");
+				Image image = new Image("/GUI/resources/bw2.png");
 				db.setDragView(image);
 				db.setContent(content);
 
@@ -105,9 +105,9 @@ public class Licht {
 	}
 
 	public void toggle() {
-		lichtStatus = !lichtStatus;
+		lichtAnAus = !lichtAnAus;
 
-		if (lichtStatus) {
+		if (lichtAnAus) {
 			settings.setGraphic(anBild);
 		} else {
 			settings.setGraphic(ausBild);
@@ -115,9 +115,9 @@ public class Licht {
 		}
 	}
 
-	public void setLichtStatus(boolean state) {
-		lichtStatus = state;
-		if (lichtStatus) {
+	public void setLichtAnAus(boolean state) {
+		lichtAnAus = state;
+		if (lichtAnAus) {
 			settings.setGraphic(anBild);
 		} else {
 			settings.setGraphic(ausBild);
@@ -125,8 +125,8 @@ public class Licht {
 		}
 	}
 
-	public boolean getLichtStatus() {
-		return lichtStatus;
+	public boolean getLichtAnAus() {
+		return lichtAnAus;
 	}
 
 	public void setLichtPoint(Point p) {
@@ -169,6 +169,22 @@ public class Licht {
 
 	public void setRaum(Raum raum) {
 		this.raum = raum;
+	}
+
+	public int getLichtZielWert() {
+		return lichtZielWert;
+	}
+
+	public void setLichtZielWert(int lichtZielWert) {
+		this.lichtZielWert = lichtZielWert;
+	}
+
+	public boolean getLichtModus() {
+		return lichtModus;
+	}
+
+	public void setLichtModus(boolean lichtModus) {
+		this.lichtModus = lichtModus;
 	}
 
 }

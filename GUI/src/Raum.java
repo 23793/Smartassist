@@ -105,7 +105,7 @@ public class Raum {
 	public void setModul(Modul modul) {
 		this.modul = modul;
 		try {
-			this.klima = new Klima(new Point((int) (position_x), (int) (position_y)));
+			this.klima = new Klima(new Point((int) (position_x), (int) (position_y)), this);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

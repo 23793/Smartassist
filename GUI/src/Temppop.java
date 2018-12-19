@@ -22,18 +22,23 @@ import javafx.stage.Stage;
 
 public class Temppop {
 
-	private float temp_zielwert = 22.00f;
-	private boolean temp_automatik;
+	private Raum raum;
+	private float tempZielwert;
 
-	Scene scene;
-	AnchorPane test;
+	private Scene scene;
+	private AnchorPane test;
+
+	// Constructor with room
+	public Temppop(Raum r) {
+		raum = r;
+	}
 
 	public void display(Stage primaryStage) throws Exception {
 
 		try {
 			test = (AnchorPane) FXMLLoader.load(getClass().getResource("Temptest.fxml"));
 		} catch (IOException e) {
-			System.out.println("Konnte Temptest.fxml nicht finden!");
+			System.out.println("Konnte fxml nicht finden!");
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -47,26 +52,28 @@ public class Temppop {
 		 */
 
 		ObservableList<Node> obj = test.getChildren();
+
+		// Create the Toggleswitch
 		ToggleSwitch ts = new ToggleSwitch();
 		VBox b = (VBox) obj.get(0);
 		HBox hb = (HBox) b.getChildren().get(0); // HBox Objekt
 		hb.getChildren().add(1, ts); // in die HBox hinzufügen
 
+		// Initialize the Toggleswitch
+		ts.set_mode(raum.getKlima().getHeizungsstatus());
+		tempZielwert = (float) raum.getKlima().getZielTemp();
+
+		// Create and initialize slider
 		Slider slider = (Slider) b.getChildren().get(2);
-		slider.setValue(get_temp_zielwert());
+		slider.setValue(raum.getKlima().getZielTemp());
 		Label value = new Label(Double.toString(slider.getValue()));
 		value.setTextFill(Color.ANTIQUEWHITE);
 
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number NewValue) {
 
-				value.setText(String.format("%.2f", NewValue)); // Wert wird auf
-																// dem
-																// Bildschirm
-																// ausgegeben
-				System.out.println(String.format("%.2f", NewValue)); // in der
-																		// Konsole
-				set_temp_zielwert(String.format("%s",NewValue));
+				value.setText(String.format("%.2f", NewValue));
+				tempZielwert = Float.parseFloat(String.format("%s", NewValue));
 			}
 		});
 
@@ -76,10 +83,10 @@ public class Temppop {
 		button.setOnAction(new EventHandler<ActionEvent>() {
 
 			public void handle(ActionEvent event) {
-				System.out.println("saved.");
-				System.out.println("Zieltemp: " +get_temp_zielwert());
-				set_temp_automatik(ts.get_mode());
-				System.out.println("Modus: " +get_temp_automatik());
+				raum.getKlima().setHeizungsstatus(ts.get_mode());
+				raum.getKlima().setZielTemp(tempZielwert);
+				System.out.println("Zieltemp: " + raum.getKlima().getZielTemp());
+				System.out.println("Modus: " + raum.getKlima().getHeizungsstatus());
 				primaryStage.close();
 			}
 		});
@@ -89,19 +96,4 @@ public class Temppop {
 		primaryStage.showAndWait();
 	}
 
-	public void set_temp_zielwert(String string) {
-		temp_zielwert = Float.parseFloat(string);
-	}
-
-	public float get_temp_zielwert() {
-		return temp_zielwert;
-	}
-
-	public void set_temp_automatik(boolean a) {
-		temp_automatik = a;
-	}
-
-	public boolean get_temp_automatik() {
-		return temp_automatik;
-	}
 }

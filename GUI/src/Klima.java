@@ -16,7 +16,7 @@ import javafx.stage.Stage;
 public class Klima {
 
 	private boolean heizungsstatus;
-	private boolean ACstatus;
+	private double zielTemp = 20; // Standardwert
 
 	private Image fire = new Image("/GUI/resources/fire.png", true);
 	private Image temp = new Image("/GUI/resources/temp.png", true);
@@ -27,6 +27,7 @@ public class Klima {
 	private Label temps = new Label();
 	private Button settings = new Button(null, new ImageView(temp));
 	private Temppop tpop = null;
+	private Raum raum;
 
 	/*
 	 * Vbox und Hbox für Temperaturanzeige
@@ -34,7 +35,8 @@ public class Klima {
 	private VBox vebox = new VBox();
 	private HBox box = new HBox();
 
-	public Klima(Point p) throws Exception {
+	public Klima(Point p, Raum r) throws Exception {
+		raum = r;
 		/*
 		 * Skalierung der Bilder
 		 */
@@ -60,7 +62,7 @@ public class Klima {
 		settings.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				Temppop tk = new Temppop();
+				Temppop tk = new Temppop(raum);
 				Stage stage = new Stage();
 				stage.setTitle("Temperaturkonfiguartion");
 				stage.initModality(Modality.WINDOW_MODAL);
@@ -73,7 +75,7 @@ public class Klima {
 				if (tpop != null) {
 					// Do nothing
 				} else {
-					tpop = new Temppop();
+					tpop = new Temppop(raum);
 				}
 			}
 		});
@@ -92,22 +94,6 @@ public class Klima {
 			iv1.setImage(perfect);
 		}
 		temps.setText(temp + "°C");
-	}
-
-	public void set_heizungsstatus(boolean status) {
-		heizungsstatus = status;
-	}
-
-	public boolean get_heizungsstatus() {
-		return heizungsstatus;
-	}
-
-	public void set_ACstatus(boolean status) {
-		ACstatus = status;
-	}
-
-	public boolean get_ACstatus() {
-		return ACstatus;
 	}
 
 	public ImageView getIv1() {
@@ -156,5 +142,21 @@ public class Klima {
 
 	public void setTemps(Label temps) {
 		this.temps = temps;
+	}
+
+	public boolean getHeizungsstatus() {
+		return heizungsstatus;
+	}
+
+	public void setHeizungsstatus(boolean heizungsstatus) {
+		this.heizungsstatus = heizungsstatus;
+	}
+
+	public double getZielTemp() {
+		return zielTemp;
+	}
+
+	public void setZielTemp(double zielTemp) {
+		this.zielTemp = zielTemp;
 	}
 }

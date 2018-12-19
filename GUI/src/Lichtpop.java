@@ -22,46 +22,64 @@ import javafx.stage.Stage;
 
 public class Lichtpop {
 
-	private int licht_zielwert = 1;
-	private boolean licht_automatik;
-	AnchorPane apane;
-	Scene scene;
+	private Raum raum;
+	private int tempZielWert;
+	private AnchorPane apane;
+	private Scene scene;
+
+	// Constructor with room
+	public Lichtpop(Raum r) {
+		raum = r;
+	}
 
 	public void display(Stage primaryStage) {
 
 		try {
 			apane = (AnchorPane) FXMLLoader.load(getClass().getResource("Lichtkonfig.fxml"));
 		} catch (IOException e) {
-			System.out.println("Konnte Temptest.fxml nicht finden!");
+			System.out.println("Konnte fxml nicht finden!");
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		ObservableList<Node> obj = apane.getChildren();
+
+		// Create Toggleswitches
 		ToggleSwitch ts = new ToggleSwitch();
 		ToggleSwitch oo = new ToggleSwitch();
 		VBox b = (VBox) obj.get(0);
 		HBox hb = (HBox) b.getChildren().get(0);
 		hb.getChildren().add(1, ts);
 		HBox hb2 = (HBox) b.getChildren().get(1);
-		hb2.getChildren().add(1,oo);
+		hb2.getChildren().add(1, oo);
+		// Initialize Toggleswitches
+		ts.set_mode(raum.getLicht().getLichtModus());
+		oo.set_mode(raum.getLicht().getLichtAnAus());
 
+		// Create and initialize Slider
 		Slider slider = (Slider) b.getChildren().get(3);
-		slider.setValue(get_licht_zielwert());
+		slider.setValue(raum.getLicht().getLichtZielWert());
+		tempZielWert = raum.getLicht().getLichtZielWert();
 		Label value = new Label(Double.toString(slider.getValue()));
 		value.setTextFill(Color.ANTIQUEWHITE);
 
+		// Slider changelistener
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number NewValue) {
 
-				value.setText(String.format("%.0f", NewValue)); // Wert wird auf
-																// dem
-																// Bildschirm
-																// ausgegeben
-				System.out.println(String.format("%.0f", NewValue)); // in der
-																	// Konsole
-				set_licht_zielwert(String.format("%.0f", NewValue));
+				value.setText(String.format("%.0f", NewValue));
+				System.out.println(String.format("%.0f", NewValue));
+				tempZielWert = Integer.parseInt((String.format("%.0f", NewValue)));
 			}
+		});
+
+		// Switch to Manual mode if ON/OFF is switched
+		oo.switchOnProperty().addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
+				ts.set_mode(false);
+			}
+
 		});
 
 		b.getChildren().add(4, value);
@@ -70,14 +88,12 @@ public class Lichtpop {
 		button.setOnAction(new EventHandler<ActionEvent>() {
 
 			public void handle(ActionEvent event) {
-				System.out.println("saved.");
-				System.out.println("Ziellichtwert: " +get_licht_zielwert());
-				set_licht_automatik(ts.get_mode());
-				System.out.print("Modus: " +get_licht_automatik());
+				raum.getLicht().setLichtAnAus(oo.get_mode());
+				raum.getLicht().setLichtModus(ts.get_mode());
+				raum.getLicht().setLichtZielWert(tempZielWert);
 				primaryStage.close();
 			}
 		});
-
 
 		scene = new Scene(apane);
 		primaryStage.setScene(scene);
@@ -85,22 +101,5 @@ public class Lichtpop {
 		primaryStage.setResizable(false);
 		primaryStage.show();
 	}
-
-	public void set_licht_zielwert(String wert) {
-		licht_zielwert = Integer.parseInt(wert);
-	}
-
-	public int get_licht_zielwert() {
-		return licht_zielwert;
-	}
-
-	public void set_licht_automatik(boolean a) {
-		licht_automatik = a;
-	}
-
-	public boolean get_licht_automatik() {
-		return licht_automatik;
-	}
-
 
 }
