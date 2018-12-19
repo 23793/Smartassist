@@ -16,6 +16,8 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class Licht {
 
@@ -25,7 +27,7 @@ public class Licht {
 	private Point lichtPoint;
 
 	private ImageView anBild = new ImageView(new Image("/GUI/resources/idea.png", true));
-	private ImageView ausBild = new ImageView(new Image("/GUI/resources/lampe.png", true));
+	private ImageView ausBild = new ImageView(new Image("/GUI/resources/bw.png", true));
 
 	private Button settings = new Button(null, ausBild);
 
@@ -50,7 +52,15 @@ public class Licht {
 		settings.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
-				toggle();
+				Lichtpop lp = new Lichtpop();
+				Stage stage = new Stage();
+				stage.setTitle("Lichtkonfiguartion");
+				try {
+					lp.display(stage);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 
