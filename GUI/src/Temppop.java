@@ -78,6 +78,8 @@ public class Temppop {
 			public void handle(ActionEvent event) {
 				System.out.println("saved.");
 				System.out.println("Zieltemp: " +get_temp_zielwert());
+				set_temp_automatik(ts.get_mode());
+				System.out.println("Modus: " +get_temp_automatik());
 				primaryStage.close();
 			}
 		});
@@ -87,7 +89,6 @@ public class Temppop {
 	}
 
 	public void set_temp_zielwert(String string) {
-		Float test = Float.parseFloat(string);
 		temp_zielwert = Float.parseFloat(string);
 	}
 

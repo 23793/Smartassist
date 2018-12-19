@@ -72,6 +72,8 @@ public class Lichtpop {
 			public void handle(ActionEvent event) {
 				System.out.println("saved.");
 				System.out.println("Ziellichtwert: " +get_licht_zielwert());
+				set_licht_automatik(ts.get_mode());
+				System.out.print("Modus: " +get_licht_automatik());
 				primaryStage.close();
 			}
 		});

@@ -13,8 +13,7 @@ import javafx.scene.layout.HBox;
 
 		private final Label label = new Label();
 		private final Button button = new Button();
-		private int modus = 1; //default true = automatisch
-		boolean mode = false;
+		private boolean mode = false;
 
 		private SimpleBooleanProperty switchedOn = new SimpleBooleanProperty(false);
 		public SimpleBooleanProperty switchOnProperty() { return switchedOn; }
@@ -26,19 +25,25 @@ import javafx.scene.layout.HBox;
 				switchedOn.set(!switchedOn.get());
 				mode = !mode;
 				System.out.println(mode); //modus wird automatisch (1) gesetzt
+				set_mode(mode);
 			});
 			label.setOnMouseClicked((e) -> {
 				switchedOn.set(!switchedOn.get());
 				mode =!mode;
 				System.out.println(mode);
+				set_mode(mode);
 			});
 			setStyle();
 			bindProperties();
 		}
 
-			public int get_modus() {
-				return modus;
-			}
+		public void set_mode(boolean b) {
+			mode = b;
+		}
+
+		public boolean get_mode() {
+			return mode;
+		}
 
 		private void setStyle() {
 			//Default Width

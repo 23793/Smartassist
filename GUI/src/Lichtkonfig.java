@@ -88,7 +88,7 @@ public class Lichtkonfig implements EventHandler<ActionEvent> {
 		if(event.getSource()==save) {
 			System.out.println("SAVED: ");
 			System.out.println("Zieltemp :" +temperatur);
-			System.out.println("Modus (0=manuell) (1=automatisch) : " +toggleswitch.get_modus());
+	//		System.out.println("Modus (0=manuell) (1=automatisch) : " +toggleswitch.get_modus());
 		}
 	}
 
