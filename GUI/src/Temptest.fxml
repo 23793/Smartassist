@@ -31,7 +31,7 @@
                   <Font name="Segoe UI" size="20.0" />
                </font>
             </Label>
-            <Slider blockIncrement="25.0" majorTickUnit="10.0" max="40.0" minorTickCount="5" prefHeight="18.0" prefWidth="360.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="1.0" />
+            <Slider blockIncrement="1.0" majorTickUnit="10.0" max="40.0" min="10.0" minorTickCount="9" prefHeight="18.0" prefWidth="360.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="1.0" />
             <Button mnemonicParsing="false" prefHeight="39.0" prefWidth="66.0" style="-fx-background-color: #4D4D4D;" text="OK" textFill="WHITE">
                <font>
                   <Font name="Segoe UI" size="16.0" />
