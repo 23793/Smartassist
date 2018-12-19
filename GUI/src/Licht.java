@@ -72,6 +72,8 @@ public class Licht {
 				Dragboard db = settings.startDragAndDrop(TransferMode.MOVE);
 				ClipboardContent content = new ClipboardContent();
 				content.putString("Hallo");
+				Image image = new Image("/GUI/resources/bw.png");
+				db.setDragView(image);
 				db.setContent(content);
 
 				ap.setOnDragOver(new EventHandler<DragEvent>() {

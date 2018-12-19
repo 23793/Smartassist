@@ -82,6 +82,7 @@ public class Lichtpop {
 		scene = new Scene(apane);
 		primaryStage.setScene(scene);
 		primaryStage.initModality(Modality.APPLICATION_MODAL);
+		primaryStage.setResizable(false);
 		primaryStage.show();
 	}
 
