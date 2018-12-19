@@ -66,7 +66,7 @@ public class ToggleSwitch extends HBox {
 		init();
 		switchedOn.addListener((a, b, c) -> {
 			if (c) {
-				setStyle("-fx-background-color: grey;"); // MEDIUMAQUAMARINE
+				setStyle("-fx-background-color: MEDIUMAQUAMARINE;");
 				label.toFront();
 			} else {
 				setStyle("-fx-background-color: grey;");
