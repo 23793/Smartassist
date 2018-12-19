@@ -68,7 +68,6 @@ public class Lichtpop {
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number NewValue) {
 
 				value.setText(String.format("%.0f", NewValue));
-				System.out.println(String.format("%.0f", NewValue));
 				tempZielWert = Integer.parseInt((String.format("%.0f", NewValue)));
 			}
 		});
