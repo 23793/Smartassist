@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -25,6 +26,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 /**
  * Die Gui Klasse enthï¿½lt die gesamte FXML basierte GUI inklusive aller
@@ -39,6 +41,11 @@ import javafx.stage.Stage;
  */
 public class Gui extends Application {
 
+	// Schnittstelle
+	private static Schnittstelle schnittstelle;
+	private static String raumString;
+
+	// Variables
 	private double pressedX;
 	private double pressedY;
 	private double releasedX;
@@ -61,6 +68,49 @@ public class Gui extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		/*
+		 * Kommunikation mit Schnittstelle
+		 */
+		schnittstelle = new Schnittstelle();
+
+		new Thread(new Runnable() {
+			public void run() {
+				// Verbindung herstellen
+				while (Schnittstelle.getSerialPort() == null) {
+					schnittstelle.connect();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ie) {
+						ie.printStackTrace();
+					}
+				}
+
+				// Daten Empfangen
+				raumString = schnittstelle.receive();
+//				System.out.println(raumString);
+
+				// Port schließen
+				schnittstelle.close();
+
+				// Pause bis zum nächsten Receive
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException ie) {
+					ie.printStackTrace();
+				}
+			}
+		}).start();
+
+		// Eventhandler zum Beenden des Threads beim Schließen der GUI
+		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent t) {
+				schnittstelle.close();
+				Platform.exit();
+				System.exit(0);
+			}
+		});
+
 		/*
 		 * create the AnchorPane and all details and load the Path of the FXML
 		 * File
@@ -335,7 +385,7 @@ public class Gui extends Application {
 		});
 		// set the primaryStage once
 		SingletonClass.getSingletonInstanz().setStage(primaryStage);
-		
+
 		primaryStage.setScene(scene);
 
 		// Set the title of the stage

@@ -19,7 +19,7 @@ public class Schnittstelle {
 			String s = null;
 			for (String p : portNames) { // Loop looking for the right port
 				tempPort = new SerialPort(p);
-				System.out.println(p);
+//				System.out.println(p);
 				try {
 					tempPort.openPort();
 					tempPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1,
@@ -28,7 +28,7 @@ public class Schnittstelle {
 						tempPort.writeString("Hallo!"); // Handshake
 						s = new String(tempPort.readBytes(36, 50));
 					} catch (SerialPortTimeoutException e) {
-						e.printStackTrace();
+						// e.printStackTrace(); // DO NOTHING
 					}
 					tempPort.closePort();
 				} catch (SerialPortException e) {
@@ -50,7 +50,8 @@ public class Schnittstelle {
 					e.printStackTrace();
 				}
 			} else {
-				System.out.println("Kein passendes Gerät gefunden!");
+				// System.out.println("Kein passendes Gerät gefunden!"); //DO
+				// NOTHING
 			}
 		} else { // Port already found
 			try {
@@ -77,6 +78,10 @@ public class Schnittstelle {
 		if (serialPort != null) {
 			String x = null;
 			try {
+				if (!serialPort.isOpened()) {
+					serialPort.openPort();
+				}
+
 				System.out.println("Waiting for data from the WSN...");
 				x = new String(serialPort.readBytes(36)); // Reads the 36 Bytes
 															// of
@@ -103,6 +108,9 @@ public class Schnittstelle {
 	public void send(String data) {
 		if (serialPort != null) {
 			try {
+				if (!serialPort.isOpened()) {
+					serialPort.openPort();
+				}
 				System.out.println("Sending data to the WSN...");
 				serialPort.writeString(data); // Sends the data String to the
 												// connected port
@@ -122,7 +130,7 @@ public class Schnittstelle {
 	 * @see SerialPort
 	 */
 	public void close() {
-		if (serialPort != null) {
+		if (serialPort != null && serialPort.isOpened()) {
 			System.out.println("Closing connection...");
 			try {
 				serialPort.closePort();
@@ -133,5 +141,9 @@ public class Schnittstelle {
 		} else {
 			System.out.println("Kein Port verbunden!");
 		}
+	}
+
+	public static SerialPort getSerialPort() {
+		return serialPort;
 	}
 }
