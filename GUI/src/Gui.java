@@ -333,7 +333,9 @@ public class Gui extends Application {
 				}
 			}
 		});
-
+		// set the primaryStage once
+		SingletonClass.getSingletonInstanz().setStage(primaryStage);
+		
 		primaryStage.setScene(scene);
 
 		// Set the title of the stage
