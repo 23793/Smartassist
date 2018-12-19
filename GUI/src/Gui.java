@@ -57,6 +57,7 @@ public class Gui extends Application {
 	private static GraphicsContext gc, gc2;
 	private static Button reset;
 	String temperatur = "";
+	Stage stage = new Stage();
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -330,6 +331,9 @@ public class Gui extends Application {
 
 		// Set the title of the stage
 		primaryStage.setTitle("SmartAssist");
+
+		// locks window
+		primaryStage.setResizable(false);
 
 		// Display the stage
 		primaryStage.show();

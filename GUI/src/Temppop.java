@@ -22,11 +22,10 @@ import javafx.stage.Stage;
 
 public class Temppop {
 
-	private float temp_zielwert;
+	private float temp_zielwert = 22.00f;
 	private boolean temp_automatik;
 
 	Scene scene;
-	String temperatur = "";
 	AnchorPane test;
 
 	public void display(Stage primaryStage) throws Exception {
@@ -54,6 +53,7 @@ public class Temppop {
 		hb.getChildren().add(1, ts); // in die HBox hinzufügen
 
 		Slider slider = (Slider) b.getChildren().get(2);
+		slider.setValue(get_temp_zielwert());
 		Label value = new Label(Double.toString(slider.getValue()));
 		value.setTextFill(Color.ANTIQUEWHITE);
 
@@ -66,9 +66,7 @@ public class Temppop {
 																// ausgegeben
 				System.out.println(String.format("%.2f", NewValue)); // in der
 																		// Konsole
-				temperatur = String.format("%.2f", NewValue); // wert wird in
-																// temp
-																// eingespeichert
+				set_temp_zielwert(String.format("%.2s",NewValue));
 			}
 		});
 
@@ -79,7 +77,7 @@ public class Temppop {
 
 			public void handle(ActionEvent event) {
 				System.out.println("saved.");
-				System.out.println("Zieltemp: " + temperatur);
+				System.out.println("Zieltemp: " +get_temp_zielwert());
 				primaryStage.close();
 			}
 		});
@@ -88,8 +86,10 @@ public class Temppop {
 		primaryStage.showAndWait();
 	}
 
-	public void set_temp_zielwert(float wert) {
-		temp_zielwert = wert;
+	public void set_temp_zielwert(String string) {
+		Float test = Float.parseFloat(string);
+		System.out.print("Float test: " +test);
+		temp_zielwert = Float.parseFloat(string);
 	}
 
 	public float get_temp_zielwert() {
