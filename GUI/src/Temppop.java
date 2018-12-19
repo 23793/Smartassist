@@ -66,7 +66,7 @@ public class Temppop {
 																// ausgegeben
 				System.out.println(String.format("%.2f", NewValue)); // in der
 																		// Konsole
-				set_temp_zielwert(String.format("%.2s",NewValue));
+				set_temp_zielwert(String.format("%s",NewValue));
 			}
 		});
 
@@ -88,7 +88,6 @@ public class Temppop {
 
 	public void set_temp_zielwert(String string) {
 		Float test = Float.parseFloat(string);
-		System.out.print("Float test: " +test);
 		temp_zielwert = Float.parseFloat(string);
 	}
 
