@@ -314,8 +314,15 @@ public class Gui extends Application {
 				gc.clearRect(0, 0, 554, 746);
 				gc2.clearRect(0, 0, 554, 746);
 
-				// remove all elements of the list
+				// remove all elements of the lists
+				raumListe.clear();
 				rectangles.clear();
+
+				// Reset the room counter
+				idCounter = 1;
+
+				// Remove the Light and Temperature Buttons
+				anchorpane.getChildren().subList(3, anchorpane.getChildren().size()).clear();
 
 				// reset all module's visibilties.
 				for (Node n : list) {
