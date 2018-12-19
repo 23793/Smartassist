@@ -72,7 +72,7 @@ public class Temppop {
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number NewValue) {
 
-				value.setText(String.format("%.2f", NewValue));
+				value.setText(String.format("%.2f",NewValue.floatValue()));
 				tempZielwert = Float.parseFloat(String.format("%s", NewValue));
 			}
 		});

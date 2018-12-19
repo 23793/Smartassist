@@ -354,7 +354,7 @@ public class Gui extends Application {
 		if (r.getModul() != null) {
 
 			String temperatur = r.getModul().temperaturanzeige(22.00f);
-			r.getKlima().setImageAndLabel(temperatur, String.format("%.2f", r.getModul().gettemperatur()));
+			r.getKlima().setImageAndLabel(temperatur);
 
 			anchorpane.getChildren().add(r.getKlima().getVebox());
 

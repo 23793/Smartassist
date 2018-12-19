@@ -81,7 +81,7 @@ public class Klima {
 		});
 	}
 
-	public void setImageAndLabel(String s, String temp) {
+	public void setImageAndLabel(String s) {
 		/**
 		 * checkt den wert von s und gibt entsprechendes Bild aus. Setzt
 		 * außerdem die Temperatur für das Label fest.
@@ -93,7 +93,7 @@ public class Klima {
 		} else if (s.equals("perfekt")) {
 			iv1.setImage(perfect);
 		}
-		temps.setText(temp + "°C");
+		temps.setText(raum.getModul().gettemperatur() + "°C");
 	}
 
 	public ImageView getIv1() {
