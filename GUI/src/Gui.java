@@ -91,12 +91,9 @@ public class Gui extends Application {
 					raumString = schnittstelle.receive();
 					// System.out.println(raumString);
 
-					// Port schlieﬂen
-					schnittstelle.close();
-
 					// Pause bis zum n‰chsten Receive
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(500);
 					} catch (InterruptedException ie) {
 						ie.printStackTrace();
 					}
