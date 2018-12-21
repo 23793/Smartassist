@@ -85,18 +85,21 @@ public class Gui extends Application {
 					}
 				}
 
-				// Daten Empfangen
-				raumString = schnittstelle.receive();
-//				System.out.println(raumString);
+				// Loop für datenempfang
+				while (Schnittstelle.getSerialPort().isOpened()) {
+					// Daten Empfangen
+					raumString = schnittstelle.receive();
+					// System.out.println(raumString);
 
-				// Port schließen
-				schnittstelle.close();
+					// Port schließen
+					schnittstelle.close();
 
-				// Pause bis zum nächsten Receive
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException ie) {
-					ie.printStackTrace();
+					// Pause bis zum nächsten Receive
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ie) {
+						ie.printStackTrace();
+					}
 				}
 			}
 		}).start();
