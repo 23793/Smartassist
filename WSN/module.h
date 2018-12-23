@@ -22,8 +22,8 @@
 #define srcOnOff_Status_Server 10
 #define srcOnOff_Mode_Climate_Server 11
 #define srcOnOff_Mode_Light_Server 12
-#define srcTemperature_Zielwert 13
-#define srcIlluminance_Zielwert 14
+#define srcTemperature_Zielwert 33
+#define srcIlluminance_Zielwert 50
 
 // Endpoints Client
 #define srcOnOff_Light_Client 8
@@ -34,11 +34,16 @@
 #define dstIlluminance_Measurement_Client 4
 #define dstOnOff_Light_Client 2
 #define dstOnOff_Status_Client 3
-#define dstOnOff_Mode_Climate 5
+#define dstOnOff_Mode_Climate_Client 5
 #define dstOnOff_Mode_Light_Client 6
+#define dstOnOff_Cooling_Client 30
+#define dstOnOff_Heating_Client 31
 
 #define MODULE_ID 1
 #define STATUS_ATTRIBUTE_BUFFER_SIZE 10
+#define MODELIGHT_ATTRIBUTE_BUFFER_SIZE 11
+#define MODECLIMATE_ATTRIBUTE_BUFFER_SIZE 12
+#define LIGHT_ATTRIBUTE_BUFFER_SIZE 13
 //Addresse TemperatureSensor
 #define LM73_DEVICE_ADDRESS 0x4D
 
@@ -57,17 +62,12 @@
 
 typedef struct{
 	uint8_t ID;
-	bool status;		// 1==active, 0 == inactive
-	bool mode_light;			// 1 == automatisch, 0==manuell
-	bool mode_climate;
-	bool LEDWHITE_status;
-	uint16_t illuminanceValue;
 	uint16_t illuminanceReference;
-	double temperatureValue;
-	double temperatureReference;
+	int16_t temperatureReference;
 	uint8_t LEDWHITE_power;
 	uint8_t LEDWHITE_duty;		// Wert zwischen 0 und 255 (0 = 0%, 255 = 100%)
 	bool LEDBLUE_status;
+	bool LEDWHITE_status;
 	bool LEDRED_status;
 	bool FAN_status;
 } Module;
