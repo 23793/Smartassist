@@ -46,9 +46,10 @@ static HAL_AppTimer_t ausgabeTimer;
 static AppState_t appstate = INIT;
 static uint8_t temp[] = "Value: XXX.XXXCelsius\n\r";
 static uint8_t test[] = "XXXXX\n\r";
-static uint8_t report[] ="X;X;XX.XX;XXX;X;X;X\n\r";
+static uint8_t report[] ="X;X;X;X;X;XXX;XXXX";
 static HAL_UsartDescriptor_t usartDesc;
-static uint8_t usartRxBuffer[20];
+static uint8_t usartRxBuffer[18];
+static uint8_t usartBuffer[18];
 
 static ZDO_StartNetworkReq_t networkParams;
 
@@ -583,37 +584,23 @@ static void initTimer(){
 }
 
 static void ausgabeTimerFired(){
-	/*ausgabe(module1);
+	ausgabe(module1);
 	ausgabe(module2);
-	ausgabe(module3);*/
+	ausgabe(module3);
 }
 
-static void copyTextToAusgabe(uint8_t* text, uint8_t size){
-	for(int i=0;i<size;i++){
-		usart.output[i]=text[i];
-	}
-	usart.output[size]='\r';
-	usart.output[size+1]='\n';
-	usart.outputSize=size+2;
-}
-
-static uint8_t counter = 0;
 
 void readBuffer(uint16_t bytesReceived){
-	
-	counter++;
-	uint8_t byte;
-	BSP_ToggleLed(LED_GREEN);
-	HAL_ReadUsart(&usartDesc, &byte, bytesReceived);
-	if(byte!='\r' && usart.nextOutputPos<20){
-		usart.nextOutput[usart.nextOutputPos] = byte;
-		usart.nextOutputPos++;
-	}else{
-		copyTextToAusgabe(usart.nextOutput, usart.nextOutputPos);
-		usart.nextOutputPos = 0;
-		usart.output[0] = counter;
-		HAL_WriteUsart(&usartDesc, usart.output, usart.outputSize);
-		//appWriteDataToUsart(usart.output, usart.outputSize);
+	// Handshake abfangen
+	if(usartRxBuffer == "HalloXXXXXXXXXXXXX"){
+		HAL_ReadUsart(&usartDesc, &usartBuffer, sizeof(usartBuffer));
+		HAL_WriteUsart(&usartDesc, usartRxBuffer, sizeof(usartRxBuffer));
+	}
+	//Wenn kein Handshake, dann normaler datenempfang
+	else {
+		dataAppReceived();
+		HAL_ReadUsart(&usartDesc, &usartBuffer, sizeof(usartBuffer));
+		HAL_WriteUsart(&usartDesc, usartRxBuffer, sizeof(usartRxBuffer));
 	}
 }
 
@@ -645,16 +632,17 @@ static void initButton(void){
 	HAL_EnableIrq(IRQ_4);
 }
 
+
 static void dataAppReceived(){
 	
 	Module tempModule;
-	tempModule.ID = usartRxBuffer[0];
-	tempModule.status = usartRxBuffer[2];
-	tempModule.mode_light = usartRxBuffer[4];
-	tempModule.mode_climate = usartRxBuffer[6];
-	tempModule.LEDWHITE_status = usartRxBuffer[8];
-	tempModule.illuminanceReference = usartRxBuffer[10]*100 + usartRxBuffer[11]*10 + usartRxBuffer[12];
-	tempModule.temperatureReference = usartRxBuffer[14]*1000 + usartRxBuffer[15]*100 + usartRxBuffer[16]*10 + usartRxBuffer[17];
+	tempModule.ID = usartRxBuffer[0]-48;
+	tempModule.status = usartRxBuffer[2]-48;
+	tempModule.mode_light = usartRxBuffer[4]-48;
+	tempModule.mode_climate = usartRxBuffer[6]-48;
+	tempModule.LEDWHITE_status = usartRxBuffer[8]-48;
+	tempModule.illuminanceReference = (usartRxBuffer[10]-48)*100 + (usartRxBuffer[11]-48)*10 + (usartRxBuffer[12]-48);
+	tempModule.temperatureReference = (usartRxBuffer[14]-48)*1000 + (usartRxBuffer[15]-48)*100 + (usartRxBuffer[16]-48)*10 + (usartRxBuffer[17]-48);
 	
 	switch(tempModule.ID){
 		
@@ -724,6 +712,7 @@ static void dataAppReceived(){
 					
 					APS_DataReq(&dataReqTemperatureClient1);
 				}
+				break;
 		
 		case 2: if(tempModule.status != module2.status){
 			
@@ -792,6 +781,7 @@ static void dataAppReceived(){
 					APS_DataReq(&dataReqTemperatureClient2);
 				}
 		
+				break;
 		case 3:	if(tempModule.status != module3.status){
 			
 					module3.status = tempModule.status;
@@ -858,22 +848,20 @@ static void dataAppReceived(){
 			
 					APS_DataReq(&dataReqTemperatureClient3);
 				}
-			}
-	
-	appWriteDataToUsart(usartRxBuffer, sizeof(usartRxBuffer));
+		}
 }
 
-
+// ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance_Reference;Temperature_Reference
 static void ausgabe(Module module){
 	uint32_to_str(report, sizeof(report), module.ID, 0, 1);
 	uint32_to_str(report, sizeof(report), module.status, 2, 1);
-	uint32_to_str(report, sizeof(report), module.temperatureValue, 4, 2);
-	uint32_to_str(report, sizeof(report), (module.temperatureValue - (int16_t)module.temperatureValue)*100, 7, 2);
+	uint32_to_str(report, sizeof(report), module.mode_light, 4, 1);
+	uint32_to_str(report, sizeof(report), module.mode_climate, 6, 1);
+	uint32_to_str(report, sizeof(report), module.LEDWHITE_status, 8, 1);
 	uint32_to_str(report, sizeof(report), module.illuminanceValue, 10, 3);
-	uint32_to_str(report, sizeof(report), module.LEDWHITE_status, 14, 1);
-	uint32_to_str(report, sizeof(report), module.mode_climate, 16, 1);
-	uint32_to_str(report, sizeof(report), module.mode_light, 18, 1);
-	//appWriteDataToUsart(report, sizeof(report));
+	uint32_to_str(report, sizeof(report), module.temperatureValue, 14, 4);
+
+	appWriteDataToUsart(report, sizeof(report));
 }
 
 static double calcTemperature(uint8_t *reportPayload){
