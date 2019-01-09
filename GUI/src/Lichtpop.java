@@ -84,12 +84,17 @@ public class Lichtpop {
 		b.getChildren().add(4, value);
 		Button button = (Button) b.getChildren().get(5);
 
+		// ON CLOSE BUTTON PRESS
 		button.setOnAction(new EventHandler<ActionEvent>() {
 
 			public void handle(ActionEvent event) {
 				raum.getLicht().setLichtAnAus(oo.get_mode());
 				raum.getLicht().setLichtModus(ts.get_mode());
 				raum.getLicht().setLichtZielWert(tempZielWert);
+				
+				// Aktualisierte Daten ans WSN senden
+				Gui.updateModule(raum);
+				
 				primaryStage.close();
 			}
 		});

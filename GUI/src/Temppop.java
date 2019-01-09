@@ -72,7 +72,7 @@ public class Temppop {
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number NewValue) {
 
-				value.setText(String.format("%.2f",NewValue.floatValue()));
+				value.setText(String.format("%.2f", NewValue.floatValue()));
 				tempZielwert = Float.parseFloat(String.format("%s", NewValue));
 			}
 		});
@@ -80,6 +80,7 @@ public class Temppop {
 		b.getChildren().add(3, value);
 		Button button = (Button) b.getChildren().get(4);
 
+		// ON CLOSE BUTTON PRESS
 		button.setOnAction(new EventHandler<ActionEvent>() {
 
 			public void handle(ActionEvent event) {
@@ -87,6 +88,10 @@ public class Temppop {
 				raum.getKlima().setZielTemp(tempZielwert);
 				System.out.println("Zieltemp: " + raum.getKlima().getZielTemp());
 				System.out.println("Modus: " + raum.getKlima().getHeizungsstatus());
+
+				// Aktualisierte Daten ans WSN senden
+				Gui.updateModule(raum);
+
 				primaryStage.close();
 			}
 		});

@@ -89,7 +89,8 @@ public class Gui extends Application {
 				while (Schnittstelle.getSerialPort().isOpened()) {
 					// Daten Empfangen
 					raumString = schnittstelle.receive();
-					// System.out.println(raumString);
+					// Raumdaten aktualisieren
+					updateRoom(raumString);
 
 					// Pause bis zum nächsten Receive
 					try {
@@ -504,6 +505,82 @@ public class Gui extends Application {
 		System.out.println("Breite: " + viereck.width);
 		System.out.println("Hoehe: " + viereck.height);
 
+	}
+	
+	/**
+	 * Verarbeitet den vom WSN erhaltenen String
+	 * 
+	 * @return
+	 */
+	public void updateRoom(String raumString) {
+		String[] raumStringArray = raumString.split(";");
+
+		// "ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance;Temperature"
+
+		// Daten für Raum auslesen
+		int raumId = Integer.parseInt(raumStringArray[0]);
+		boolean lichtModus = Boolean.parseBoolean(raumStringArray[1]);
+		boolean tempStatus = Boolean.parseBoolean(raumStringArray[2]);
+		boolean lichtStatus = Boolean.parseBoolean(raumStringArray[3]);
+		int lichtWert = Integer.parseInt(raumStringArray[4]);
+		float tempWert = Float
+				.parseFloat(raumStringArray[5].substring(0, 1) + "," + raumStringArray[5].substring(2, 3));
+
+		// Werte dem entsprechenden Raum zuweisen
+		for (Raum r : raumListe) {
+			if (r.getModul().getModulID() == raumId) {
+				r.getModul().setlichtwert(lichtWert);
+				r.getModul().settemperatur(tempWert);
+				r.getLicht().setLichtModus(lichtModus);
+				r.getLicht().setLichtAnAus(lichtStatus);
+				r.getKlima().setHeizungsstatus(tempStatus);
+				break;
+			}
+		}
+
+	}
+
+	/**
+	 * Sendet die aktuellen Daten und Einstellungen für ein Modul an das WSN
+	 * 
+	 * @param Raum
+	 *            der Raum für den das Modul mit allen Einstellungen im WSN
+	 *            übernommen werden soll
+	 */
+	public static void updateModule(Raum raum) {
+		// "ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance_Reference;Temperature_ReferenceE"
+		if (raum.getModul() != null) {
+			String moduleId = Integer.toString(raum.getModul().getModulID()) + ";";
+			String moduleStatus = "1;";
+
+			String lichtModus;
+			String tempStatus;
+			String lichtStatus;
+			if (raum.getLicht().getLichtModus()) {
+				lichtModus = "1;";
+			} else {
+				lichtModus = "0;";
+			}
+
+			if (raum.getLicht().getLichtAnAus()) {
+				lichtStatus = "1;";
+			} else {
+				lichtStatus = "0;";
+			}
+
+			if (raum.getKlima().getHeizungsstatus()) {
+				tempStatus = "1;";
+			} else {
+				tempStatus = "0;";
+			}
+
+			String lichtZiel = Integer.toString(raum.getLicht().getLichtZielWert()) + ";";
+			String tempZielFormat = Double.toString(raum.getKlima().getZielTemp());
+			String tempZiel = tempZielFormat.substring(0, 1) + tempZielFormat.substring(3, 4) + "E";
+
+			schnittstelle.send(moduleId + moduleStatus + lichtModus + tempStatus + lichtStatus + lichtZiel + tempZiel);
+			schnittstelle.close();
+		}
 	}
 
 	public static ArrayList<Raum> getRaumListe() {
