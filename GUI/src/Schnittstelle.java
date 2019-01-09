@@ -25,7 +25,7 @@ public class Schnittstelle {
 					tempPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1,
 							SerialPort.PARITY_NONE);
 					try {
-						tempPort.writeString("Hallo!E"); // Handshake
+						tempPort.writeString("HalloXXXXXXXXXXXXXE"); // Handshake
 						s = new String(tempPort.readBytes(18, 50));
 					} catch (SerialPortTimeoutException e) {
 						// e.printStackTrace(); // DO NOTHING
