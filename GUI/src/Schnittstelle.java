@@ -25,8 +25,8 @@ public class Schnittstelle {
 					tempPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1,
 							SerialPort.PARITY_NONE);
 					try {
-						tempPort.writeString("Hallo!"); // Handshake
-						s = new String(tempPort.readBytes(36, 50));
+						tempPort.writeString("Hallo!E"); // Handshake
+						s = new String(tempPort.readBytes(19, 50));
 					} catch (SerialPortTimeoutException e) {
 						// e.printStackTrace(); // DO NOTHING
 					}
@@ -83,7 +83,7 @@ public class Schnittstelle {
 				}
 
 				System.out.println("Waiting for data from the WSN...");
-				x = new String(serialPort.readBytes(36)); // Reads the 36 Bytes
+				x = new String(serialPort.readBytes(19)); // Reads the 36 Bytes
 															// of
 															// sensor and status
 															// data from the WSN
