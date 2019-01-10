@@ -86,8 +86,6 @@ public class Temppop {
 			public void handle(ActionEvent event) {
 				raum.getKlima().setHeizungsstatus(ts.get_mode());
 				raum.getKlima().setZielTemp(tempZielwert);
-				System.out.println("Zieltemp: " + raum.getKlima().getZielTemp());
-				System.out.println("Modus: " + raum.getKlima().getHeizungsstatus());
 
 				// Aktualisierte Daten ans WSN senden
 				Gui.updateModule(raum);

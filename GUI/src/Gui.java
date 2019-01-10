@@ -2,6 +2,7 @@ package GUI.src;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import javafx.application.Application;
@@ -506,7 +507,7 @@ public class Gui extends Application {
 		System.out.println("Hoehe: " + viereck.height);
 
 	}
-	
+
 	/**
 	 * Verarbeitet den vom WSN erhaltenen String
 	 * 
@@ -534,6 +535,7 @@ public class Gui extends Application {
 				r.getLicht().setLichtModus(lichtModus);
 				r.getLicht().setLichtAnAus(lichtStatus);
 				r.getKlima().setHeizungsstatus(tempStatus);
+				r.getKlima().setImageAndLabel(r.getModul().temperaturanzeige(tempWert));
 				break;
 			}
 		}
@@ -556,16 +558,38 @@ public class Gui extends Application {
 			String lichtModus;
 			String tempStatus;
 			String lichtStatus;
-			if (raum.getLicht().getLichtModus()) {
-				lichtModus = "1;";
-			} else {
-				lichtModus = "0;";
-			}
+			String lichtZiel = "000;";
 
-			if (raum.getLicht().getLichtAnAus()) {
-				lichtStatus = "1;";
+			if (raum.getLicht() != null) {
+				if (raum.getLicht().getLichtModus()) {
+					lichtModus = "1;";
+				} else {
+					lichtModus = "0;";
+				}
+
+				if (raum.getLicht().getLichtAnAus()) {
+					lichtStatus = "1;";
+				} else {
+					lichtStatus = "0;";
+				}
+
+				// LichtZiel von 0-3 in 0-255 übersetzen
+				if (raum.getLicht().getLichtZielWert() == 0) {
+					lichtZiel = ("000;");
+				}
+				if (raum.getLicht().getLichtZielWert() == 1) {
+					lichtZiel = ("085;");
+				}
+				if (raum.getLicht().getLichtZielWert() == 2) {
+					lichtZiel = ("170;");
+				}
+				if (raum.getLicht().getLichtZielWert() == 3) {
+					lichtZiel = ("255;");
+				}
+
 			} else {
 				lichtStatus = "0;";
+				lichtModus = "0;";
 			}
 
 			if (raum.getKlima().getHeizungsstatus()) {
@@ -574,9 +598,10 @@ public class Gui extends Application {
 				tempStatus = "0;";
 			}
 
-			String lichtZiel = Integer.toString(raum.getLicht().getLichtZielWert()) + ";";
-			String tempZielFormat = Double.toString(raum.getKlima().getZielTemp());
-			String tempZiel = tempZielFormat.substring(0, 1) + tempZielFormat.substring(3, 4) + "E";
+			// Format für die ZielTemperatur festlegen
+			DecimalFormat df = new DecimalFormat("00.00");
+			String tempZielFormat = df.format(raum.getKlima().getZielTemp());
+			String tempZiel = tempZielFormat.substring(0, 2) + tempZielFormat.substring(3, 5) + "E";
 
 			schnittstelle.send(moduleId + moduleStatus + lichtModus + tempStatus + lichtStatus + lichtZiel + tempZiel);
 			schnittstelle.close();
