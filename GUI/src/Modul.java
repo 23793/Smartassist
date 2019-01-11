@@ -13,18 +13,17 @@ public class Modul {
 	public String temperaturanzeige(float tmp) {
 
 		if (tmp < temperatur) {
-			// System.out.println("Es ist gerade " + temperatur + " Grad, die
-			// Zieltemperatur ist " + tmp
-			// + ". Es ist zu kalt." + " Es muss geheizt werden.");
+			 System.out.println("Es ist gerade " + temperatur + " Grad, die	 Zieltemperatur ist " + tmp
+			 + ". Es ist zu kalt." + " Es muss geheizt werden.");
 			return "kalt";
 
 		} else if (tmp > temperatur) {
-			// System.out.println("Es ist " + temperatur + " Grad, die
-			// Zieltemperatur ist " + tmp + ". Es ist zu heiß."
-			// + " Es muss gekühlt werden.");
+			 System.out.println("Es ist " + temperatur + " Grad, die Zieltemperatur ist " + tmp + ". Es ist zu heiß."
+			 + " Es muss gekühlt werden.");
 			return "heiss";
 		} else {
-			// System.out.println("Perfekte Raumemperatur.");
+			 System.out.println("Es ist gerade " + temperatur + " Grad, die	 Zieltemperatur ist " + tmp
+					+ ". Es ist perfekt.");
 			return "perfekt";
 		}
 

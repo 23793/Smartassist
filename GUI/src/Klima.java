@@ -2,6 +2,7 @@ package GUI.src;
 
 import java.awt.Point;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -93,7 +94,15 @@ public class Klima {
 		} else if (s.equals("perfekt")) {
 			iv1.setImage(perfect);
 		}
-		temps.setText(raum.getModul().gettemperatur() + "°C");
+		System.out.println(raum.getModul().gettemperatur()+ "°C");
+	//	temps.setText(Float.toString(raum.getModul().gettemperatur()));
+		Platform.runLater(new Runnable() {
+		    @Override
+		    public void run() {
+		    	temps.setText(Float.toString(raum.getModul().gettemperatur()));
+		    }
+		});
+		
 	}
 
 	public ImageView getIv1() {

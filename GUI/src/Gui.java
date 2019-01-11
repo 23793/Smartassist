@@ -52,7 +52,7 @@ public class Gui extends Application {
 	private double releasedX;
 	private double releasedY;
 	private static ArrayList<Rectangle> rectangles = new ArrayList<Rectangle>();
-	private static ArrayList<Raum> raumListe = new ArrayList<Raum>();
+	private static ArrayList<Raum> raumListe = new ArrayList<Raum>(3);
 	private static int idCounter = 1;
 	private static int tempModulID = 0;
 	private static Raum tempRaum = null;
@@ -88,6 +88,7 @@ public class Gui extends Application {
 
 				// Loop für datenempfang
 				while (Schnittstelle.getSerialPort().isOpened()) {
+					
 					// Daten Empfangen
 					raumString = schnittstelle.receive();
 					// Raumdaten aktualisieren
@@ -100,6 +101,7 @@ public class Gui extends Application {
 						ie.printStackTrace();
 					}
 				}
+				
 			}
 		}).start();
 
@@ -514,28 +516,35 @@ public class Gui extends Application {
 	 * @return
 	 */
 	public void updateRoom(String raumString) {
+		System.out.println("Bekomme:");
+		System.out.println(raumString);
 		String[] raumStringArray = raumString.split(";");
 
 		// "ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance;Temperature"
-
 		// Daten für Raum auslesen
 		int raumId = Integer.parseInt(raumStringArray[0]);
-		boolean lichtModus = Boolean.parseBoolean(raumStringArray[1]);
-		boolean tempStatus = Boolean.parseBoolean(raumStringArray[2]);
-		boolean lichtStatus = Boolean.parseBoolean(raumStringArray[3]);
-		int lichtWert = Integer.parseInt(raumStringArray[4]);
+		boolean lichtModus = "1".equals(raumStringArray[2]);
+		boolean tempStatus = "1".equals(raumStringArray[3]);
+		boolean lichtStatus = "1".equals(raumStringArray[4]);
+		int lichtWert = Integer.parseInt(raumStringArray[5]);
 		float tempWert = Float
-				.parseFloat(raumStringArray[5].substring(0, 1) + "," + raumStringArray[5].substring(2, 3));
+				.parseFloat(raumStringArray[6].substring(0, 2) + "." + raumStringArray[6].substring(2, 4));
 
 		// Werte dem entsprechenden Raum zuweisen
 		for (Raum r : raumListe) {
-			if (r.getModul().getModulID() == raumId) {
+			if (r.getModul() != null && r.getModul().getModulID() == raumId) {
 				r.getModul().setlichtwert(lichtWert);
-				r.getModul().settemperatur(tempWert);
-				r.getLicht().setLichtModus(lichtModus);
-				r.getLicht().setLichtAnAus(lichtStatus);
+				//r.getModul().settemperatur(tempWert);
+				System.out.println("Lichtstatus:");
+				System.out.println(raumStringArray[4]);
+				System.out.println(lichtStatus);
 				r.getKlima().setHeizungsstatus(tempStatus);
-				r.getKlima().setImageAndLabel(r.getModul().temperaturanzeige(tempWert));
+				r.getModul().settemperatur(tempWert);
+				r.getKlima().setImageAndLabel(r.getModul().temperaturanzeige((float)r.getKlima().getZielTemp()));
+				if(r.getLicht() != null) {
+					r.getLicht().setLichtModus(lichtModus);
+					r.getLicht().setLichtAnAus(lichtStatus);
+				}
 				break;
 			}
 		}
@@ -602,9 +611,9 @@ public class Gui extends Application {
 			DecimalFormat df = new DecimalFormat("00.00");
 			String tempZielFormat = df.format(raum.getKlima().getZielTemp());
 			String tempZiel = tempZielFormat.substring(0, 2) + tempZielFormat.substring(3, 5) + "E";
-
+			System.out.println(moduleId + moduleStatus + lichtModus + tempStatus + lichtStatus + lichtZiel + tempZiel);
 			schnittstelle.send(moduleId + moduleStatus + lichtModus + tempStatus + lichtStatus + lichtZiel + tempZiel);
-			schnittstelle.close();
+			//schnittstelle.close();
 		}
 	}
 

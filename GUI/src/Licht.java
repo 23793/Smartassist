@@ -2,6 +2,7 @@ package GUI.src;
 
 import java.awt.Point;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -118,9 +119,21 @@ public class Licht {
 	public void setLichtAnAus(boolean state) {
 		lichtAnAus = state;
 		if (lichtAnAus) {
-			settings.setGraphic(anBild);
+			Platform.runLater(new Runnable() {
+			    @Override
+			    public void run() {
+			    	settings.setGraphic(anBild);
+			    }
+			});
+			;
 		} else {
-			settings.setGraphic(ausBild);
+			Platform.runLater(new Runnable() {
+			    @Override
+			    public void run() {
+			    	settings.setGraphic(ausBild);
+			    }
+			});
+			;
 
 		}
 	}
