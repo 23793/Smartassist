@@ -516,8 +516,6 @@ public class Gui extends Application {
 	 * @return
 	 */
 	public void updateRoom(String raumString) {
-		System.out.println("Bekomme:");
-		System.out.println(raumString);
 		String[] raumStringArray = raumString.split(";");
 
 		// "ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance;Temperature"
@@ -534,10 +532,6 @@ public class Gui extends Application {
 		for (Raum r : raumListe) {
 			if (r.getModul() != null && r.getModul().getModulID() == raumId) {
 				r.getModul().setlichtwert(lichtWert);
-				//r.getModul().settemperatur(tempWert);
-				System.out.println("Lichtstatus:");
-				System.out.println(raumStringArray[4]);
-				System.out.println(lichtStatus);
 				r.getKlima().setHeizungsstatus(tempStatus);
 				r.getModul().settemperatur(tempWert);
 				r.getKlima().setImageAndLabel(r.getModul().temperaturanzeige((float)r.getKlima().getZielTemp()));
