@@ -409,8 +409,6 @@ public class Gui extends Application {
 				try {
 					FileWriter fw = new FileWriter(file);
 					PrintWriter pw = new PrintWriter(fw);
-					raumListe.get(0).getKlima().getHeizungsstatus();
-					raumListe.get(0).getKlima().getSettings();
 					/*
 					 * Werden gespeichert: Raum_ID, Raum_X , Raum_Y
 					 * Licht_X , Licht_Y, Lichts_status, Licht_getLichtZielWert()
@@ -457,11 +455,6 @@ public class Gui extends Application {
 					
 					FileWriter fw2 = new FileWriter(file2);
 					PrintWriter pw2 = new PrintWriter(fw2);
-					
-					rectangles.get(0).getHeight();
-					rectangles.get(0).getWidth();
-					rectangles.get(0).getX();
-					rectangles.get(0).getY();
 					
 					String s = rectangles.get(0).getX()+";"+rectangles.get(0).getY()+";"+
 					rectangles.get(0).getHeight()+";"+rectangles.get(0).getWidth();
