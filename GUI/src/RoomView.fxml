@@ -93,6 +93,11 @@
                      </font>
                   </Button>
                   <Canvas height="746.0" width="554.0" />
+                  <Button alignment="BOTTOM_RIGHT" contentDisplay="BOTTOM" layoutX="437.0" layoutY="759.0" mnemonicParsing="false" style="-fx-background-color: grey;" stylesheets="@smartassist.css" text="SAVE" textFill="WHITE">
+                     <font>
+                        <Font name="Open Sans" size="12.0" />
+                     </font>
+                  </Button>
                </children>
             </AnchorPane>
         </items>

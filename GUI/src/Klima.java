@@ -1,7 +1,6 @@
 package GUI.src;
 
 import java.awt.Point;
-
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -15,6 +14,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class Klima {
+
 
 	private boolean heizungsstatus;
 	private double zielTemp = 20; // Standardwert
@@ -31,7 +31,7 @@ public class Klima {
 	private Raum raum;
 
 	/*
-	 * Vbox und Hbox für Temperaturanzeige
+	 * Vbox und Hbox fï¿½r Temperaturanzeige
 	 */
 	private VBox vebox = new VBox();
 	private HBox box = new HBox();
@@ -85,7 +85,7 @@ public class Klima {
 	public void setImageAndLabel(String s) {
 		/**
 		 * checkt den wert von s und gibt entsprechendes Bild aus. Setzt
-		 * außerdem die Temperatur für das Label fest.
+		 * auï¿½erdem die Temperatur fï¿½r das Label fest.
 		 */
 		if (s.equals("kalt")) {
 			iv1.setImage(snow);
@@ -94,7 +94,7 @@ public class Klima {
 		} else if (s.equals("perfekt")) {
 			iv1.setImage(perfect);
 		}
-		System.out.println(raum.getModul().gettemperatur()+ "°C");
+		System.out.println(raum.getModul().gettemperatur()+ "ï¿½C");
 	//	temps.setText(Float.toString(raum.getModul().gettemperatur()));
 		Platform.runLater(new Runnable() {
 		    @Override

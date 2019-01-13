@@ -1,7 +1,6 @@
 package GUI.src;
 
 import java.awt.Point;
-
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -19,6 +18,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class Licht {
+
 
 	private Raum raum;
 
@@ -66,7 +66,7 @@ public class Licht {
 		});
 
 		/*
-		 * EVENTHANDLER FÜR REPOSITIONING
+		 * EVENTHANDLER Fï¿½R REPOSITIONING
 		 */
 		settings.setOnDragDetected(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {
