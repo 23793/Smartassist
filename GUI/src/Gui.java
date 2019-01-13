@@ -474,8 +474,6 @@ public class Gui extends Application {
 					System.out.println(s2);
 					System.out.println(rectangles.size());
 					
-//					}
-					
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
