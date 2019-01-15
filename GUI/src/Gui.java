@@ -2,10 +2,6 @@ package GUI.src;
 
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
@@ -68,9 +64,6 @@ public class Gui extends Application {
 	private static Canvas canvas, canvas2;
 	private static GraphicsContext gc, gc2;
 	private static Button reset;
-	private static Button save;
-	private static File file = new File("gui/src/save-raumListe.txt");
-	private static File file2 = new File("gui/src/save-rectangles.txt");
 	String temperatur = "";
 	Stage stage = new Stage();
 
@@ -93,7 +86,7 @@ public class Gui extends Application {
 					}
 				}
 
-				// Loop fï¿½r datenempfang
+				// Loop für datenempfang
 				while (Schnittstelle.getSerialPort().isOpened()) {
 					
 					// Daten Empfangen
@@ -101,7 +94,7 @@ public class Gui extends Application {
 					// Raumdaten aktualisieren
 					updateRoom(raumString);
 
-					// Pause bis zum nï¿½chsten Receive
+					// Pause bis zum nächsten Receive
 					try {
 						Thread.sleep(500);
 					} catch (InterruptedException ie) {
@@ -112,7 +105,7 @@ public class Gui extends Application {
 			}
 		}).start();
 
-		// Eventhandler zum Beenden des Threads beim Schlieï¿½en der GUI
+		// Eventhandler zum Beenden des Threads beim Schließen der GUI
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent t) {
@@ -334,14 +327,20 @@ public class Gui extends Application {
 											case 1:
 												list.get(0).setOpacity(0.2);
 												list.get(0).setDisable(true);
+												// Info für das WSN zu neu aktiviertem Modul
+												updateModule(tempRaum);
 												break;
 											case 2:
 												list.get(1).setOpacity(0.2);
 												list.get(1).setDisable(true);
+												// Info für das WSN zu neu aktiviertem Modul
+												updateModule(tempRaum);
 												break;
 											case 3:
 												list.get(2).setOpacity(0.2);
 												list.get(2).setDisable(true);
+												// Info für das WSN zu neu aktiviertem Modul
+												updateModule(tempRaum);
 												break;
 											}
 											// RESET TEMP VARIABLES
@@ -374,6 +373,12 @@ public class Gui extends Application {
 				// clear the canvas.
 				gc.clearRect(0, 0, 554, 746);
 				gc2.clearRect(0, 0, 554, 746);
+				
+				
+				// Sende info zu deaktivierten Modulen ans WSN
+				for(Raum r : raumListe){
+					schnittstelle.send(r.getModul().getModulID() + ";0;0;0;0;000;0000E");
+				}
 
 				// remove all elements of the lists
 				raumListe.clear();
@@ -394,94 +399,6 @@ public class Gui extends Application {
 				}
 			}
 		});
-		
-		/*
-		 * save Button
-		 */
-		save = (Button) anchorpane.getChildren().get(2);
-		
-		save.setOnMouseClicked(new EventHandler<MouseEvent>(){
-
-			@Override
-			public void handle(MouseEvent event) {
-				// TODO Auto-generated method stub
-
-				try {
-					FileWriter fw = new FileWriter(file);
-					PrintWriter pw = new PrintWriter(fw);
-					/*
-					 * Werden gespeichert: Raum_ID, Raum_X , Raum_Y
-					 * Licht_X , Licht_Y, Lichts_status, Licht_getLichtZielWert()
-					 * sowie Klima_ZielTemp und Klima_Heizungsstatus
-					 */
-					String str = raumListe.get(0).getID()+";"+raumListe.get(0).getposition_x()+";"
-							+raumListe.get(0).getposition_y()+";"+
-							raumListe.get(0).getLicht().getLichtPoint().getX()+";"+
-							raumListe.get(0).getLicht().getLichtPoint().getX()+";"
-							+raumListe.get(0).getLicht().getLichtZielWert()+";"
-							+raumListe.get(0).getLicht().getLichtAnAus()+";"+
-							raumListe.get(0).getKlima().getZielTemp()+";"+
-							raumListe.get(0).getModul().gettemperatur()+";"+
-							raumListe.get(0).getKlima().getHeizungsstatus();
-					
-					String str1 = raumListe.get(1).getID()+";"+raumListe.get(1).getposition_x()+";"
-							+raumListe.get(1).getposition_y()+";"+
-							raumListe.get(1).getLicht().getLichtPoint().getX()+";"+
-							raumListe.get(1).getLicht().getLichtPoint().getX()+";"
-							+raumListe.get(1).getLicht().getLichtZielWert()+";"
-							+raumListe.get(1).getLicht().getLichtAnAus()+";"+
-									raumListe.get(1).getKlima().getZielTemp()+";"+
-							raumListe.get(1).getModul().gettemperatur()+";"+
-									raumListe.get(1).getKlima().getHeizungsstatus();
-					
-					String str2 = raumListe.get(2).getID()+";"+raumListe.get(2).getposition_x()+";"
-							+raumListe.get(2).getposition_y()+";"+
-							raumListe.get(2).getLicht().getLichtPoint().getX()+";"+
-							raumListe.get(2).getLicht().getLichtPoint().getX()+";"
-							+raumListe.get(2).getLicht().getLichtZielWert()+";"
-							+raumListe.get(2).getLicht().getLichtAnAus()+";"+
-									raumListe.get(2).getKlima().getZielTemp()+";"+
-							raumListe.get(2).getModul().gettemperatur()+";"+
-									raumListe.get(2).getKlima().getHeizungsstatus();
-					System.out.println(str);
-					System.out.println(str1);
-					System.out.println(str2);
-					
-					pw.println(str);
-					pw.println(str1);
-					pw.println(str2);
-					pw.flush();
-					pw.close();
-					
-					FileWriter fw2 = new FileWriter(file2);
-					PrintWriter pw2 = new PrintWriter(fw2);
-					
-					String s = rectangles.get(0).getX()+";"+rectangles.get(0).getY()+";"+
-					rectangles.get(0).getHeight()+";"+rectangles.get(0).getWidth();
-					String s1 = rectangles.get(1).getX()+";"+rectangles.get(1).getY()+";"+
-							rectangles.get(1).getHeight()+";"+rectangles.get(1).getWidth();
-					String s2 = rectangles.get(2).getX()+";"+rectangles.get(2).getY()+";"+
-							rectangles.get(2).getHeight()+";"+rectangles.get(2).getWidth();
-					
-					pw2.println(s);
-					pw2.println(s1);
-					pw2.println(s2);
-					pw2.flush();
-					pw2.close();
-					
-					System.out.println(s);
-					System.out.println(s1);
-					System.out.println(s2);
-					System.out.println(rectangles.size());
-					
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			
-			}
-			
-		});
-		
 		// set the primaryStage once
 		SingletonClass.getSingletonInstanz().setStage(primaryStage);
 
@@ -614,7 +531,7 @@ public class Gui extends Application {
 		String[] raumStringArray = raumString.split(";");
 
 		// "ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance;Temperature"
-		// Daten fï¿½r Raum auslesen
+		// Daten für Raum auslesen
 		int raumId = Integer.parseInt(raumStringArray[0]);
 		boolean lichtModus = "1".equals(raumStringArray[2]);
 		boolean tempStatus = "1".equals(raumStringArray[3]);
@@ -641,11 +558,11 @@ public class Gui extends Application {
 	}
 
 	/**
-	 * Sendet die aktuellen Daten und Einstellungen fï¿½r ein Modul an das WSN
+	 * Sendet die aktuellen Daten und Einstellungen für ein Modul an das WSN
 	 * 
 	 * @param Raum
-	 *            der Raum fï¿½r den das Modul mit allen Einstellungen im WSN
-	 *            ï¿½bernommen werden soll
+	 *            der Raum für den das Modul mit allen Einstellungen im WSN
+	 *            übernommen werden soll
 	 */
 	public static void updateModule(Raum raum) {
 		// "ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance_Reference;Temperature_ReferenceE"
@@ -671,7 +588,7 @@ public class Gui extends Application {
 					lichtStatus = "0;";
 				}
 
-				// LichtZiel von 0-3 in 0-255 ï¿½bersetzen
+				// LichtZiel von 0-3 in 0-255 übersetzen
 				if (raum.getLicht().getLichtZielWert() == 0) {
 					lichtZiel = ("000;");
 				}
@@ -696,7 +613,7 @@ public class Gui extends Application {
 				tempStatus = "0;";
 			}
 
-			// Format fï¿½r die ZielTemperatur festlegen
+			// Format für die ZielTemperatur festlegen
 			DecimalFormat df = new DecimalFormat("00.00");
 			String tempZielFormat = df.format(raum.getKlima().getZielTemp());
 			String tempZiel = tempZielFormat.substring(0, 2) + tempZielFormat.substring(3, 5) + "E";
