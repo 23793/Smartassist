@@ -36,7 +36,7 @@
 #define srcIlluminance_Zielwert_Client2 54
 #define srcIlluminance_Zielwert_Client3 55
 
-#define dstApp_OnOff_Light_Server1 9
+#define dstApp_OnOff_Light_Server1 4
 #define dstApp_OnOff_Light_Server2 40
 #define dstApp_OnOff_Light_Server3 41
 
@@ -49,9 +49,7 @@
 #define dstOnOff_Status_Server1 10
 #define dstOnOff_Status_Server2 22
 #define dstOnOff_Status_Server3 22
-#define dstOnOff_Light_Server1 12
-#define dstOnOff_Light_Server2 22
-#define dstOnOff_Light_Server3 22
+
 
 typedef struct{
 	uint8_t ID;

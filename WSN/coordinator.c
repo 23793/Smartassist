@@ -55,6 +55,9 @@ void readBuffer(uint16_t bytesReceived);
 // initialisation of the timer
 static void initTimer(void);
 
+//initialisation of the modules
+static void initModule(void);
+
 // Function gets called after the timer is expired
 static void ausgabeTimerFired(void);
 
@@ -551,6 +554,11 @@ static ZCL_Cluster_t clientClustersOnOffMode_light1[]={DEFINE_ONOFF_CLUSTER(ZCL_
 static ZCL_Cluster_t clientClustersOnOffMode_light2[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
 static ZCL_Cluster_t clientClustersOnOffMode_light3[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
 
+static void initModule(){
+	module1.ID = 1;
+	module2.ID = 2;
+	module3.ID = 3;
+}
 
 static void initTimer(){
 	ausgabeTimer.interval = 2000;
@@ -565,8 +573,8 @@ static void ausgabeTimerFired(){
 	ausgabe(module3);
 }
 
-// Die Callback wird schon direkt nach dem ersten empfangenen Byte aufgerufen, deshalb muessen wir solange warten, bis der komplette String Ã¼bertragen ist
-// Der String wird mit einem "E" abgeschlossen. Wir testen dies mit usartRxBuffer[18]== 69 und verÃ¤ndern das "E" in ein "F", damit wir auch die folgenden Strings abgrenzen kÃ¶nnen
+// Die Callback wird schon direkt nach dem ersten empfangenen Byte aufgerufen, deshalb muessen wir solange warten, bis der komplette String übertragen ist
+// Der String wird mit einem "E" abgeschlossen. Wir testen dies mit usartRxBuffer[18]== 69 und verändern das "E" in ein "F", damit wir auch die folgenden Strings abgrenzen können
 void readBuffer(uint16_t bytesReceived){
 		HAL_ReadUsart(&usartDescriptor, usartBuffer, sizeof(usartBuffer));
 		if(usartRxBuffer[18]== 69){
@@ -579,11 +587,12 @@ void readBuffer(uint16_t bytesReceived){
 				}
 			}
 			//Wenn kein Handshake, normaler Datenempfang
-			if(k != 19){
-				appWriteDataToUsart(usartRxBuffer, sizeof(usartRxBuffer));
+			if(k != 18){
+			//	appWriteDataToUsart(usartRxBuffer, sizeof(usartRxBuffer));
 				dataAppReceived();
-			//Wenn Handshake, dann "Hallo" zurÃ¼ckschicken
-			} else { 
+			//Wenn Handshake, dann "Hallo" zurückschicken
+			} else {
+			initTimer(); 
 			appWriteDataToUsart(usartRxBuffer, sizeof(usartRxBuffer));
 			}
 		}
@@ -630,218 +639,142 @@ static void dataAppReceived(){
 	tempModule.temperatureReference = (usartRxBuffer[14]-48)*1000 + (usartRxBuffer[15]-48)*100 + (usartRxBuffer[16]-48)*10 + (usartRxBuffer[17]-48);
 
 	switch(tempModule.ID){
-		
-		case 1:	if(tempModule.status != module1.status){
-					
-					module1.status = tempModule.status;
-					if(module1.status == 1)
-					{
-						ZCL_CommandReq(&onStatusCommand_Client1);
-					}else
-					{
-						ZCL_CommandReq(&offMode_ClimateCommand_Client1);
-					}
-				}
-				if(module1.status == 1)
-				{
-					
-					if(tempModule.mode_light != module1.mode_light){
-					
-						module1.mode_light = tempModule.mode_light;
-						
-						if(module1.mode_light)
-						{ 	
-							ZCL_CommandReq(&onMode_LightCommand_Client1);
-						}else
-							ZCL_CommandReq(&offMode_LightCommand_Client1);
-					}
-					if(module1.mode_light == 0){
-						if(tempModule.LEDWHITE_status != module1.LEDWHITE_status){
-							
-							module1.LEDWHITE_status = tempModule.LEDWHITE_status;
-							
-							if(module1.LEDWHITE_status == 1){
-								
-								ZCL_CommandReq(&onLightCommand_Client1);
-							}else
-								ZCL_CommandReq(&offLightCommand_Client1);
-						}
-					}
+	case 1:	
+		module1.status = tempModule.status;
+		if(tempModule.status){
+			ZCL_CommandReq(&onStatusCommand_Client1);
+			
+			module1.mode_climate = tempModule.mode_climate;
+			if(tempModule.mode_climate){
+				ZCL_CommandReq(&onMode_ClimateCommand_Client1);
+			}else{
+				ZCL_CommandReq(&offMode_ClimateCommand_Client1);
+			}
+			
+			module1.mode_light = tempModule.mode_light;
+			if(tempModule.mode_light){
+				ZCL_CommandReq(&onMode_LightCommand_Client1);
+			}else{
+				ZCL_CommandReq(&offMode_LightCommand_Client1);
 				
-					if(tempModule.mode_climate != module1.mode_climate){
-					
-						module1.mode_climate = tempModule.mode_climate;
-					
-						if(module1.mode_climate)
-						{
-						//	BSP_ToggleLed(LED_RED);
-							ZCL_CommandReq(&onMode_ClimateCommand_Client1);
-						}else
-							ZCL_CommandReq(&offMode_ClimateCommand_Client2);
-		
-					}
-					if(tempModule.illuminanceReference != module1.illuminanceReference){
-					
-						module1.illuminanceReference = tempModule.illuminanceReference;
-					
-						transmitDataIlluminanceClient1.data[0] = tempModule.illuminanceReference/100;
-						transmitDataIlluminanceClient1.data[1] = (tempModule.illuminanceReference/10)%10;
-						transmitDataIlluminanceClient1.data[2] = tempModule.illuminanceReference%10;
-					
-						APS_DataReq(&dataReqIlluminanceClient1);
-					}
+				module1.LEDWHITE_status = tempModule.LEDWHITE_status;
+				if(tempModule.LEDWHITE_status){
+					ZCL_CommandReq(&onLightCommand_Client1);
+				}else{
+					ZCL_CommandReq(&offLightCommand_Client1);
+				}
+			}
+			
+		transmitDataIlluminanceClient1.data[0] = tempModule.illuminanceReference/100;
+		transmitDataIlluminanceClient1.data[1] = (tempModule.illuminanceReference/10)%10;
+		transmitDataIlluminanceClient1.data[2] = tempModule.illuminanceReference%10;
 				
-					if(tempModule.temperatureReference != module1.temperatureReference){
-					
-						module1.temperatureReference = tempModule.temperatureReference;
-					
-						transmitDataTemperatureClient1.data[0] = tempModule.temperatureReference/1000;
-						transmitDataTemperatureClient1.data[1] = (tempModule.temperatureReference/100)%10;
-						transmitDataTemperatureClient1.data[2] = (tempModule.temperatureReference/10)%10;
-						transmitDataTemperatureClient1.data[3] = tempModule.temperatureReference%10;
-					
-						APS_DataReq(&dataReqTemperatureClient1);
-					}
-				}else
-					ZCL_CommandReq(&offStatusCommand_Client1);
+		APS_DataReq(&dataReqIlluminanceClient1);
+
+		transmitDataTemperatureClient1.data[0] = tempModule.temperatureReference/1000;
+		transmitDataTemperatureClient1.data[1] = (tempModule.temperatureReference/100)%10;
+		transmitDataTemperatureClient1.data[2] = (tempModule.temperatureReference/10)%10;
+		transmitDataTemperatureClient1.data[3] = tempModule.temperatureReference%10;	
+			
+		APS_DataReq(&dataReqTemperatureClient1);	
+			
+		}else{
+			ZCL_CommandReq(&offStatusCommand_Client1);
+	}
+	
+	break;
+	
+	case 2:
+	module2.status = tempModule.status;
+	if(tempModule.status){
+		ZCL_CommandReq(&onStatusCommand_Client2);
 		
-					break;
-		
-		case 2: if(tempModule.status != module2.status){
-			
-					module2.status = tempModule.status;
-			
-					if(module2.status == 1)
-					{
-						ZCL_CommandReq(&onStatusCommand_Client2);
-					}else
-						ZCL_CommandReq(&offStatusCommand_Client2);
-				}
-		
-				if(tempModule.mode_light != module2.mode_light){
-			
-					module2.mode_light = tempModule.mode_light;
-			
-					if(module2.mode_light == 1)
-					{
-						ZCL_CommandReq(&onMode_LightCommand_Client2);
-					}else
-						ZCL_CommandReq(&offMode_LightCommand_Client2);
-				}
-		
-				if(tempModule.mode_climate != module2.mode_climate){
-			
-					module2.mode_climate = tempModule.mode_climate;
-			
-					if(module2.mode_climate == 1)
-					{
-						ZCL_CommandReq(&onMode_ClimateCommand_Client2);
-					}else
-						ZCL_CommandReq(&offMode_ClimateCommand_Client2);
-				}
-		
-				if(tempModule.LEDWHITE_status != module2.LEDWHITE_status){
-			
-					module2.LEDWHITE_status = tempModule.LEDWHITE_status;
-			
-					if(module2.LEDWHITE_status == 1){
-				
-						ZCL_CommandReq(&onLightCommand_Client2);
-					}else
-						ZCL_CommandReq(&offLightCommand_Client2);
-				}
-		
-				if(tempModule.illuminanceReference != module2.illuminanceReference){
-			
-					module2.illuminanceReference = tempModule.illuminanceReference;
-			
-					transmitDataIlluminanceClient2.data[0] = tempModule.illuminanceReference/100;
-					transmitDataIlluminanceClient2.data[1] = (tempModule.illuminanceReference/10)%10;
-					transmitDataIlluminanceClient2.data[2] = tempModule.illuminanceReference%10;
-			
-					APS_DataReq(&dataReqIlluminanceClient2);
-				}
-		
-				if(tempModule.temperatureReference != module2.temperatureReference){
-			
-					module2.temperatureReference = tempModule.temperatureReference;
-			
-					transmitDataTemperatureClient2.data[0] = tempModule.temperatureReference/1000;
-					transmitDataTemperatureClient2.data[1] = (tempModule.temperatureReference/100)%10;
-					transmitDataTemperatureClient2.data[2] = (tempModule.temperatureReference/10)%10;
-					transmitDataTemperatureClient2.data[3] = tempModule.temperatureReference%10;
-			
-					APS_DataReq(&dataReqTemperatureClient2);
-				}
-		
-				break;
-		case 3:	if(tempModule.status != module3.status){
-			
-					module3.status = tempModule.status;
-			
-					if(module3.status == 1)
-					{
-						ZCL_CommandReq(&onStatusCommand_Client3);
-					}else
-						ZCL_CommandReq(&offStatusCommand_Client3);
-				}
-		
-				if(tempModule.mode_light != module3.mode_light){
-			
-					module3.mode_light = tempModule.mode_light;
-			
-					if(module3.mode_light == 1)
-					{
-						ZCL_CommandReq(&onMode_LightCommand_Client3);
-					}else
-						ZCL_CommandReq(&offMode_LightCommand_Client3);
-				}
-		
-				if(tempModule.mode_climate != module3.mode_climate){
-			
-					module3.mode_climate = tempModule.mode_climate;
-			
-					if(module3.mode_climate == 1)
-					{
-						ZCL_CommandReq(&onMode_ClimateCommand_Client3);
-					}else
-						ZCL_CommandReq(&offMode_ClimateCommand_Client3);
-				}
-		
-				if(tempModule.LEDWHITE_status != module3.LEDWHITE_status){
-			
-					module3.LEDWHITE_status = tempModule.LEDWHITE_status;
-			
-					if(module3.LEDWHITE_status == 1){
-				
-						ZCL_CommandReq(&onLightCommand_Client3);
-					}else
-						ZCL_CommandReq(&offLightCommand_Client3);
-				}
-		
-				if(tempModule.illuminanceReference != module3.illuminanceReference){
-			
-					module3.illuminanceReference = tempModule.illuminanceReference;
-			
-					transmitDataIlluminanceClient3.data[0] = tempModule.illuminanceReference/100;
-					transmitDataIlluminanceClient3.data[1] = (tempModule.illuminanceReference/10)%10;
-					transmitDataIlluminanceClient3.data[2] = tempModule.illuminanceReference%10;
-			
-					APS_DataReq(&dataReqIlluminanceClient3);
-				}
-		
-				if(tempModule.temperatureReference != module3.temperatureReference){
-			
-					module3.temperatureReference = tempModule.temperatureReference;
-			
-					transmitDataTemperatureClient3.data[0] = tempModule.temperatureReference/1000;
-					transmitDataTemperatureClient3.data[1] = (tempModule.temperatureReference/100)%10;
-					transmitDataTemperatureClient3.data[2] = (tempModule.temperatureReference/10)%10;
-					transmitDataTemperatureClient3.data[3] = tempModule.temperatureReference%10;
-			
-					APS_DataReq(&dataReqTemperatureClient3);
-				}
+		module2.mode_climate = tempModule.mode_climate;
+		if(tempModule.mode_climate){
+			ZCL_CommandReq(&onMode_ClimateCommand_Client2);
+			}else{
+			ZCL_CommandReq(&offMode_ClimateCommand_Client2);
 		}
+		
+		module2.mode_light = tempModule.mode_light;
+		if(tempModule.mode_light){
+			ZCL_CommandReq(&onMode_LightCommand_Client2);
+			}else{
+			ZCL_CommandReq(&offMode_LightCommand_Client2);
+			
+			module2.LEDWHITE_status = tempModule.LEDWHITE_status;
+			if(tempModule.LEDWHITE_status){
+				ZCL_CommandReq(&onLightCommand_Client2);
+				}else{
+				ZCL_CommandReq(&offLightCommand_Client2);
+			}
+		}
+		
+		transmitDataIlluminanceClient2.data[0] = tempModule.illuminanceReference/100;
+		transmitDataIlluminanceClient2.data[1] = (tempModule.illuminanceReference/10)%10;
+		transmitDataIlluminanceClient2.data[2] = tempModule.illuminanceReference%10;
+		
+		APS_DataReq(&dataReqIlluminanceClient2);
+
+		transmitDataTemperatureClient2.data[0] = tempModule.temperatureReference/1000;
+		transmitDataTemperatureClient2.data[1] = (tempModule.temperatureReference/100)%10;
+		transmitDataTemperatureClient2.data[2] = (tempModule.temperatureReference/10)%10;
+		transmitDataTemperatureClient2.data[3] = tempModule.temperatureReference%10;
+		
+		APS_DataReq(&dataReqTemperatureClient2);
+		
+		}else{
+		ZCL_CommandReq(&offStatusCommand_Client2);
+	}
+	
+	break;
+	
+	case 3:
+	module3.status = tempModule.status;
+	if(tempModule.status){
+		ZCL_CommandReq(&onStatusCommand_Client3);
+		
+		module3.mode_climate = tempModule.mode_climate;
+		if(tempModule.mode_climate){
+			ZCL_CommandReq(&onMode_ClimateCommand_Client3);
+			}else{
+			ZCL_CommandReq(&offMode_ClimateCommand_Client3);
+		}
+		
+		module3.mode_light = tempModule.mode_light;
+		if(tempModule.mode_light){
+			ZCL_CommandReq(&onMode_LightCommand_Client3);
+			}else{
+			ZCL_CommandReq(&offMode_LightCommand_Client3);
+			
+			module3.LEDWHITE_status = tempModule.LEDWHITE_status;
+			if(tempModule.LEDWHITE_status){
+				ZCL_CommandReq(&onLightCommand_Client3);
+				}else{
+				ZCL_CommandReq(&offLightCommand_Client3);
+			}
+		}
+		
+		transmitDataIlluminanceClient3.data[0] = tempModule.illuminanceReference/100;
+		transmitDataIlluminanceClient3.data[1] = (tempModule.illuminanceReference/10)%10;
+		transmitDataIlluminanceClient3.data[2] = tempModule.illuminanceReference%10;
+		
+		APS_DataReq(&dataReqIlluminanceClient3);
+
+		transmitDataTemperatureClient3.data[0] = tempModule.temperatureReference/1000;
+		transmitDataTemperatureClient3.data[1] = (tempModule.temperatureReference/100)%10;
+		transmitDataTemperatureClient3.data[2] = (tempModule.temperatureReference/10)%10;
+		transmitDataTemperatureClient3.data[3] = tempModule.temperatureReference%10;
+		
+		APS_DataReq(&dataReqTemperatureClient3);
+		
+		}else{
+		ZCL_CommandReq(&offStatusCommand_Client3);
+		}
+	
+	break;
+	}
+		
 }
 
 // ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance_Reference;Temperature_Reference
@@ -854,7 +787,7 @@ static void ausgabe(Module module){
 	uint32_to_str(report, sizeof(report), module.illuminanceValue, 10, 3);
 	uint32_to_str(report, sizeof(report), module.temperatureValue, 14, 4);
 
-	appWriteDataToUsart(report, sizeof(report));
+	appWriteDataToUsart(report, sizeof(report)-1);
 }
 
 static uint16_t calcTemperature(uint8_t *reportPayload){
@@ -1294,7 +1227,7 @@ void APL_TaskHandler(void){
 	case INIT:
 		BSP_OpenLeds();
 		appInitUsartManager();
-		// Weitere Spezifikationen fÃ¼r die Bridge (Buffer, Bufferlaenge und Callback Funktion spezifizieren)	
+		// Weitere Spezifikationen für die Bridge (Buffer, Bufferlaenge und Callback Funktion spezifizieren)	
 		usartDescriptor.rxBuffer       = usartRxBuffer;
 		usartDescriptor.rxBufferLength = sizeof(usartRxBuffer);
 		usartDescriptor.rxCallback	 = readBuffer;
@@ -1323,7 +1256,8 @@ void APL_TaskHandler(void){
 		ZCL_RegisterEndpoint(&endPointIlluminanceClient1);
 		ZCL_RegisterEndpoint(&endPointIlluminanceClient2);
 		ZCL_RegisterEndpoint(&endPointIlluminanceClient3);
-		initTimer();
+//		initTimer();
+		initModule();
 		initButton();
 		initCommands();
 		initTransmitData();

@@ -24,7 +24,7 @@
 #include <usartManager.h>
 /********************************PROTOTYPEN************************************************/
  
-// Variablen fÃ¼rs Binding
+// Variablen fürs Binding
 APS_BindReq_t bindTemp; 
 APS_BindReq_t bindOnOffLight; 
 APS_BindReq_t bindOnOffStatus; 
@@ -35,13 +35,13 @@ APS_BindReq_t bindOnOffHeating;
 APS_BindReq_t bindFanControl; 
 APS_BindReq_t bindIlluminance; 
 
-// Datenstruktur mit allen Infos Ã¼ber das Modul
+// Datenstruktur mit allen Infos über das Modul
 static Module module;
 
 //aktueller Zustand
 static AppState_t appstate = INIT;
 
-// Variable fÃ¼r Helligkeitsmessung
+// Variable für Helligkeitsmessung
 static uint8_t LightData;
 
 //Array fuer den Temperaturwert
@@ -53,7 +53,7 @@ static HAL_AppTimer_t updateTimer;
 // Timer f?r periodische Temperaturmessung
 static HAL_AppTimer_t sendeTimer;
 
-// Variable fÃ¼rs Kommandoschicken zum Server
+// Variable fürs Kommandoschicken zum Server
 static ZCL_Request_t toggleLightCommand;
 
 //?bergabevariable f?r die Funktion ZDO_StartNetworkReq().
@@ -89,10 +89,10 @@ static void initModule();
 //Binding initialisieren
 void initBinding(void);
 
-// Funktion fÃ¼rs Warten
+// Funktion fürs Warten
 void wait(void);
 
-//Timer fÃ¼r SensorMessungen
+//Timer für SensorMessungen
 static void initTimer(void);
 
 //Funktion wird aufgerufen nach Timerablauf
@@ -165,10 +165,10 @@ static void setPWMOutputDuty(volatile uint16_t* port, uint8_t duty);
 //Funktion zum togglen der PWM von LEDWHITE
 static void togglePWMOutput(volatile uint16_t* port);
 
-//Funktion zum einschalten der PWM fÃ¼r LEDWHITE
+//Funktion zum einschalten der PWM für LEDWHITE
 static void onPWMOutput(volatile uint16_t* port);
 
-//Funktion zum ausschalten der PWM fÃ¼r LEDWHITE
+//Funktion zum ausschalten der PWM für LEDWHITE
 static void offPWMOutput(volatile uint16_t* port);
 
 //Funktion zum togglen von LEDBLUE und LEDRED
@@ -242,10 +242,10 @@ static void ZCL_CommandResp(ZCL_Notify_t *ntfy);
 // Initialisierung von Kommandos vom CLient zum Server
 static void initKommando(void);
 
-// Funktion zum Initialisieren wenn ein Button gedrÃ¼ckt wurde
+// Funktion zum Initialisieren wenn ein Button gedrückt wurde
 static void initButton(void);
 
-// Kommando von Client zu Server schicken, wenn Button gedrÃ¼ckt wurde
+// Kommando von Client zu Server schicken, wenn Button gedrückt wurde
 static void interruptHandlerINT3(void);
 
 // Funktion die Aufgerufen wird, wenn Zielwerte fuer Temperatur und illuminance empfangen werden
@@ -253,6 +253,7 @@ void APS_DataIndTemp(APS_DataInd_t *indData);
 void APS_DataIndIlluminance(APS_DataInd_t *indData);
 
 /**********************************PROTOTYPEN-ENDE**********************************************/
+
 
 /**********************************IMPLEMENTIERUNG**********************************************/
 static void initKommando(void){
@@ -267,7 +268,7 @@ static void initKommando(void){
 	toggleLightCommand.id=ZCL_ONOFF_CLUSTER_TOGGLE_COMMAND_ID;
 	toggleLightCommand.ZCL_Notify=ZCL_CommandResp;
 }
-static void ZCL_CommandResp(ZCL_Notify_t *ntfy){
+static  ZCL_CommandResp(ZCL_Notify_t *ntfy){
 	(void)ntfy;
 }
 static void initButton(void){
@@ -295,7 +296,7 @@ static HAL_I2cDescriptor_t i2cdescriptor={
 	.lengthAddr = HAL_NO_INTERNAL_ADDRESS
 };
 
-// Pin fÃ¼r Helligkeitsmessung vorbereiten
+// Pin für Helligkeitsmessung vorbereiten
 static HAL_AdcDescriptor_t adcdescriptor={
 	.resolution = RESOLUTION_8_BIT,
 	.sampleRate = ADC_4800SPS,
@@ -338,7 +339,7 @@ static void updateTimerFired(){
 				module.FAN_status = false;
 				turnOff(LEDBLUE);
 				module.LEDBLUE_status = false;
-			}else if((temperatureMeasurementAttributes.measuredValue.value > module.temperatureReference) && (module.LEDRED_status == true)){
+			}else if((temperatureMeasurementAttributes.measuredValue.value > module.temperatureReference) && (module.LEDBLUE_status == false)){
 				setOnOffState(&onOffHeatingAttributes, false);
 				setOnOffState(&onOffCoolingAttributes, true);
 				turnOff(LEDRED);
@@ -362,10 +363,13 @@ static void updateTimerFired(){
 		if(onOffMode_lightAttributes.onOff.value){
 			if((illuminanceMeasurementAttributes.measuredValue.value > module.illuminanceReference) && (module.LEDWHITE_status == false)){
 				setOnOffState(&onOffLightAttributes, true);
+				
 				onPWMOutput(&LEDWHITE);
+				
 			}else if((illuminanceMeasurementAttributes.measuredValue.value < module.illuminanceReference) && (module.LEDWHITE_status == true)){				
 				setOnOffState(&onOffLightAttributes, false);
 				offPWMOutput(&LEDWHITE);
+				
 			}
 		}
 	} else {
@@ -382,6 +386,7 @@ static void updateTimerFired(){
 		offPWMOutput(&LEDWHITE);
 		
 	}
+	
 }
 
 void readIlluminanceSensorDoneCb(){
@@ -523,7 +528,7 @@ static ZCL_Request_t modeClimateAttrReq = {
 };
 
 
-// Binding f?r Tempertur und OnOff initialisieren
+// Binding fuer Tempertur und OnOff initialisieren
 void initBinding(void){
 	CS_ReadParameter(CS_UID_ID, &bindIlluminance.srcAddr);
 	
@@ -609,17 +614,19 @@ void initBinding(void){
 static void initModule(){
 	module.ID = MODULE_ID;
 	setOnOffState(&onOffLightAttributes, false);
-	onOffStatusAttributes.onOff.value = true;
-	onOffMode_climateAttributes.onOff.value = true;
-	onOffMode_lightAttributes.onOff.value = true;
+	onOffStatusAttributes.onOff.value = false;
+	onOffMode_climateAttributes.onOff.value = false;
+	onOffMode_lightAttributes.onOff.value = false;
 	module.illuminanceReference = 100;
-	module.temperatureReference = 3000; // Wert in Â°C: /100
+	module.temperatureReference = 3000; // Wert in °C: /100
 	module.LEDWHITE_status = false;
-	module.LEDWHITE_power = OCR3B = 0;
+	module.LEDWHITE_power = 0;
+	LEDWHITE = 0;
 	setPWMOutputDuty(&LEDWHITE, 255);		// Wert zwischen 0 und 255 (0 = 0%, 255 = 100%)
 	module.LEDBLUE_status = false;
 	module.LEDRED_status = false;
 	module.FAN_status = false;
+	offPWMOutput(&LEDWHITE);
 }
 
 /*Initialisierung der Endpunkte zur Datenkommunikation*/
@@ -763,12 +770,6 @@ void APS_DataIndTemp(APS_DataInd_t *indData){
 	sum = sum + indData->asdu[3];
 
 	module.temperatureReference = sum;
-	BSP_ToggleLed(LED_YELLOW);
-	uint8_t value[] = "Temp: XXXX";
-	uint32_to_str(value, sizeof(value), module.temperatureReference, 6,4);
-	appWriteDataToUsart(value, sizeof(value));
-	appWriteDataToUsart((uint8_t*)"\r\n",2);
-
 }
 void APS_DataIndIlluminance(APS_DataInd_t *indData){
 	int16_t sum;
@@ -777,18 +778,13 @@ void APS_DataIndIlluminance(APS_DataInd_t *indData){
 	sum = sum + indData->asdu[2];
 		
 	module.illuminanceReference = sum;
-	BSP_ToggleLed(LED_GREEN);
-	uint8_t value[] = "Ill: XXX";
-	uint32_to_str(value, sizeof(value), module.illuminanceReference, 5,3);
-	appWriteDataToUsart(value, sizeof(value));
-	appWriteDataToUsart((uint8_t*)"\r\n",2);
 }
 void wait()
 {
 	_delay_loop_2(10000);
 }
 
-// Funktion mit der man von einem PWM Pin den Output erhÃ¶ht
+// Funktion mit der man von einem PWM Pin den Output erhöht
 static void setPWMOutputDuty(volatile uint16_t* port, uint8_t duty)
 {
 	if(port == &LEDWHITE){
@@ -797,37 +793,34 @@ static void setPWMOutputDuty(volatile uint16_t* port, uint8_t duty)
 }
 
 static void onPWMOutput(volatile uint16_t* port){
-	
-	if(port == &LEDWHITE){
-		if(*port == 0){
-			for(uint8_t power=0;power<module.LEDWHITE_duty;power++){
-				//Increase the Brightness/Speed using PWM
-				*port = power;
-				module.LEDWHITE_power = *port;
-				//Now Wait For Some Time
-				wait();
-			}
-			module.LEDWHITE_status = true;
-		}
+	BSP_OnLed(LED_YELLOW);
+	for(uint8_t power=*port;power<module.LEDWHITE_duty;power++){
+		//Increase the Brightness/Speed using PWM
+		*port = power;
+		module.LEDWHITE_power = *port;
+		//Now Wait For Some Time
+		wait();
 	}
+	*port = 255;
+	module.LEDWHITE_status = true;
+	module.LEDWHITE_power = 255;
+	
 }
 
 static void offPWMOutput(volatile uint16_t* port){
+	BSP_ToggleLed(LED_GREEN);
+	for(uint8_t power=*port;power>0;power--){
+		//Decrease The Brightness/Speed using PWM
+		*port = power;
+		module.LEDWHITE_power = *port;
+		//Now Wait For Some Time
+		wait();
+	}
+	*port = 0;
+	module.LEDWHITE_power = *port;
+	module.LEDWHITE_status = false;
+		
 	
-	if(port == &LEDWHITE){
-		if(*port == module.LEDWHITE_power){
-			for(uint8_t power=module.LEDWHITE_duty;power>0;power--){
-				//Decrease The Brightness/Speed using PWM
-				*port = power;
-				module.LEDWHITE_power = *port;
-				//Now Wait For Some Time
-				wait();
-			}
-			*port = 0;
-			module.LEDWHITE_power = *port;
-			module.LEDWHITE_status = false;
-		}
-	}	
 }
 
 static void togglePWMOutput(volatile uint16_t* port){
@@ -856,6 +849,7 @@ static void togglePWMOutput(volatile uint16_t* port){
 			module.LEDWHITE_status = false;
 		}
 	}
+	
 }
 
 static void toggle(volatile uint16_t port){
@@ -917,8 +911,11 @@ static void initOutputs(){
 
 /* On-Kommando erhalten. OnOff-Attribut auf On setzen und LED anschalten. */
 ZCL_Status_t onLight(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
+	
+	
 	setOnOffState(&onOffLightAttributes, true);
 	onPWMOutput(&LEDWHITE);
+
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -965,6 +962,7 @@ ZCL_Status_t onHeating(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint
 
 /* Off-Kommando erhalten. OnOff-Attribut auf Off setzen und LED ausschalten.*/
 ZCL_Status_t offLight(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
+	
 	setOnOffState(&onOffLightAttributes, false);
 	offPWMOutput(&LEDWHITE);
 
@@ -1030,10 +1028,9 @@ ZCL_Status_t toggleCooling(ZCL_Addressing_t* addressing, uint8_t payloadLength, 
 
 /* Toggle-Kommando erhalten. Zustand des OnOff-Attribut und der LED wechseln. */
 ZCL_Status_t toggleLight(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-//	setOnOffState(&onOffLightAttributes, !onOffLightAttributes.onOff.value);	
-	bool newValue = !onOffLightAttributes.onOff.value;
-	ZCL_WriteAttributeValue(srcOnOff_Light_Server, ONOFF_CLUSTER_ID,  ZCL_CLUSTER_SIDE_SERVER, ZCL_ONOFF_CLUSTER_ONOFF_SERVER_ATTRIBUTE_ID,  ZCL_BOOLEAN_DATA_TYPE_ID, (uint8_t*)(&newValue));
-//	BSP_ToggleLed(LED_GREEN);
+	setOnOffState(&onOffLightAttributes, !onOffLightAttributes.onOff.value);	
+// 	bool newValue = !onOffLightAttributes.onOff.value;
+// 	ZCL_WriteAttributeValue(srcOnOff_Light_Server, ONOFF_CLUSTER_ID,  ZCL_CLUSTER_SIDE_SERVER, ZCL_ONOFF_CLUSTER_ONOFF_SERVER_ATTRIBUTE_ID,  ZCL_BOOLEAN_DATA_TYPE_ID, (uint8_t*)(&newValue));
 	togglePWMOutput(&LEDWHITE);	
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
