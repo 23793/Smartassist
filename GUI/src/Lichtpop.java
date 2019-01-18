@@ -8,11 +8,14 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -32,8 +35,18 @@ public class Lichtpop {
 		raum = r;
 	}
 
+	private Image moon = new Image("/GUI/resources/moon.png", true);
+	private Image sun = new Image("/GUI/resources/sun.png", true);
+
+	private ImageView iv1 = new ImageView();
+	private ImageView iv2 = new ImageView();
+
 	public void display(Stage primaryStage) {
 
+		iv1.setImage(moon);
+		iv1.setX(5);
+		iv1.setY(30);
+		iv2.setImage(sun);
 		try {
 			apane = (AnchorPane) FXMLLoader.load(getClass().getResource("Lichtkonfig.fxml"));
 		} catch (IOException e) {
@@ -56,6 +69,18 @@ public class Lichtpop {
 		ts.set_mode(raum.getLicht().getLichtModus());
 		oo.set_mode(raum.getLicht().getLichtAnAus());
 
+		HBox z = new HBox();
+		apane.getChildren().add(z);
+		z.getChildren().add(iv1);
+		z.setLayoutX(30);
+		z.setLayoutY(165);
+
+		HBox y = new HBox();
+		apane.getChildren().add(y);
+		y.getChildren().add(iv2);
+		y.setLayoutX(380);
+		y.setLayoutY(165);
+	//	z.setPadding(Insets(20));
 		// Create and initialize Slider
 		Slider slider = (Slider) b.getChildren().get(3);
 		slider.setValue(raum.getLicht().getLichtZielWert());
@@ -81,7 +106,6 @@ public class Lichtpop {
 
 		});
 
-		b.getChildren().add(4, value);
 		Button button = (Button) b.getChildren().get(5);
 
 		// ON CLOSE BUTTON PRESS
@@ -91,10 +115,10 @@ public class Lichtpop {
 				raum.getLicht().setLichtAnAus(oo.get_mode());
 				raum.getLicht().setLichtModus(ts.get_mode());
 				raum.getLicht().setLichtZielWert(tempZielWert);
-				
+
 				// Aktualisierte Daten ans WSN senden
 				Gui.updateModule(raum);
-				
+
 				primaryStage.close();
 			}
 		});
@@ -104,6 +128,11 @@ public class Lichtpop {
 		primaryStage.initModality(Modality.APPLICATION_MODAL);
 		primaryStage.setResizable(false);
 		primaryStage.show();
+	}
+
+	private Insets Insets(int i) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

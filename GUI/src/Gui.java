@@ -16,6 +16,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
@@ -41,6 +42,8 @@ import javafx.stage.WindowEvent;
  *
  */
 public class Gui extends Application {
+
+	private int lichtcounter=0;
 
 	// Schnittstelle
 	private static Schnittstelle schnittstelle;
@@ -88,7 +91,7 @@ public class Gui extends Application {
 
 				// Loop für datenempfang
 				while (Schnittstelle.getSerialPort().isOpened()) {
-					
+
 					// Daten Empfangen
 					raumString = schnittstelle.receive();
 					// Raumdaten aktualisieren
@@ -101,7 +104,7 @@ public class Gui extends Application {
 						ie.printStackTrace();
 					}
 				}
-				
+
 			}
 		}).start();
 
@@ -308,6 +311,11 @@ public class Gui extends Application {
 											tempRaum.setLicht(new Licht(p, tempRaum, anchorpane));
 											createLichtAnzeige(tempRaum);
 											System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugefï¿½gt!");
+											lichtcounter++;
+											if(lichtcounter>=3) {
+												list.get(3).setOpacity(0.5);
+												list.get(3).setDisable(true);
+											}
 											tempRaum = null;
 										} else {
 											// ERSTELLT DEN RAUM
@@ -373,10 +381,11 @@ public class Gui extends Application {
 				// clear the canvas.
 				gc.clearRect(0, 0, 554, 746);
 				gc2.clearRect(0, 0, 554, 746);
-				
-				
+
+
 				// Sende info zu deaktivierten Modulen ans WSN
 				for(Raum r : raumListe){
+					if(r.getModul() != null)
 					schnittstelle.send(r.getModul().getModulID() + ";0;0;0;0;000;0000E");
 				}
 
@@ -384,11 +393,12 @@ public class Gui extends Application {
 				raumListe.clear();
 				rectangles.clear();
 
-				// Reset the room counter
+				// Reset the counters
 				idCounter = 1;
+				lichtcounter = 0;
 
 				// Remove the Light and Temperature Buttons
-				anchorpane.getChildren().subList(3, anchorpane.getChildren().size()).clear();
+				anchorpane.getChildren().subList(4, anchorpane.getChildren().size()).clear();
 
 				// reset all module's visibilties.
 				for (Node n : list) {
@@ -418,11 +428,25 @@ public class Gui extends Application {
 	 * TEMPERATURANZEIGE IM RAUM
 	 */
 	private void createTempAnzeige(Raum r) {
+
+		Label raumname = new Label();
 		// Falls Raum ein Modul hat (nur um sicher zu gehen)
 		if (r.getModul() != null) {
 
 			String temperatur = r.getModul().temperaturanzeige(22.00f);
 			r.getKlima().setImageAndLabel(temperatur);
+			if(r.getModul().getModulID() == 1) {
+				raumname.setText("Zimmer 1");
+			} else if (r.getModul().getModulID() == 2) {
+				raumname.setText("Zimmer 2");
+			} else if (r.getModul().getModulID() == 3) {
+				raumname.setText("Zimmer 3");
+			}
+			raumname.setTextFill(Color.DIMGREY);
+
+			raumname.setLayoutX(r.getRect().getX()+5);
+			raumname.setLayoutY(r.getRect().getY());
+			anchorpane.getChildren().add(raumname);
 
 			anchorpane.getChildren().add(r.getKlima().getVebox());
 
@@ -524,7 +548,7 @@ public class Gui extends Application {
 
 	/**
 	 * Verarbeitet den vom WSN erhaltenen String
-	 * 
+	 *
 	 * @return
 	 */
 	public void updateRoom(String raumString) {
@@ -559,7 +583,7 @@ public class Gui extends Application {
 
 	/**
 	 * Sendet die aktuellen Daten und Einstellungen für ein Modul an das WSN
-	 * 
+	 *
 	 * @param Raum
 	 *            der Raum für den das Modul mit allen Einstellungen im WSN
 	 *            übernommen werden soll
