@@ -1,7 +1,7 @@
 package GUI.src;
 
 import java.awt.Point;
-import javafx.application.Platform;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -19,10 +19,9 @@ import javafx.stage.Stage;
 
 public class Licht {
 
-
 	private Raum raum;
 
-	private boolean lichtAnAus = false;
+	private ObservableBoolean lichtAnAus = new ObservableBoolean(false);
 	private boolean lichtModus = false;
 	private int lichtZielWert = 2;
 	private Point lichtPoint;
@@ -105,41 +104,21 @@ public class Licht {
 
 	}
 
-	public void toggle() {
-		lichtAnAus = !lichtAnAus;
-
-		if (lichtAnAus) {
-			settings.setGraphic(anBild);
-		} else {
-			settings.setGraphic(ausBild);
-
-		}
+	public ObservableBoolean getLichtBoolean() {
+		return lichtAnAus;
 	}
 
 	public void setLichtAnAus(boolean state) {
-		lichtAnAus = state;
-		if (lichtAnAus) {
-			Platform.runLater(new Runnable() {
-			    @Override
-			    public void run() {
-			    	settings.setGraphic(anBild);
-			    }
-			});
-			;
+		lichtAnAus.setFlag(state);
+		if (lichtAnAus.getFlag()) {
+			settings.setGraphic(anBild);
 		} else {
-			Platform.runLater(new Runnable() {
-			    @Override
-			    public void run() {
-			    	settings.setGraphic(ausBild);
-			    }
-			});
-			;
-
+			settings.setGraphic(ausBild);
 		}
 	}
 
 	public boolean getLichtAnAus() {
-		return lichtAnAus;
+		return lichtAnAus.getFlag();
 	}
 
 	public void setLichtPoint(Point p) {

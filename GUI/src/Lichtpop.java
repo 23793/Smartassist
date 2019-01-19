@@ -1,5 +1,7 @@
 package GUI.src;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 
 import javafx.beans.value.ChangeListener;
@@ -8,7 +10,6 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -65,6 +66,7 @@ public class Lichtpop {
 		hb.getChildren().add(1, ts);
 		HBox hb2 = (HBox) b.getChildren().get(1);
 		hb2.getChildren().add(1, oo);
+
 		// Initialize Toggleswitches
 		ts.set_mode(raum.getLicht().getLichtModus());
 		oo.set_mode(raum.getLicht().getLichtAnAus());
@@ -80,7 +82,7 @@ public class Lichtpop {
 		y.getChildren().add(iv2);
 		y.setLayoutX(380);
 		y.setLayoutY(165);
-	//	z.setPadding(Insets(20));
+
 		// Create and initialize Slider
 		Slider slider = (Slider) b.getChildren().get(3);
 		slider.setValue(raum.getLicht().getLichtZielWert());
@@ -106,6 +108,15 @@ public class Lichtpop {
 
 		});
 
+		// Flip the ON/OFF button and switch to manual Mode if a physical
+		// lightswitch is pressed
+		raum.getLicht().getLichtBoolean().addPropertyChangeListener(new BooleanListener(){
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				oo.set_mode((Boolean)event.getNewValue());
+			}
+		});
+
 		Button button = (Button) b.getChildren().get(5);
 
 		// ON CLOSE BUTTON PRESS
@@ -129,10 +140,4 @@ public class Lichtpop {
 		primaryStage.setResizable(false);
 		primaryStage.show();
 	}
-
-	private Insets Insets(int i) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

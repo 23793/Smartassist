@@ -45,12 +45,6 @@ public class Raum {
 
 	}
 
-	public void lightswitch(int lightswitch) {
-		if (lightswitch == 1) {
-			this.licht.toggle();
-		}
-	}
-
 	public void setposition_x(double pos_x) {
 		position_x = pos_x;
 	}
