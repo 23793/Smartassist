@@ -324,6 +324,7 @@ public class Gui extends Application {
 													"Modul " + tempRaum.getModul().getModulID() + " hinzugef�gt!");
 											// F�GT TEMPERATURANZEIGE HINZU
 											createTempAnzeige(tempRaum);
+											tempRaum.getKlima().setImageAndLabel(tempRaum.getModul().temperaturanzeige((float)tempRaum.getKlima().getZielTemp()));
 											// MALE RAUM AUS
 											gc.setFill(Color.WHITE);
 											gc.fillRect(tempRaum.getRect().getX() + 1, tempRaum.getRect().getY() + 1,
