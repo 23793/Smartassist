@@ -98,6 +98,11 @@
                         <Font size="14.0" />
                      </font>
                   </Button>
+                  <Button alignment="BOTTOM_RIGHT" contentDisplay="BOTTOM" layoutX="326.0" layoutY="757.0" mnemonicParsing="false" style="-fx-background-color: grey;" stylesheets="@smartassist.css" text="RESTORE" textFill="WHITE">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Button>
                </children>
             </AnchorPane>
         </items>

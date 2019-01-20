@@ -103,14 +103,14 @@ public class Klima {
 		} else if (s.equals("perfekt")) {
 			iv1.setImage(perfect);
 		}
-		// System.out.println(raum.getModul().gettemperatur() + "°C");
+		// System.out.println(raum.getModul().gettemperatur() + "ï¿½C");
 
 		// Float format
 		DecimalFormat df = new DecimalFormat("00.00");
 		String tempZielFormat = df.format(raum.getKlima().getZielTemp());
 		
 		// Set the temperature label
-		temps.setText(tempZielFormat + "°C");
+		temps.setText(tempZielFormat + "ï¿½C");
 	}
 
 	public ImageView getIv1() {
