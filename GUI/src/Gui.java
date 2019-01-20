@@ -50,6 +50,8 @@ public class Gui extends Application {
 	private static String raumString;
 
 	// Variables
+	private static final int minRoomWidth = 88;
+	private static final int minRoomHeight = 102;
 	private double pressedX;
 	private double pressedY;
 	private double releasedX;
@@ -224,7 +226,7 @@ public class Gui extends Application {
 					}
 				}
 
-				if (tempTangle.width < 58 || tempTangle.height < 72) {
+				if (tempTangle.width < minRoomWidth || tempTangle.height < minRoomHeight) {
 					gc2.setStroke(Color.RED);
 				} else if ((event.getX() > 554 || event.getX() < 0) || (event.getY() > 746 || event.getY() < 0)) {
 					gc2.setStroke(Color.RED);
@@ -490,7 +492,7 @@ public class Gui extends Application {
 
 	/**
 	 * Draws a visible rectangle and creates a room object. Drawn rooms must be
-	 * at least 58x72 pixels big and must not intersect with another room.
+	 * at least 88x102 pixels big and must not intersect with another room.
 	 *
 	 * @see Raum
 	 * @param gc
@@ -537,7 +539,7 @@ public class Gui extends Application {
 		 * canvas bounds)
 		 */
 		Boolean intersect = false;
-		if (viereck.width < 58 || viereck.height < 72) {
+		if (viereck.width < minRoomWidth || viereck.height < minRoomHeight) {
 			intersect = true;
 			System.out.println("Room too small!");
 		}
