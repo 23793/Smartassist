@@ -51,7 +51,7 @@ public class Schnittstelle {
 				}
 			} else {
 				// System.out.println("Kein passendes Gerät gefunden!"); //DO
-				// NOTHING
+				// DO NOTHING
 			}
 		} else { // Port already found
 			try {
