@@ -2,6 +2,13 @@ package GUI.src;
 
 import jssc.*;
 
+/**
+ * The Schnittstelle class is used for connecting a device to a USB-port, as
+ * well as handling wireless communications over a connected device later on.
+ * 
+ * @author Max
+ *
+ */
 public class Schnittstelle {
 
 	private static SerialPort serialPort = null;
@@ -19,7 +26,6 @@ public class Schnittstelle {
 			String s = null;
 			for (String p : portNames) { // Loop looking for the right port
 				tempPort = new SerialPort(p);
-//				System.out.println(p);
 				try {
 					tempPort.openPort();
 					tempPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1,
@@ -28,7 +34,7 @@ public class Schnittstelle {
 						tempPort.writeString("HalloXXXXXXXXXXXXXE"); // Handshake
 						s = new String(tempPort.readBytes(18, 50));
 					} catch (SerialPortTimeoutException e) {
-						// e.printStackTrace(); // DO NOTHING
+						// DO NOTHING
 					}
 					tempPort.closePort();
 				} catch (SerialPortException e) {
@@ -50,10 +56,9 @@ public class Schnittstelle {
 					e.printStackTrace();
 				}
 			} else {
-				// System.out.println("Kein passendes Gerät gefunden!"); //DO
-				// DO NOTHING
+				// DO NOTHING (no matching device found)
 			}
-		} else { // Port already found
+		} else { // Port already found once
 			try {
 				System.out.println("Connecting to " + serialPort.getPortName() + "...");
 				serialPort.openPort();
@@ -69,8 +74,8 @@ public class Schnittstelle {
 	 * port.
 	 * <p>
 	 * The data has the following format:
-	 * [modulnr];[aktuelle_temperatur];[aktueller_lichtwert];[switch]; for each
-	 * module.
+	 * "ID;ModuleStatus;LightMode;ClimateMode;LightStatus;LightValue;Temperature"
+	 * for each module.
 	 * 
 	 * @return a String containing all WSN data, separated by ";"
 	 */

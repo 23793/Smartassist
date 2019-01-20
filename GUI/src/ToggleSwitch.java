@@ -9,6 +9,16 @@ import javafx.scene.layout.HBox;
 //automatisch = true = 1
 //manuell = false = 0
 
+/**
+ * The ToggleSwitch class is used to create toggle switches in the GUI of the
+ * temperature and light pop-ups.
+ * 
+ * @author Minh
+ * 
+ * @see Temppop
+ * @see Lichtpop
+ *
+ */
 public class ToggleSwitch extends HBox {
 
 	private final Label label = new Label();
@@ -27,12 +37,12 @@ public class ToggleSwitch extends HBox {
 		button.setOnAction((e) -> {
 			switchedOn.set(!switchedOn.get());
 			mode = !mode;
-//			System.out.println(mode); // modus wird automatisch (1) gesetzt
+			// System.out.println(mode); // modus wird automatisch (1) gesetzt
 		});
 		label.setOnMouseClicked((e) -> {
 			switchedOn.set(!switchedOn.get());
 			mode = !mode;
-//			System.out.println(mode);
+			// System.out.println(mode);
 		});
 		setStyle();
 		bindProperties();

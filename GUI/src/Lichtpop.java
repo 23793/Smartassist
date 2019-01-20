@@ -1,7 +1,6 @@
 package GUI.src;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 
 import javafx.beans.value.ChangeListener;
@@ -24,6 +23,12 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * Lichtpop class for the light configuration pop-up
+ * 
+ * @author MinhMax
+ *
+ */
 public class Lichtpop {
 
 	private Raum raum;
@@ -36,18 +41,27 @@ public class Lichtpop {
 		raum = r;
 	}
 
+	// Icons for low / high light
 	private Image moon = new Image("/GUI/resources/moon.png", true);
 	private Image sun = new Image("/GUI/resources/sun.png", true);
 
 	private ImageView iv1 = new ImageView();
 	private ImageView iv2 = new ImageView();
 
+	/**
+	 * Displays the light pop-up and handles all logical functionalities
+	 * 
+	 * @param primaryStage
+	 *            the stage the pop-up is called from
+	 */
 	public void display(Stage primaryStage) {
 
 		iv1.setImage(moon);
 		iv1.setX(5);
 		iv1.setY(30);
 		iv2.setImage(sun);
+
+		// Loads the FXML for the pop-up
 		try {
 			apane = (AnchorPane) FXMLLoader.load(getClass().getResource("Lichtkonfig.fxml"));
 		} catch (IOException e) {
@@ -58,7 +72,7 @@ public class Lichtpop {
 
 		ObservableList<Node> obj = apane.getChildren();
 
-		// Create Toggleswitches
+		// Create ToggleSwitches
 		ToggleSwitch ts = new ToggleSwitch();
 		ToggleSwitch oo = new ToggleSwitch();
 		VBox b = (VBox) obj.get(0);
@@ -67,10 +81,11 @@ public class Lichtpop {
 		HBox hb2 = (HBox) b.getChildren().get(1);
 		hb2.getChildren().add(1, oo);
 
-		// Initialize Toggleswitches
+		// Initialize ToggleSwitches
 		ts.set_mode(raum.getLicht().getLichtModus());
 		oo.set_mode(raum.getLicht().getLichtAnAus());
 
+		// HBoxes for icons
 		HBox z = new HBox();
 		apane.getChildren().add(z);
 		z.getChildren().add(iv1);
@@ -90,7 +105,7 @@ public class Lichtpop {
 		Label value = new Label(Double.toString(slider.getValue()));
 		value.setTextFill(Color.ANTIQUEWHITE);
 
-		// Slider changelistener
+		// Slider ChangeListener
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number NewValue) {
 
@@ -99,7 +114,7 @@ public class Lichtpop {
 			}
 		});
 
-		// Switch to Manual mode if ON/OFF is switched
+		// Switch to Manual mode if ON/OFF is switched manually
 		oo.switchOnProperty().addListener(new ChangeListener<Boolean>() {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
@@ -109,31 +124,35 @@ public class Lichtpop {
 		});
 
 		// Flip the ON/OFF button and switch to manual Mode if a physical
-		// lightswitch is pressed
-		raum.getLicht().getLichtBoolean().addPropertyChangeListener(new BooleanListener(){
+		// light switch is pressed (ObservableBoolean)
+		raum.getLicht().getLichtBoolean().addPropertyChangeListener(new BooleanListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent event) {
-				oo.set_mode((Boolean)event.getNewValue());
+				oo.set_mode((Boolean) event.getNewValue());
 			}
 		});
 
+		// Close button
 		Button button = (Button) b.getChildren().get(5);
 
-		// ON CLOSE BUTTON PRESS
+		// On close button press
 		button.setOnAction(new EventHandler<ActionEvent>() {
 
 			public void handle(ActionEvent event) {
+				// Set the new settings for the light
 				raum.getLicht().setLichtAnAus(oo.get_mode());
 				raum.getLicht().setLichtModus(ts.get_mode());
 				raum.getLicht().setLichtZielWert(tempZielWert);
 
-				// Aktualisierte Daten ans WSN senden
+				// Send new settings to the WSN
 				Gui.updateModule(raum);
 
+				// Close the pop-up
 				primaryStage.close();
 			}
 		});
 
+		// Pop-up window settings
 		scene = new Scene(apane);
 		primaryStage.setScene(scene);
 		primaryStage.initModality(Modality.APPLICATION_MODAL);

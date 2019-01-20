@@ -17,12 +17,20 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * The Licht class contains all logical functionalities and graphical displays
+ * of lights in rooms.
+ * 
+ * @author MinhMax
+ *
+ */
 public class Licht {
 
 	private Raum raum;
 
+	// ObservableBoolean used in the light pop-up
 	private ObservableBoolean lichtAnAus = new ObservableBoolean(false);
-	private boolean lichtModus = false;
+	private boolean lichtModus = false; // Default manual
 	private int lichtZielWert = 2;
 	private Point lichtPoint;
 
@@ -34,10 +42,12 @@ public class Licht {
 	private VBox vebox = new VBox();
 	private HBox box = new HBox();
 
+	// Constructor with position, room, and AnchorPane for display
 	public Licht(Point p, Raum r, AnchorPane ap) {
 		lichtPoint = p;
 		raum = r;
 
+		// Set icon scale
 		anBild.setFitHeight(40);
 		anBild.setFitWidth(40);
 		ausBild.setFitHeight(40);
@@ -45,10 +55,11 @@ public class Licht {
 
 		settings.setBackground(null);
 
+		// Set the position to the middle of the icon
 		vebox.setLayoutX(lichtPoint.x - 28);
 		vebox.setLayoutY(lichtPoint.y - 30);
 
-		// Clickable icon for LichtPopup
+		// Clickable icon for light pop-up
 		settings.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
@@ -58,14 +69,13 @@ public class Licht {
 				try {
 					lp.display(stage);
 				} catch (Exception e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
 		});
 
 		/*
-		 * EVENTHANDLER F�R REPOSITIONING
+		 * Event handler for light repositioning (drag&drop)
 		 */
 		settings.setOnDragDetected(new EventHandler<MouseEvent>() {
 			public void handle(MouseEvent event) {
@@ -76,6 +86,7 @@ public class Licht {
 				db.setDragView(image);
 				db.setContent(content);
 
+				// Handling illegal drop positions
 				ap.setOnDragOver(new EventHandler<DragEvent>() {
 					public void handle(DragEvent event) {
 						Point p = new Point();
@@ -84,6 +95,7 @@ public class Licht {
 							event.acceptTransferModes(TransferMode.MOVE);
 						}
 
+						// Dropping the light icon
 						ap.setOnDragDropped(new EventHandler<DragEvent>() {
 							public void handle(DragEvent event) {
 								Point p = new Point();

@@ -4,16 +4,16 @@ import java.awt.Point;
 import java.awt.Rectangle;
 
 /**
- * Die Raumklasse ist f�r die Logik und Funktionalit�ten von R�umen
- * zust�ndig.
+ * The Raum class contains all the variables for a room (such as Licht, Modul
+ * and Klima), as well as a constructor.
  * 
- * @author Minh
+ * @author MinhMax
  *
  */
 public class Raum {
 
 	private double position_x;
-	private double position_y; // Punkt rechts unten
+	private double position_y; // Lower right point
 	private int RaumID;
 	private Rectangle rect;
 
@@ -22,18 +22,17 @@ public class Raum {
 	private Klima klima = null;
 
 	/**
-	 * Erstellt ein Raumobjekt mit den gegebenen Parametern.
-	 *
+	 * Creates a room with the given parameters
+	 * 
 	 * @param id
-	 *            die ID des Raums
-	 * @param temp
-	 *            die aktuelle Temperatur im Raum
-	 * @param lichtwert
-	 *            der aktuelle Lichtwert im Raum
-	 * @param lightswitch
-	 *            boolean der angibt, ob der Lichtschalter bet�tigt wurde
+	 *            the ID of the room
+	 * @param x
+	 *            the X position of the room
+	 * @param y
+	 *            the Y position of the room
+	 * @param rectangle
+	 *            the rectangle that belongs to the room
 	 */
-
 	public Raum(int id, double x, double y, Rectangle rectangle) {
 		this.RaumID = id;
 		this.position_x = x;
@@ -86,7 +85,7 @@ public class Raum {
 	}
 
 	/**
-	 * @return the modul
+	 * @return the module
 	 */
 	public Modul getModul() {
 		return modul;
@@ -94,20 +93,19 @@ public class Raum {
 
 	/**
 	 * @param modul
-	 *            the modul to set
+	 *            the module to add to the room
 	 */
 	public void setModul(Modul modul) {
 		this.modul = modul;
 		try {
 			this.klima = new Klima(new Point((int) (position_x), (int) (position_y)), this);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
 	/**
-	 * @return the licht
+	 * @return the light
 	 */
 	public Licht getLicht() {
 		return licht;
@@ -115,14 +113,14 @@ public class Raum {
 
 	/**
 	 * @param licht
-	 *            the licht to set
+	 *            the light to add to the room
 	 */
 	public void setLicht(Licht licht) {
 		this.licht = licht;
 	}
 
 	/**
-	 * @return the klima
+	 * @return the climate control of the room
 	 */
 	public Klima getKlima() {
 		return klima;

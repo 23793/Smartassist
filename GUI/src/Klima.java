@@ -1,7 +1,7 @@
 package GUI.src;
 
 import java.awt.Point;
-import javafx.application.Platform;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -13,11 +13,17 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * The Klima class for the temperature display. Also contains the target
+ * temperature value for the room the module is in.
+ * 
+ * @author MinhMax
+ *
+ */
 public class Klima {
 
-
 	private boolean heizungsstatus;
-	private double zielTemp = 20; // Standardwert
+	private double zielTemp = 20; // Standard value for initialization
 
 	private Image fire = new Image("/GUI/resources/fire.png", true);
 	private Image temp = new Image("/GUI/resources/temp.png", true);
@@ -31,7 +37,7 @@ public class Klima {
 	private Raum raum;
 
 	/*
-	 * Vbox und Hbox fï¿½r Temperaturanzeige
+	 * VBox and HBox for the temperature display
 	 */
 	private VBox vebox = new VBox();
 	private HBox box = new HBox();
@@ -39,7 +45,7 @@ public class Klima {
 	public Klima(Point p, Raum r) throws Exception {
 		raum = r;
 		/*
-		 * Skalierung der Bilder
+		 * Scaling of the icons
 		 */
 		iv2.setFitWidth(50);
 		iv2.setFitHeight(50);
@@ -47,19 +53,18 @@ public class Klima {
 		iv1.setFitWidth(21);
 
 		/*
-		 * Button als Thermometerbild
+		 * Thermometer button for opening the temperature pop-up
 		 */
 		iv2.setImage(temp);
 		settings.setBackground(null);
 
 		/*
-		 * Position der Temperaturanzeige HIER: ersetzten mit X und Y Werten
-		 * eines Raumes.
+		 * Positioning of the temperature display
 		 */
 		vebox.setLayoutX(p.x - 71);
 		vebox.setLayoutY(p.y - 80);
 
-		// Clickable icon for TempPopup
+		// Clickable icon for temperature pop-up
 		settings.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
@@ -82,11 +87,14 @@ public class Klima {
 		});
 	}
 
+	/**
+	 * Checks the given value and sets the temperature icon accordingly. Also
+	 * sets the temperature label.
+	 * 
+	 * @param s
+	 *            the value to be checked
+	 */
 	public void setImageAndLabel(String s) {
-		/**
-		 * checkt den wert von s und gibt entsprechendes Bild aus. Setzt
-		 * auï¿½erdem die Temperatur fï¿½r das Label fest.
-		 */
 		if (s.equals("kalt")) {
 			iv1.setImage(snow);
 		} else if (s.equals("heiss")) {
@@ -94,15 +102,9 @@ public class Klima {
 		} else if (s.equals("perfekt")) {
 			iv1.setImage(perfect);
 		}
-		System.out.println(raum.getModul().gettemperatur()+ "ï¿½C");
-	//	temps.setText(Float.toString(raum.getModul().gettemperatur()));
-		Platform.runLater(new Runnable() {
-		    @Override
-		    public void run() {
-		    	temps.setText(Float.toString(raum.getModul().gettemperatur()));
-		    }
-		});
-		
+		System.out.println(raum.getModul().gettemperatur() + "°C");
+
+		temps.setText(Float.toString(raum.getModul().gettemperatur()));
 	}
 
 	public ImageView getIv1() {

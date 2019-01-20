@@ -20,6 +20,12 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * Temppop class for the temperature configuration pop-up
+ * 
+ * @author MinhMax
+ *
+ */
 public class Temppop {
 
 	private Raum raum;
@@ -33,42 +39,44 @@ public class Temppop {
 		raum = r;
 	}
 
+	/**
+	 * Displays the temperature pop-up and handles all logical functionalities
+	 * 
+	 * @param primaryStage
+	 *            the stage the pop-up is called from
+	 */
 	public void display(Stage primaryStage) throws Exception {
 
+		// Load the FXML
 		try {
 			test = (AnchorPane) FXMLLoader.load(getClass().getResource("Temptest.fxml"));
 		} catch (IOException e) {
 			System.out.println("Konnte fxml nicht finden!");
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		/*
-		 * add the AnchorPane into a Scene
-		 */
+		// Add the AnchorPane into a Scene
 		scene = new Scene(test);
-		/*
-		 * get the single child of the the root
-		 */
 
 		ObservableList<Node> obj = test.getChildren();
 
-		// Create the Toggleswitch
+		// Create the ToggleSwitch
 		ToggleSwitch ts = new ToggleSwitch();
 		VBox b = (VBox) obj.get(0);
-		HBox hb = (HBox) b.getChildren().get(0); // HBox Objekt
-		hb.getChildren().add(1, ts); // in die HBox hinzufügen
+		HBox hb = (HBox) b.getChildren().get(0); // HBox object
+		hb.getChildren().add(1, ts); // add Switch to HBox
 
-		// Initialize the Toggleswitch
+		// Initialize the ToggleSwitch
 		ts.set_mode(raum.getKlima().getHeizungsstatus());
 		tempZielwert = (float) raum.getKlima().getZielTemp();
 
-		// Create and initialize slider
+		// Create and initialize the slider
 		Slider slider = (Slider) b.getChildren().get(2);
 		slider.setValue(raum.getKlima().getZielTemp());
 		Label value = new Label(Double.toString(slider.getValue()));
 		value.setTextFill(Color.ANTIQUEWHITE);
 
+		// Change display value as the slider is being dragged around
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number NewValue) {
 
@@ -77,23 +85,31 @@ public class Temppop {
 			}
 		});
 
+		// Current value display Label
 		b.getChildren().add(3, value);
-		Button button = (Button) b.getChildren().get(4);
 
-		// ON CLOSE BUTTON PRESS
+		// Close button
+		Button button = (Button) b.getChildren().get(4);
+		// On close button press
 		button.setOnAction(new EventHandler<ActionEvent>() {
 
 			public void handle(ActionEvent event) {
+				// Update the room settings
 				raum.getKlima().setHeizungsstatus(ts.get_mode());
 				raum.getKlima().setZielTemp(tempZielwert);
-				raum.getKlima().setImageAndLabel(raum.getModul().temperaturanzeige((float)raum.getKlima().getZielTemp()));
+				// Update the temperature icon
+				raum.getKlima()
+						.setImageAndLabel(raum.getModul().temperaturanzeige((float) raum.getKlima().getZielTemp()));
 
-				// Aktualisierte Daten ans WSN senden
+				// Send new settings to the WSN
 				Gui.updateModule(raum);
 
+				// Close the pop-up
 				primaryStage.close();
 			}
 		});
+
+		// Pop-up window settings
 		primaryStage.setScene(scene);
 		primaryStage.setResizable(false);
 		primaryStage.initModality(Modality.APPLICATION_MODAL);

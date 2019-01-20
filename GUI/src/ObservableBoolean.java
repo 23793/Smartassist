@@ -3,6 +3,13 @@ package GUI.src;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+/**
+ * The ObservableBoolean class contains a boolean flag that can be listened to
+ * and an event is created upon a change of the value of the flag.
+ * 
+ * @author Max
+ *
+ */
 public class ObservableBoolean {
 
 	protected PropertyChangeSupport propertyChangeSupport;
