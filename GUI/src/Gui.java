@@ -417,8 +417,6 @@ public class Gui extends Application {
 				}
 			}
 		});
-		// Set the primaryStage once
-		SingletonClass.getSingletonInstanz().setStage(primaryStage);
 
 		primaryStage.setScene(scene);
 
@@ -451,11 +449,11 @@ public class Gui extends Application {
 
 			// Adds a label to the activated room
 			if (r.getModul().getModulID() == 1) {
-				raumname.setText("Raum 1");
+				raumname.setText("Zimmer 1");
 			} else if (r.getModul().getModulID() == 2) {
-				raumname.setText("Raum 2");
+				raumname.setText("Zimmer 2");
 			} else if (r.getModul().getModulID() == 3) {
-				raumname.setText("Raum 3");
+				raumname.setText("Zimmer 3");
 			}
 			raumname.setTextFill(Color.DIMGREY);
 
