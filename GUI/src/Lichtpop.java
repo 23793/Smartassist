@@ -1,6 +1,5 @@
 package GUI.src;
 
-import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 
 import javafx.beans.value.ChangeListener;
@@ -119,16 +118,6 @@ public class Lichtpop {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
 				ts.set_mode(false);
-			}
-
-		});
-
-		// Flip the ON/OFF button and switch to manual Mode if a physical
-		// light switch is pressed (ObservableBoolean)
-		raum.getLicht().getLichtBoolean().addPropertyChangeListener(new BooleanListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent event) {
-				oo.set_mode((Boolean) event.getNewValue());
 			}
 		});
 

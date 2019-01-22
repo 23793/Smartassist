@@ -3,6 +3,7 @@ package GUI.src;
 import java.awt.Point;
 import java.text.DecimalFormat;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -103,14 +104,18 @@ public class Klima {
 		} else if (s.equals("perfekt")) {
 			iv1.setImage(perfect);
 		}
-		// System.out.println(raum.getModul().gettemperatur() + "ï¿½C");
 
 		// Float format
 		DecimalFormat df = new DecimalFormat("00.00");
-		String tempZielFormat = df.format(raum.getKlima().getZielTemp());
-		
+		String tempZielFormat = df.format(raum.getModul().gettemperatur());
+
 		// Set the temperature label
-		temps.setText(tempZielFormat + "ï¿½C");
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				temps.setText(tempZielFormat + "°C");
+			}
+		});
 	}
 
 	public ImageView getIv1() {
