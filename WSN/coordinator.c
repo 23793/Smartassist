@@ -1,15 +1,16 @@
 #include <zdo.h>
 #include <app.h>
-#include <sysTaskManager.h>
-#include <irq.h>
 #include <zcl.h>
+#include <leds.h>
+#include <sysTaskManager.h>
+#include <usartManager.h>
 #include <zclOnOffCluster.h>
 #include <zclIlluminanceMeasurementCluster.h>
-#include <usartManager.h>
-#include <leds.h>
 #include <zclTemperatureMeasurementCluster.h>
-#include <stdlib.h>
 
+
+// Endpunkte fuer Kommunikation mit 3 Clients:
+//Temperaturmesswerte, Lichtmesswerte, OnOffLicht, OnOffStatus, OnOffModusLicht, OnOffModusKlima
 static ZCL_DeviceEndpoint_t endPointTemperatureMeasurementClient1;
 static ZCL_DeviceEndpoint_t endPointTemperatureMeasurementClient2;
 static ZCL_DeviceEndpoint_t endPointTemperatureMeasurementClient3;
@@ -29,28 +30,37 @@ static ZCL_DeviceEndpoint_t endPointOnOffMode_lightClient1;
 static ZCL_DeviceEndpoint_t endPointOnOffMode_lightClient2;
 static ZCL_DeviceEndpoint_t endPointOnOffMode_lightClient3;
 
+// Werte von Modulen für Ausgabe speichern 
 static Module module1;
 static Module module2;
 static Module module3;
 
+// Temporaere Werte beim Datenempfang von der App, welche dann an das entsprechende Modul weitergeleitet werden
+static Module tempModule;
 
-// Timer fuer periodische Ausgabe an die bridge
+// Timer fuer periodische Ausgabe an die USART Bruecke
 static HAL_AppTimer_t ausgabeTimer;
 
+// Programm Status
 static AppState_t appstate = INIT;
-static uint8_t temp[] = "Value: XXX.XXXCelsius\n\r";
 
+// Vorlage für Ausgabe an Bruecke
+// ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance_Value;Temperature_Value
 static uint8_t report[] ="X;X;X;X;X;XXX;XXXX";
+
+// Buffer um Daten zu empfangen
 static uint8_t usartRxBuffer[19];
 static uint8_t usartBuffer[19];
-uint8_t handshake[] = "HalloXXXXXXXXXXXXXE";
 
+// String, der beim Handshake mit der App empfangen werden soll
+uint8_t handshake[] = "HalloXXXXXXXXXXXXXE";
+uint8_t closeUSART[] = "ByeXXXXXXXXXXXXXXXE";
+
+// Netzwerkeigenschaften
 static ZDO_StartNetworkReq_t networkParams;
 
-void interruptHandlerINT4();
-
-void readBuffer(uint16_t bytesReceived);
-
+// Callback wenn Daten an der Bruecke empfangen werden
+void readBuffer();
 
 // initialisation of the timer
 static void initTimer(void);
@@ -58,16 +68,16 @@ static void initTimer(void);
 //initialisation of the modules
 static void initModule(void);
 
-// Function gets called after the timer is expired
+// Function gets called after the timer for writing values of modules to bridge is expired
 static void ausgabeTimerFired(void);
 
-// Function that gets called if the module 1 turns on/off
+// Function that gets called if the status of module 1 turns on/off
 static void OnOffStatusReportInd1(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload);
 
-// Function that gets called if the module 2 turns on/off
+// Function that gets called if the status of module 2 turns on/off
 static void OnOffStatusReportInd2(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload);
 
-// Function that gets called if the module 3 turns on/off
+// Function that gets called if the status of module 3 turns on/off
 static void OnOffStatusReportInd3(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload);
 
 // Function that gets called if the light turns on/off from module 1
@@ -116,52 +126,85 @@ static void illuminanceMeasurementReportInd2(ZCL_Addressing_t *addressing, uint8
 static void illuminanceMeasurementReportInd3(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload);
 
 
-// Variable to send mode_light toggle command to module 1
+// Variable to send mode_light on/off command to module 1
 static ZCL_Request_t onMode_LightCommand_Client1;
 static ZCL_Request_t offMode_LightCommand_Client1;
 
-// Variable to send mode_light toggle command to module 2
+// Variable to send mode_light on/off command to module 2
 static ZCL_Request_t onMode_LightCommand_Client2;
 static ZCL_Request_t offMode_LightCommand_Client2;
 
-// Variable to send mode_light toggle command to module 3
+// Variable to send mode_light on/off command to module 3
 static ZCL_Request_t onMode_LightCommand_Client3;
 static ZCL_Request_t offMode_LightCommand_Client3;
 
-// Variable to send mode_climate toggle command to module 1
+// Variable to send mode_climate on/off command to module 1
 static ZCL_Request_t onMode_ClimateCommand_Client1;
 static ZCL_Request_t offMode_ClimateCommand_Client1;
 
-// Variable to send mode_climate toggle command to module 2
+// Variable to send mode_climate on/off command to module 2
 static ZCL_Request_t onMode_ClimateCommand_Client2;
 static ZCL_Request_t offMode_ClimateCommand_Client2;
 
-// Variable to send mode_climate toggle command to module 3
+// Variable to send mode_climate on/off command to module 3
 static ZCL_Request_t onMode_ClimateCommand_Client3;
 static ZCL_Request_t offMode_ClimateCommand_Client3;
 
-// Variable to send status toggle command to module 1
+// Variable to send status on/off command to module 1
 static ZCL_Request_t onStatusCommand_Client1;
 static ZCL_Request_t offStatusCommand_Client1;
 
-// Variable to send status toggle command to module 2
+// Variable to send status on/off command to module 2
 static ZCL_Request_t onStatusCommand_Client2;
 static ZCL_Request_t offStatusCommand_Client2;
 
-// Variable to send status toggle command to module 3
+// Variable to send status on/off command to module 3
 static ZCL_Request_t onStatusCommand_Client3;
 static ZCL_Request_t offStatusCommand_Client3;
 
-// Variable to send light toggle command to module 1
+// Variable to send light on/off command to module 1
 static ZCL_Request_t onLightCommand_Client1;
 static ZCL_Request_t offLightCommand_Client1;
-// Variable to send light toggle command to module 2
+
+// Variable to send light on/off command to module 2
 static ZCL_Request_t onLightCommand_Client2;
 static ZCL_Request_t offLightCommand_Client2;
-// Variable to send light toggle command to module 3
+
+// Variable to send light on/off command to module 3
 static ZCL_Request_t onLightCommand_Client3;
 static ZCL_Request_t offLightCommand_Client3;
 
+// Struct to send data with temperature and illuminance reference to clients
+static AppMessage_t_Temperature transmitDataTemperatureClient1;
+static AppMessage_t_Temperature transmitDataTemperatureClient2;
+static AppMessage_t_Temperature transmitDataTemperatureClient3;
+static AppMessage_t_Illuminance transmitDataIlluminanceClient1;
+static AppMessage_t_Illuminance transmitDataIlluminanceClient2;
+static AppMessage_t_Illuminance transmitDataIlluminanceClient3;
+
+// Command to send Temperature and illuminance reference value to clients
+APS_DataReq_t dataReqTemperatureClient1;
+APS_DataReq_t dataReqTemperatureClient2;
+APS_DataReq_t dataReqTemperatureClient3;
+APS_DataReq_t dataReqIlluminanceClient1;
+APS_DataReq_t dataReqIlluminanceClient2;
+APS_DataReq_t dataReqIlluminanceClient3;
+
+// Characeristics for endpoint to send temperature and illuminance reference to clients
+static SimpleDescriptor_t simpleDescriptorTemperatureClient1;
+static SimpleDescriptor_t simpleDescriptorTemperatureClient2;
+static SimpleDescriptor_t simpleDescriptorTemperatureClient3;
+static SimpleDescriptor_t simpleDescriptorIlluminanceClient1;
+static SimpleDescriptor_t simpleDescriptorIlluminanceClient2;
+static SimpleDescriptor_t simpleDescriptorIlluminanceClient3;
+
+// endpoint to send temperature and illuminance reference to clients
+static APS_RegisterEndpointReq_t endPointTemperatureZielwertClient1;
+static APS_RegisterEndpointReq_t endPointTemperatureZielwertClient2;
+static APS_RegisterEndpointReq_t endPointTemperatureZielwertClient3;
+static APS_RegisterEndpointReq_t endPointIlluminanceZielwertClient1;
+static APS_RegisterEndpointReq_t endPointIlluminanceZielwertClient2;
+static APS_RegisterEndpointReq_t endPointIlluminanceZielwertClient3;
 
 // Function used to calculate the temperature out of a TemperatureCluster-Report
 static uint16_t calcTemperature(uint8_t *reportPayload);
@@ -172,15 +215,51 @@ static uint16_t calcIlluminance(uint8_t *reportPayload);
 // Function used to extract the boolean out of a Report
 static bool calcBoolean(uint8_t *reportPayload);
 
-// Function to write to bridge
+// Function to write the values of the modules to the bridge
 static void ausgabe(Module module);
 
+// Function to start the network 
 static void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo);
 
-// Function when data arrived from App
+// Function when data arrived from App at the bridge
 static void dataAppReceived(void);
 
+// Configure Reports to send temperature and illuminance reference data to clients
+static void initTransmitData(void);
 
+// Enpoints initialisieren
+static void initEndpoint(void);
+
+//////////////////START IMPLEMENTATION//////////////////////
+
+// ClusterIDs fuer Temperaturmessung, Lichtmessung und onOff
+static ClusterId_t clientClusterTemperatureId[] = {TEMPERATURE_MEASUREMENT_CLUSTER_ID};
+static ClusterId_t clientClusterOnOffLightId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t clientClusterIlluminanceId[] = {ILLUMINANCE_MEASUREMENT_CLUSTER_ID};
+static ClusterId_t clientClusterOnOffStatusId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t clientClusterOnOffMode_climateId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t clientClusterOnOffMode_lightId[] = {ONOFF_CLUSTER_ID};
+
+// Clusterdefinition fuer Temperaturmessung, Lichtmessung und onOff als Clients (Senden Kommandos / Erhalten Daten)
+static ZCL_Cluster_t clientClustersTemperatureMeasurement1[]={DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
+static ZCL_Cluster_t clientClustersTemperatureMeasurement2[]={DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
+static ZCL_Cluster_t clientClustersTemperatureMeasurement3[]={DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
+static ZCL_Cluster_t clientClustersOnOffLight1[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffLight2[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffLight3[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersIlluminanceMeasurement1[]={DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
+static ZCL_Cluster_t clientClustersIlluminanceMeasurement2[]={DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
+static ZCL_Cluster_t clientClustersIlluminanceMeasurement3[]={DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
+static ZCL_Cluster_t clientClustersOnOffStatus1[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffStatus2[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffStatus3[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffMode_climate1[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffMode_climate2[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffMode_climate3[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffMode_light1[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffMode_light2[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+static ZCL_Cluster_t clientClustersOnOffMode_light3[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+	
 void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo){
 	if(ZDO_SUCCESS_STATUS == confirmInfo->status){
 		appstate = NOTHING;
@@ -188,39 +267,6 @@ void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t *confirmInfo){
 	SYS_PostTask(APL_TASK_ID);
 }
 
-
-static AppMessage_t_Temperature transmitDataTemperatureClient1;
-static AppMessage_t_Temperature transmitDataTemperatureClient2;
-static AppMessage_t_Temperature transmitDataTemperatureClient3;
-static AppMessage_t_Illuminance transmitDataIlluminanceClient1;
-static AppMessage_t_Illuminance transmitDataIlluminanceClient2;
-static AppMessage_t_Illuminance transmitDataIlluminanceClient3;
-APS_DataReq_t dataReqTemperatureClient1;
-APS_DataReq_t dataReqTemperatureClient2;
-APS_DataReq_t dataReqTemperatureClient3;
-APS_DataReq_t dataReqIlluminanceClient1;
-APS_DataReq_t dataReqIlluminanceClient2;
-APS_DataReq_t dataReqIlluminanceClient3;
-
-static void APS_DataConf(APS_DataConf_t *confInfo);
-static SimpleDescriptor_t simpleDescriptorTemperatureClient1;
-static SimpleDescriptor_t simpleDescriptorTemperatureClient2;
-static SimpleDescriptor_t simpleDescriptorTemperatureClient3;
-static SimpleDescriptor_t simpleDescriptorIlluminanceClient1;
-static SimpleDescriptor_t simpleDescriptorIlluminanceClient2;
-static SimpleDescriptor_t simpleDescriptorIlluminanceClient3;
-static APS_RegisterEndpointReq_t endPointTemperatureZielwertClient1;
-static APS_RegisterEndpointReq_t endPointTemperatureZielwertClient2;
-static APS_RegisterEndpointReq_t endPointTemperatureZielwertClient3;
-static APS_RegisterEndpointReq_t endPointIlluminanceZielwertClient1;
-static APS_RegisterEndpointReq_t endPointIlluminanceZielwertClient2;
-static APS_RegisterEndpointReq_t endPointIlluminanceZielwertClient3;
-void APS_DataIndTemperatureClient1(APS_DataInd_t *indData);
-void APS_DataIndTemperatureClient2(APS_DataInd_t *indData);
-void APS_DataIndTemperatureClient3(APS_DataInd_t *indData);
-void APS_DataIndIlluminanceClient1(APS_DataInd_t *indData);
-void APS_DataIndIlluminanceClient2(APS_DataInd_t *indData);
-void APS_DataIndIlluminanceClient3(APS_DataInd_t *indData);
 
 static void initTransmitData(){
 	dataReqTemperatureClient1.profileId = 1;
@@ -230,7 +276,7 @@ static void initTransmitData(){
 	dataReqTemperatureClient1.asdu = transmitDataTemperatureClient1.data;
 	dataReqTemperatureClient1.asduLength = sizeof(transmitDataTemperatureClient1.data);
 	dataReqTemperatureClient1.srcEndpoint = srcTemperature_Zielwert_Client1;
-	dataReqTemperatureClient1.APS_DataConf = APS_DataConf;
+	dataReqTemperatureClient1.APS_DataConf = NULL;
 	
 	dataReqTemperatureClient2.profileId = 1;
 	dataReqTemperatureClient2.dstAddrMode = APS_EXT_ADDRESS;
@@ -239,7 +285,7 @@ static void initTransmitData(){
 	dataReqTemperatureClient2.asdu = transmitDataTemperatureClient2.data;
 	dataReqTemperatureClient2.asduLength = sizeof(transmitDataTemperatureClient2.data);
 	dataReqTemperatureClient2.srcEndpoint = srcTemperature_Zielwert_Client2;
-	dataReqTemperatureClient2.APS_DataConf = APS_DataConf;
+	dataReqTemperatureClient2.APS_DataConf = NULL;
 	
 	dataReqTemperatureClient3.profileId = 1;
 	dataReqTemperatureClient3.dstAddrMode = APS_EXT_ADDRESS;
@@ -248,7 +294,7 @@ static void initTransmitData(){
 	dataReqTemperatureClient3.asdu = transmitDataTemperatureClient3.data;
 	dataReqTemperatureClient3.asduLength = sizeof(transmitDataTemperatureClient3.data);
 	dataReqTemperatureClient3.srcEndpoint = srcTemperature_Zielwert_Client3;
-	dataReqTemperatureClient3.APS_DataConf = APS_DataConf;
+	dataReqTemperatureClient3.APS_DataConf = NULL;
 	
 	dataReqIlluminanceClient1.profileId = 1;
 	dataReqIlluminanceClient1.dstAddrMode = APS_EXT_ADDRESS;
@@ -257,7 +303,7 @@ static void initTransmitData(){
 	dataReqIlluminanceClient1.asdu = transmitDataIlluminanceClient1.data;
 	dataReqIlluminanceClient1.asduLength = sizeof(transmitDataIlluminanceClient1.data);
 	dataReqIlluminanceClient1.srcEndpoint = srcIlluminance_Zielwert_Client1;
-	dataReqIlluminanceClient1.APS_DataConf = APS_DataConf;
+	dataReqIlluminanceClient1.APS_DataConf = NULL;
 	
 	dataReqIlluminanceClient2.profileId = 1;
 	dataReqIlluminanceClient2.dstAddrMode = APS_EXT_ADDRESS;
@@ -266,7 +312,7 @@ static void initTransmitData(){
 	dataReqIlluminanceClient2.asdu = transmitDataIlluminanceClient2.data;
 	dataReqIlluminanceClient2.asduLength = sizeof(transmitDataIlluminanceClient2.data);
 	dataReqIlluminanceClient2.srcEndpoint = srcIlluminance_Zielwert_Client2;
-	dataReqIlluminanceClient2.APS_DataConf = APS_DataConf;
+	dataReqIlluminanceClient2.APS_DataConf = NULL;
 	
 	dataReqIlluminanceClient3.profileId = 1;
 	dataReqIlluminanceClient3.dstAddrMode = APS_EXT_ADDRESS;
@@ -275,15 +321,13 @@ static void initTransmitData(){
 	dataReqIlluminanceClient3.asdu = transmitDataIlluminanceClient3.data;
 	dataReqIlluminanceClient3.asduLength = sizeof(transmitDataIlluminanceClient3.data);
 	dataReqIlluminanceClient3.srcEndpoint = srcIlluminance_Zielwert_Client3;
-	dataReqIlluminanceClient3.APS_DataConf = APS_DataConf;
+	dataReqIlluminanceClient3.APS_DataConf = NULL;	
 }
 
-static void APS_DataConf(APS_DataConf_t *confInfo){
-	
-}
 static void ZCL_CommandResp(ZCL_Notify_t *ntfy){
 	(void)ntfy;
 }
+
 static void initCommands(void){
 	onMode_LightCommand_Client1.dstAddressing.addrMode=APS_EXT_ADDRESS;
 	onMode_LightCommand_Client1.dstAddressing.addr.extAddress = 0x50000000A01LL;
@@ -484,7 +528,7 @@ static void initCommands(void){
 	offStatusCommand_Client2.dstAddressing.clusterId=ONOFF_CLUSTER_ID;
 	offStatusCommand_Client2.dstAddressing.clusterSide=ZCL_CLUSTER_SIDE_SERVER;
 	offStatusCommand_Client2.endpointId=srcOnOff_Status_Client2;
-	offStatusCommand_Client2.id=ZCL_ONOFF_CLUSTER_ON_COMMAND_ID;
+	offStatusCommand_Client2.id=ZCL_ONOFF_CLUSTER_OFF_COMMAND_ID;
 	offStatusCommand_Client2.ZCL_Notify=ZCL_CommandResp;
 	
 	offStatusCommand_Client3.dstAddressing.addrMode=APS_EXT_ADDRESS;
@@ -528,31 +572,7 @@ static void initCommands(void){
 	offLightCommand_Client3.ZCL_Notify=ZCL_CommandResp;
 }
 
-static ClusterId_t clientClusterTemperatureId[] = {TEMPERATURE_MEASUREMENT_CLUSTER_ID};
-static ClusterId_t clientClusterOnOffLightId[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t clientClusterIlluminanceId[] = {ILLUMINANCE_MEASUREMENT_CLUSTER_ID};
-static ClusterId_t clientClusterOnOffStatusId[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t clientClusterOnOffMode_climateId[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t clientClusterOnOffMode_lightId[] = {ONOFF_CLUSTER_ID};
 
-static ZCL_Cluster_t clientClustersTemperatureMeasurement1[]={DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
-static ZCL_Cluster_t clientClustersTemperatureMeasurement2[]={DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
-static ZCL_Cluster_t clientClustersTemperatureMeasurement3[]={DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
-static ZCL_Cluster_t clientClustersOnOffLight1[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffLight2[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffLight3[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersIlluminanceMeasurement1[]={DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
-static ZCL_Cluster_t clientClustersIlluminanceMeasurement2[]={DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
-static ZCL_Cluster_t clientClustersIlluminanceMeasurement3[]={DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL)};
-static ZCL_Cluster_t clientClustersOnOffStatus1[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffStatus2[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffStatus3[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffMode_climate1[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffMode_climate2[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffMode_climate3[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffMode_light1[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffMode_light2[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-static ZCL_Cluster_t clientClustersOnOffMode_light3[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
 
 static void initModule(){
 	module1.ID = 1;
@@ -575,7 +595,7 @@ static void ausgabeTimerFired(){
 
 // Die Callback wird schon direkt nach dem ersten empfangenen Byte aufgerufen, deshalb muessen wir solange warten, bis der komplette String übertragen ist
 // Der String wird mit einem "E" abgeschlossen. Wir testen dies mit usartRxBuffer[18]== 69 und verändern das "E" in ein "F", damit wir auch die folgenden Strings abgrenzen können
-void readBuffer(uint16_t bytesReceived){
+void readBuffer(){
 		HAL_ReadUsart(&usartDescriptor, usartBuffer, sizeof(usartBuffer));
 		if(usartRxBuffer[18]== 69){
 				usartRxBuffer[18]= 70;
@@ -588,48 +608,28 @@ void readBuffer(uint16_t bytesReceived){
 			}
 			//Wenn kein Handshake, normaler Datenempfang
 			if(k != 18){
-			//	appWriteDataToUsart(usartRxBuffer, sizeof(usartRxBuffer));
-				dataAppReceived();
-			//Wenn Handshake, dann "Hallo" zurückschicken
+				uint8_t j=0;
+				for(uint8_t i=0;i<19;i++){
+					if(closeUSART[i]==usartRxBuffer[i]){
+						j++;
+					}
+				}
+				if(j == 18){
+					HAL_StopAppTimer(&ausgabeTimer);
+				} else {
+					appstate = DATA_PROCESS;
+					SYS_PostTask(APL_TASK_ID);
+				}
+			//Wenn Handshake, dann "Hallo" zurückschicken und Timer fuer die Ausgabe initialisieren
 			} else {
-			initTimer(); 
-			appWriteDataToUsart(usartRxBuffer, sizeof(usartRxBuffer));
+				initTimer(); 
+				appWriteDataToUsart(usartRxBuffer, sizeof(usartRxBuffer));
 			}
 		}
 }
 
-void interruptHandlerINT4(){
-	
-	//HAL_WriteUsart(&usartDesc, (uint8_t*)usartRxBuffer, 36);
-	//appWriteDataToUsart(usartRxBuffer, sizeof(usartRxBuffer));
-	
-	transmitDataTemperatureClient1.data[0] = usartRxBuffer[14]-48;
-	transmitDataTemperatureClient1.data[1] = usartRxBuffer[15]-48;
-	transmitDataTemperatureClient1.data[2] = usartRxBuffer[16]-48;
-	transmitDataTemperatureClient1.data[3] = usartRxBuffer[17]-48;
-		
-	transmitDataIlluminanceClient1.data[0] = 2;
-	transmitDataIlluminanceClient1.data[1] = 3;
-	transmitDataIlluminanceClient1.data[2] = 3;
-	
-	APS_DataReq(&dataReqIlluminanceClient1);
-	APS_DataReq(&dataReqTemperatureClient1);
-	
-	// 	ZCL_CommandReq(&toggleMode_LightCommand_Client1);
-	// 	ZCL_CommandReq(&toggleMode_ClimateCommand_Client1);
-	// 	ZCL_CommandReq(&toggleStatusCommand_Client1);
-	// 	ZCL_CommandReq(&toggleLightCommand_Client1);
-
-}
-static void initButton(void){
-	HAL_RegisterIrq(IRQ_4, IRQ_FALLING_EDGE, interruptHandlerINT4);
-	HAL_EnableIrq(IRQ_4);
-}
-
-Module tempModule;
 static void dataAppReceived(){
-	
-	
+		
 	tempModule.ID = usartRxBuffer[0]-48;
 	tempModule.status = usartRxBuffer[2]-48;
 	tempModule.mode_light = usartRxBuffer[4]-48;
@@ -723,7 +723,7 @@ static void dataAppReceived(){
 		
 		APS_DataReq(&dataReqTemperatureClient2);
 		
-		}else{
+	}else{
 		ZCL_CommandReq(&offStatusCommand_Client2);
 	}
 	
@@ -775,9 +775,10 @@ static void dataAppReceived(){
 	break;
 	}
 		
+	appstate = NOTHING;
+	SYS_PostTask(APL_TASK_ID);
 }
 
-// ID;Status;Mode_Light;Mode_Climate;LED_Status;Illuminance_Reference;Temperature_Reference
 static void ausgabe(Module module){
 	uint32_to_str(report, sizeof(report), module.ID, 0, 1);
 	uint32_to_str(report, sizeof(report), module.status, 2, 1);
@@ -792,11 +793,8 @@ static void ausgabe(Module module){
 
 static uint16_t calcTemperature(uint8_t *reportPayload){
 	  int16_t reportValue;
-	  
 	  ZCL_Report_t *rep = (ZCL_Report_t *)reportPayload;
-	  memcpy(&reportValue, &rep->value[0], sizeof(int16_t));
-
-	  
+	  memcpy(&reportValue, &rep->value[0], sizeof(int16_t));	  
 	  return (uint16_t) reportValue;
 }
 
@@ -804,135 +802,108 @@ static uint16_t calcIlluminance(uint8_t *reportPayload){
 		uint16_t reportValue;
 		ZCL_Report_t *rep = (ZCL_Report_t *)reportPayload;
 		memcpy(&reportValue, &rep->value[0], sizeof(uint16_t));
-
 		return reportValue;
 }
 
 static bool calcBoolean(uint8_t *reportPayload){
 	uint16_t reportValue;
 	ZCL_Report_t* rep = (ZCL_Report_t*)reportPayload;
-	memcpy(&reportValue, &rep->value[0], sizeof(uint16_t));
-	
+	memcpy(&reportValue, &rep->value[0], sizeof(uint16_t));	
 	return reportValue;
 }
 
 static void OnOffMode_lightReportInd1(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
 	module1.mode_light = calcBoolean(reportPayload);
-
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffMode_lightReportInd2(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
-	module2.mode_light = calcBoolean(reportPayload);
-	
+	module2.mode_light = calcBoolean(reportPayload);	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffMode_lightReportInd3(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
-	module3.mode_light = calcBoolean(reportPayload);
-	
+	module3.mode_light = calcBoolean(reportPayload);	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffMode_climateReportInd1(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
-	module1.mode_climate = calcBoolean(reportPayload);
-	
+	module1.mode_climate = calcBoolean(reportPayload);	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffMode_climateReportInd2(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
-	module2.mode_climate = calcBoolean(reportPayload);
-	
+	module2.mode_climate = calcBoolean(reportPayload);	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffMode_climateReportInd3(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
-	module3.mode_climate = calcBoolean(reportPayload);
-	
+	module3.mode_climate = calcBoolean(reportPayload);	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffStatusReportInd1(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
 	module1.status = calcBoolean(reportPayload);
-	
-	//uint32_to_str(test, sizeof(test), module1.LEDWHITE_status, 0, 1);
-	//appWriteDataToUsart(test, sizeof(test));
-	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffStatusReportInd2(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
-	module2.status = calcBoolean(reportPayload);
-	
+	module2.status = calcBoolean(reportPayload);	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffStatusReportInd3(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
-	module3.status = calcBoolean(reportPayload);
-	
+	module3.status = calcBoolean(reportPayload);	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffLightReportInd1(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
 	module1.LEDWHITE_status = calcBoolean(reportPayload);
-	//uint32_to_str(test, sizeof(test), module1.LEDWHITE_status, 0, 1);
-	//appWriteDataToUsart(test, sizeof(test));
-	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffLightReportInd2(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
-	module2.LEDWHITE_status = calcBoolean(reportPayload);
-	
+	module2.LEDWHITE_status = calcBoolean(reportPayload);	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void OnOffLightReportInd3(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
-	module3.LEDWHITE_status = calcBoolean(reportPayload);
-	
+	module3.LEDWHITE_status = calcBoolean(reportPayload);	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void temperatureMeasurementReportInd1(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){	
-	module1.temperatureValue = calcTemperature(reportPayload);
-  
-  (void)addressing, (void)reportLength, (void)reportPayload;
+	module1.temperatureValue = calcTemperature(reportPayload);  
+   (void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void temperatureMeasurementReportInd2(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
 	module2.temperatureValue = calcTemperature(reportPayload);
-
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void temperatureMeasurementReportInd3(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
 	module3.temperatureValue = calcTemperature(reportPayload);
-
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void illuminanceMeasurementReportInd1(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
 	module1.illuminanceValue = calcIlluminance(reportPayload);
-	
-	//uint32_to_str(test, sizeof(test), module1.illuminanceValue, 0, 3);
-	//appWriteDataToUsart(test, sizeof(test));
-	
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void illuminanceMeasurementReportInd2(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
 	module2.illuminanceValue = calcIlluminance(reportPayload);
-
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void illuminanceMeasurementReportInd3(ZCL_Addressing_t *addressing, uint8_t reportLength, uint8_t *reportPayload){
 	module3.illuminanceValue = calcIlluminance(reportPayload);
-
 	(void)addressing, (void)reportLength, (void)reportPayload;
 }
 
 static void initEndpoint(void){
+	// Festlegen, welche Funktion beim Datenempfang aufgerufen werden soll
 	clientClustersTemperatureMeasurement1[0].ZCL_ReportInd = temperatureMeasurementReportInd1;
 	clientClustersTemperatureMeasurement2[0].ZCL_ReportInd = temperatureMeasurementReportInd2;
 	clientClustersTemperatureMeasurement3[0].ZCL_ReportInd = temperatureMeasurementReportInd3;
@@ -1155,13 +1126,13 @@ static void initEndpoint(void){
 	endPointIlluminanceClient3.serverCluster = NULL;
 	endPointIlluminanceClient3.clientCluster = clientClustersIlluminanceMeasurement3;
 	
-	// Endpoints for receiving values for controlling temperature / illuminance
+	// Endpoints for reference values for temperature / illuminance
 	simpleDescriptorTemperatureClient1.AppDeviceId = 1;
 	simpleDescriptorTemperatureClient1.AppProfileId = 1;
 	simpleDescriptorTemperatureClient1.endpoint = dstTemperature_Zielwert_Server1;
 	simpleDescriptorTemperatureClient1.AppDeviceVersion = 1;
 	endPointTemperatureZielwertClient1.simpleDescriptor = &simpleDescriptorTemperatureClient1;
-	endPointTemperatureZielwertClient1.APS_DataInd = APS_DataIndTemperatureClient1;
+	endPointTemperatureZielwertClient1.APS_DataInd = NULL;
 	APS_RegisterEndpointReq(&endPointTemperatureZielwertClient1);
 	
 	simpleDescriptorTemperatureClient2.AppDeviceId = 1;
@@ -1169,7 +1140,7 @@ static void initEndpoint(void){
 	simpleDescriptorTemperatureClient2.endpoint = dstTemperature_Zielwert_Server2;
 	simpleDescriptorTemperatureClient2.AppDeviceVersion = 1;
 	endPointTemperatureZielwertClient2.simpleDescriptor = &simpleDescriptorTemperatureClient2;
-	endPointTemperatureZielwertClient2.APS_DataInd = APS_DataIndTemperatureClient2;
+	endPointTemperatureZielwertClient2.APS_DataInd = NULL;
 	APS_RegisterEndpointReq(&endPointTemperatureZielwertClient2);
 	
 	simpleDescriptorTemperatureClient3.AppDeviceId = 1;
@@ -1177,7 +1148,7 @@ static void initEndpoint(void){
 	simpleDescriptorTemperatureClient3.endpoint = dstTemperature_Zielwert_Server3;
 	simpleDescriptorTemperatureClient3.AppDeviceVersion = 1;
 	endPointTemperatureZielwertClient3.simpleDescriptor = &simpleDescriptorTemperatureClient3;
-	endPointTemperatureZielwertClient3.APS_DataInd = APS_DataIndTemperatureClient3;
+	endPointTemperatureZielwertClient3.APS_DataInd = NULL;
 	APS_RegisterEndpointReq(&endPointTemperatureZielwertClient3);	
 	
 	simpleDescriptorIlluminanceClient1.AppDeviceId = 1;
@@ -1185,7 +1156,7 @@ static void initEndpoint(void){
 	simpleDescriptorIlluminanceClient1.endpoint = dstIlluminance_Zielwert_Server1;
 	simpleDescriptorIlluminanceClient1.AppDeviceVersion = 1;
 	endPointIlluminanceZielwertClient1.simpleDescriptor = &simpleDescriptorIlluminanceClient1;
-	endPointIlluminanceZielwertClient1.APS_DataInd = APS_DataIndIlluminanceClient1;
+	endPointIlluminanceZielwertClient1.APS_DataInd = NULL;
 	APS_RegisterEndpointReq(&endPointIlluminanceZielwertClient1);
 	
 	simpleDescriptorIlluminanceClient2.AppDeviceId = 1;
@@ -1193,80 +1164,64 @@ static void initEndpoint(void){
 	simpleDescriptorIlluminanceClient2.endpoint = dstIlluminance_Zielwert_Server2;
 	simpleDescriptorIlluminanceClient2.AppDeviceVersion = 1;
 	endPointIlluminanceZielwertClient2.simpleDescriptor = &simpleDescriptorIlluminanceClient2;
-	endPointIlluminanceZielwertClient2.APS_DataInd = APS_DataIndIlluminanceClient2;
+	endPointIlluminanceZielwertClient2.APS_DataInd = NULL;
 	APS_RegisterEndpointReq(&endPointIlluminanceZielwertClient2);
 	
 	simpleDescriptorIlluminanceClient3.AppDeviceId = 1;
 	simpleDescriptorIlluminanceClient3.AppProfileId = 1;
-	simpleDescriptorIlluminanceClient3.endpoint = dstIlluminance_Zielwert_Server1;
+	simpleDescriptorIlluminanceClient3.endpoint = dstIlluminance_Zielwert_Server3;
 	simpleDescriptorIlluminanceClient3.AppDeviceVersion = 1;
 	endPointIlluminanceZielwertClient3.simpleDescriptor = &simpleDescriptorIlluminanceClient3;
-	endPointIlluminanceZielwertClient3.APS_DataInd = APS_DataIndIlluminanceClient3;
+	endPointIlluminanceZielwertClient3.APS_DataInd = NULL;
 	APS_RegisterEndpointReq(&endPointIlluminanceZielwertClient3);
-}
-void APS_DataIndTemperatureClient1(APS_DataInd_t *indData){
 	
+	ZCL_RegisterEndpoint(&endPointTemperatureMeasurementClient1);
+	ZCL_RegisterEndpoint(&endPointTemperatureMeasurementClient2);
+	ZCL_RegisterEndpoint(&endPointTemperatureMeasurementClient3);
+	ZCL_RegisterEndpoint(&endPointOnOffStatusClient1);
+	ZCL_RegisterEndpoint(&endPointOnOffStatusClient2);
+	ZCL_RegisterEndpoint(&endPointOnOffStatusClient3);
+	ZCL_RegisterEndpoint(&endPointOnOffMode_climateClient1);
+	ZCL_RegisterEndpoint(&endPointOnOffMode_climateClient2);
+	ZCL_RegisterEndpoint(&endPointOnOffMode_climateClient3);
+	ZCL_RegisterEndpoint(&endPointOnOffMode_lightClient1);
+	ZCL_RegisterEndpoint(&endPointOnOffMode_lightClient2);
+	ZCL_RegisterEndpoint(&endPointOnOffMode_lightClient3);
+	ZCL_RegisterEndpoint(&endPointOnOffLightClient1);
+	ZCL_RegisterEndpoint(&endPointOnOffLightClient2);
+	ZCL_RegisterEndpoint(&endPointOnOffLightClient3);
+	ZCL_RegisterEndpoint(&endPointIlluminanceClient1);
+	ZCL_RegisterEndpoint(&endPointIlluminanceClient2);
+	ZCL_RegisterEndpoint(&endPointIlluminanceClient3);
 }
-void APS_DataIndTemperatureClient2(APS_DataInd_t *indData){
-	
-}
-void APS_DataIndTemperatureClient3(APS_DataInd_t *indData){
-	
-}
-void APS_DataIndIlluminanceClient1(APS_DataInd_t *indData){
-	
-}
-void APS_DataIndIlluminanceClient2(APS_DataInd_t *indData){
-	
-}
-void APS_DataIndIlluminanceClient3(APS_DataInd_t *indData){
-	
-}
+
+
 void APL_TaskHandler(void){
 	switch(appstate){
 	case INIT:
 		BSP_OpenLeds();
 		appInitUsartManager();
-		// Weitere Spezifikationen für die Bridge (Buffer, Bufferlaenge und Callback Funktion spezifizieren)	
+		// Weitere Spezifikationen für die Bridge (Buffer, Bufferlaenge und Callback Funktion spezifizieren)
 		usartDescriptor.rxBuffer       = usartRxBuffer;
 		usartDescriptor.rxBufferLength = sizeof(usartRxBuffer);
 		usartDescriptor.rxCallback	 = readBuffer;
 		initEndpoint();
+		initModule();
+		initCommands();
+		initTransmitData();
 		appstate = JOIN_NETWORK;
 		SYS_PostTask(APL_TASK_ID);
 		break;
 	case JOIN_NETWORK:
 		networkParams.ZDO_StartNetworkConf = ZDO_StartNetworkConf;
 		ZDO_StartNetworkReq(&networkParams);
-		ZCL_RegisterEndpoint(&endPointTemperatureMeasurementClient1);
-		ZCL_RegisterEndpoint(&endPointTemperatureMeasurementClient2);
-		ZCL_RegisterEndpoint(&endPointTemperatureMeasurementClient3);
-		ZCL_RegisterEndpoint(&endPointOnOffStatusClient1);
-		ZCL_RegisterEndpoint(&endPointOnOffStatusClient2);
-		ZCL_RegisterEndpoint(&endPointOnOffStatusClient3);
-		ZCL_RegisterEndpoint(&endPointOnOffMode_climateClient1);
-		ZCL_RegisterEndpoint(&endPointOnOffMode_climateClient2);
-		ZCL_RegisterEndpoint(&endPointOnOffMode_climateClient3);
-		ZCL_RegisterEndpoint(&endPointOnOffMode_lightClient1);
-		ZCL_RegisterEndpoint(&endPointOnOffMode_lightClient2);
-		ZCL_RegisterEndpoint(&endPointOnOffMode_lightClient3);
-		ZCL_RegisterEndpoint(&endPointOnOffLightClient1);
-		ZCL_RegisterEndpoint(&endPointOnOffLightClient2);
-		ZCL_RegisterEndpoint(&endPointOnOffLightClient3);
-		ZCL_RegisterEndpoint(&endPointIlluminanceClient1);
-		ZCL_RegisterEndpoint(&endPointIlluminanceClient2);
-		ZCL_RegisterEndpoint(&endPointIlluminanceClient3);
-//		initTimer();
-		initModule();
-		initButton();
-		initCommands();
-		initTransmitData();
-		appstate = NOTHING;
+		break;
+	case DATA_PROCESS:
+		dataAppReceived();
 		break;
 	case NOTHING:
 		break;
 	}
-
 
 };
 

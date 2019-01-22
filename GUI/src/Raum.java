@@ -125,7 +125,5 @@ public class Raum {
 	public Klima getKlima() {
 		return klima;
 	}
-	public void setKlima(Klima klima) {
-		this.klima = klima;
-	}
+
 }

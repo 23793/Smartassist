@@ -233,7 +233,7 @@
 // example, if the parameter is set to 0 on all routers, then the coordinator will
 // be the only device that can have children and the network will have star
 // topology.
-#define CS_MAX_CHILDREN_AMOUNT 4
+#define CS_MAX_CHILDREN_AMOUNT 10
 
 // The maximum number of routers among the direct children of the device
 //
@@ -552,7 +552,7 @@
 // as destinations for group bindings. If the binding is going to be applied to
 // send a data frame, then the corresponding entry shall be first inserted into the
 // table via the APS_BindingReq() function.
-#define CS_APS_BINDING_TABLE_SIZE 10
+#define CS_APS_BINDING_TABLE_SIZE 50
 
 // MAC ban table size
 #define CS_BAN_TABLE_SIZE 1
@@ -587,7 +587,7 @@
 #define CS_NWK_BUFFERS_AMOUNT 4
 
 // Amount of ZCL memory buffers
-#define CS_ZCL_MEMORY_BUFFERS_AMOUNT 20
+#define CS_ZCL_MEMORY_BUFFERS_AMOUNT 40
 
 // MAC transaction persistence time.The parameter determines the maximum interval
 // (in ms) a frame addressed to a sleeping end device can be stored on the parent

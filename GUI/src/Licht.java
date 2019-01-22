@@ -29,7 +29,7 @@ public class Licht {
 	private Raum raum;
 
 	// ObservableBoolean used in the light pop-up
-	private Boolean lichtAnAus = false;
+	private ObservableBoolean lichtAnAus = new ObservableBoolean(false);
 	private boolean lichtModus = false; // Default manual
 	private int lichtZielWert = 2;
 	private Point lichtPoint;
@@ -116,13 +116,13 @@ public class Licht {
 
 	}
 
-	public Boolean getLichtBoolean() {
+	public ObservableBoolean getLichtBoolean() {
 		return lichtAnAus;
 	}
 
 	public void setLichtAnAus(boolean state) {
-		lichtAnAus = state;
-		if (lichtAnAus) {
+		lichtAnAus.setFlag(state);
+		if (lichtAnAus.getFlag()) {
 			settings.setGraphic(anBild);
 		} else {
 			settings.setGraphic(ausBild);
@@ -130,7 +130,7 @@ public class Licht {
 	}
 
 	public boolean getLichtAnAus() {
-		return lichtAnAus;
+		return lichtAnAus.getFlag();
 	}
 
 	public void setLichtPoint(Point p) {
