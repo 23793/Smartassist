@@ -123,15 +123,6 @@ public class Lichtpop {
 
 		});
 
-		// Flip the ON/OFF button and switch to manual Mode if a physical
-		// light switch is pressed (ObservableBoolean)
-		raum.getLicht().getLichtBoolean().addPropertyChangeListener(new BooleanListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent event) {
-				oo.set_mode((Boolean) event.getNewValue());
-			}
-		});
-
 		// Close button
 		Button button = (Button) b.getChildren().get(5);
 

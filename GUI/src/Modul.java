@@ -9,7 +9,7 @@ package GUI.src;
  */
 public class Modul {
 
-	private float temperatur = 20.00f;
+	private float temperatur = 00.00f;
 	private int lichtwert = 200;
 	private int ModulID;
 
@@ -30,20 +30,10 @@ public class Modul {
 	public String temperaturanzeige(float tmp) {
 
 		if (tmp < temperatur - 1.5) {
-			// System.out.println("Es ist gerade " + temperatur + " Grad, die
-			// Zieltemperatur ist " + tmp
-			// + ". Es ist zu kalt." + " Es muss geheizt werden.");
 			return "kalt";
-
 		} else if (tmp > temperatur + 1.5) {
-			// System.out.println("Es ist " + temperatur + " Grad, die
-			// Zieltemperatur ist " + tmp + ". Es ist zu heiß."
-			// + " Es muss gekühlt werden.");
 			return "heiss";
 		} else {
-			// System.out.println("Es ist gerade " + temperatur + " Grad, die
-			// Zieltemperatur ist " + tmp
-			// + ". Es ist perfekt.");
 			return "perfekt";
 		}
 
