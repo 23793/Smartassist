@@ -9,31 +9,19 @@
 
 #include <zdo.h>
 #include <app.h>
+#include <zcl.h>
+#include <appTimer.h>
+#include <util/delay.h>
 #include <sysTaskManager.h>
 #include <zclOnOffCluster.h>
-#include <zclFanControlCluster.h>
 #include <zclIlluminanceMeasurementCluster.h>
 #include <zclTemperatureMeasurementCluster.h>
-#include <zcl.h>
 #include <irq.h>
 #include <i2cPacket.h>
 #include <adc.h>
-#include <appTimer.h>
-#include <util/delay.h>
 #include <leds.h>
-#include <usartManager.h>
 /********************************PROTOTYPEN************************************************/
  
-// Variablen fürs Binding
-APS_BindReq_t bindTemp; 
-APS_BindReq_t bindOnOffLight; 
-APS_BindReq_t bindOnOffStatus; 
-APS_BindReq_t bindOnOffmode_climate; 
-APS_BindReq_t bindOnOffmode_light; 
-APS_BindReq_t bindOnOffCooling;
-APS_BindReq_t bindOnOffHeating;
-APS_BindReq_t bindFanControl; 
-APS_BindReq_t bindIlluminance; 
 
 // Datenstruktur mit allen Infos über das Modul
 static Module module;
@@ -56,29 +44,44 @@ static HAL_AppTimer_t sendeTimer;
 // Variable fürs Kommandoschicken zum Server
 static ZCL_Request_t toggleLightCommand;
 
-//?bergabevariable f?r die Funktion ZDO_StartNetworkReq().
+//Uebergabevariable fuer die Funktion ZDO_StartNetworkReq().
 static ZDO_StartNetworkReq_t networkParams;
 
-//Endpunkt f?r die Registrierung des Endpunktes zur Datenkommunikation
-static ZCL_DeviceEndpoint_t endPointTemperatureMeasurementServer;
-static ZCL_DeviceEndpoint_t endPointOnOffLightServer;
+//Endpunkt fuer die Registrierung des Endpunktes zur Datenkommunikation
 static ZCL_DeviceEndpoint_t endPointOnOffStatusServer;
-static ZCL_DeviceEndpoint_t endPointOnOffMode_climateServer;
 static ZCL_DeviceEndpoint_t endPointOnOffMode_lightServer;
+static ZCL_DeviceEndpoint_t endPointOnOffMode_climateServer;
+static ZCL_DeviceEndpoint_t endPointOnOffLightServer;
 static ZCL_DeviceEndpoint_t endPointAppOnOffLightServer;
 static ZCL_DeviceEndpoint_t endPointIlluminanceServer;
+static ZCL_DeviceEndpoint_t endPointTemperatureMeasurementServer;
+
 static ZCL_DeviceEndpoint_t endPointOnOffLightClient;
-static ZCL_DeviceEndpoint_t endPointOnOffCoolingServer;
-static ZCL_DeviceEndpoint_t endPointOnOffHeatingServer;
 
-// Endpoint und Descriptor zum Empfang der Zielwerte
+// Variablen fürs Binding
+APS_BindReq_t bindTemp;
+APS_BindReq_t bindOnOffLight;
+APS_BindReq_t bindOnOffStatus;
+APS_BindReq_t bindOnOffmode_climate;
+APS_BindReq_t bindOnOffmode_light;
+APS_BindReq_t bindIlluminance;
+
+
+// Endpoint und Descriptor zum Empfang der Temperature und Illuminance Zielwerte
 static SimpleDescriptor_t simpleDescriptorTemp;
-static APS_RegisterEndpointReq_t endPointTemperatureZielwert;
-void APS_DataIndTemp(APS_DataInd_t *indData);
-
 static SimpleDescriptor_t simpleDescriptorIlluminance;
+static APS_RegisterEndpointReq_t endPointTemperatureZielwert;
 static APS_RegisterEndpointReq_t endPointIlluminanceZielwert;
-void APS_DataIndIlluminance(APS_DataInd_t *indData);
+
+// Variablen fuer manuelles reporten
+static uint8_t lightAttrBuff[LIGHT_ATTRIBUTE_BUFFER_SIZE];
+static uint8_t statusAttrBuff[STATUS_ATTRIBUTE_BUFFER_SIZE];
+static uint8_t modeLightAttrBuff[MODELIGHT_ATTRIBUTE_BUFFER_SIZE];
+static uint8_t modeClimateAttrBuff[MODECLIMATE_ATTRIBUTE_BUFFER_SIZE];
+ZCL_Report_t *reportLightAttrElement = (ZCL_Report_t*) lightAttrBuff;
+ZCL_Report_t *reportStatusAttrElement = (ZCL_Report_t*) statusAttrBuff;
+ZCL_Report_t *reportModeLightAttrElement = (ZCL_Report_t*) modeLightAttrBuff;
+ZCL_Report_t *reportModeClimateAttrElement = (ZCL_Report_t*) modeClimateAttrBuff;
 
 //CB-Funktion nach Aufruf ZDO_StartNetworkReq().
 static void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t* confirmInfo);
@@ -102,7 +105,7 @@ static void sendeTimerFired(void);
 static void updateTimerFired(void);
 
 // Funktion wird aufgerufen nachdem Temperatursensor gelsen wurde
-void readTempSensorDoneCb(void);
+void readTempSensorDoneCb(bool b);
 
 // Funktion wird aufgerufen nachdem Helligkeitssensor gelsen wurde
 void readIlluminanceSensorDoneCb(void);
@@ -133,31 +136,6 @@ static ZCL_Status_t offMode_light(ZCL_Addressing_t* addressing, uint8_t payloadL
 //Funktion wird aufgerufen beim Empfang eines Toggle-Kommandos.
 //Light
 static ZCL_Status_t toggleLight(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
-//Status
-static ZCL_Status_t toggleStatus(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
-// Modus Temperatur
-static ZCL_Status_t toggleMode_climate(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
-// Modus Light
-static ZCL_Status_t toggleMode_light(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
-
-
-//Funktion wird aufgerufen beim Empfang eines On-Kommandos.
-static ZCL_Status_t onCooling(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
-
-//Funktion wird aufgerufen beim Empfang eines Off-Kommandos.
-static ZCL_Status_t offCooling(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
-
-//Funktion wird aufgerufen beim Empfang eines Toggle-Kommandos.
-static ZCL_Status_t toggleCooling(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
-
-//Funktion wird aufgerufen beim Empfang eines On-Kommandos.
-static ZCL_Status_t onHeating(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
-
-//Funktion wird aufgerufen beim Empfang eines Off-Kommandos.
-static ZCL_Status_t offHeating(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
-
-//Funktion wird aufgerufen beim Empfang eines Toggle-Kommandos.
-static ZCL_Status_t toggleHeating(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload);
 
 //Funktion zur PWM von FAN/LEDWHITE
 static void setPWMOutputDuty(volatile uint16_t* port, uint8_t duty);
@@ -171,61 +149,6 @@ static void onPWMOutput(volatile uint16_t* port);
 //Funktion zum ausschalten der PWM für LEDWHITE
 static void offPWMOutput(volatile uint16_t* port);
 
-//Funktion zum togglen von LEDBLUE und LEDRED
-static void toggle(volatile uint16_t port);
-
-/*Datenstruktur mit allen Variablen des 
-OnOff-Serverclusters (hier nur onOff-Attribut) 
-Temperaturemeasurement-Serverclusters
-Illuminancy-Servercluster
-FanControl-Servercluster
-*/
-//Intervall (min-max) fuer den Report definieren
-static ZCL_OnOffClusterServerAttributes_t onOffLightAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
-static ZCL_OnOffClusterServerAttributes_t onOffStatusAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
-static ZCL_OnOffClusterServerAttributes_t onOffMode_climateAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
-static ZCL_OnOffClusterServerAttributes_t onOffMode_lightAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};			
-static ZCL_TemperatureMeasurementClusterAttributes_t temperatureMeasurementAttributes ={ZCL_DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 2)};
-static ZCL_IlluminanceMeasurementClusterServerAttributes_t illuminanceMeasurementAttributes ={ZCL_DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 2)};
-static ZCL_OnOffClusterServerAttributes_t onOffCoolingAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
-static ZCL_OnOffClusterServerAttributes_t onOffHeatingAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
-
-/*Datenstruktur in der zu jeder OnOff-KommandoId eine Referenz auf die ausf?hrenden Funktionen gespeichert ist.
-*/
-static ZCL_OnOffClusterCommands_t onOffLightCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onLight, offLight, toggleLight)};
-static ZCL_OnOffClusterCommands_t onOffActivityCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onStatus, offStatus, toggleStatus)};
-static ZCL_OnOffClusterCommands_t onOffAutomaticTempCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onMode_climate, offMode_climate, toggleMode_climate)};
-static ZCL_OnOffClusterCommands_t onOffAutomaticLightCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onMode_light, offMode_light, toggleMode_light)};
-static ZCL_OnOffClusterCommands_t onOffCoolingCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onCooling, offCooling, toggleCooling)};
-static ZCL_OnOffClusterCommands_t onOffHeatingCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onHeating, offHeating, toggleHeating)};
-
-/*Liste mit IDs der unterst?tzend Servercluster.*/
-static ClusterId_t serverClusterTemperatureId[] = {TEMPERATURE_MEASUREMENT_CLUSTER_ID};
-static ClusterId_t serverClusterOnOffLightId[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t serverClusterOnOffStatusId[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t serverClusterOnOffMode_climateId[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t serverClusterOnOffMode_lightId[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t serverClusterOnOffCoolingId[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t serverClusterOnOffHeatingId[] = {ONOFF_CLUSTER_ID};
-static ClusterId_t serverClusterIlluminanceId[] = {ILLUMINANCE_MEASUREMENT_CLUSTER_ID};
-		
-/*Liste mit ZCL_Cluster_t Datenstrukturen, der unterst?tzten ServerCluster.*/
-static ZCL_Cluster_t serverClustersTemperature[] = {DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &temperatureMeasurementAttributes)};
-static ZCL_Cluster_t serverClustersOnOffLight[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffLightAttributes, &onOffLightCommands)};
-static ZCL_Cluster_t serverClustersOnOffStatus[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffStatusAttributes, &onOffActivityCommands)};
-static ZCL_Cluster_t serverClustersOnOffMode_climate[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffMode_climateAttributes, &onOffAutomaticTempCommands)};
-static ZCL_Cluster_t serverClustersOnOffClimate_light[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffMode_lightAttributes, &onOffAutomaticLightCommands)};
-static ZCL_Cluster_t serverClustersOnOffCooling[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffCoolingAttributes, &onOffCoolingCommands)};
-static ZCL_Cluster_t serverClustersOnOffHeating[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffHeatingAttributes, &onOffHeatingCommands)};
-static ZCL_Cluster_t serverClustersIlluminance[] = {DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &illuminanceMeasurementAttributes)};
-	
-/*Liste mit IDs der unterst?tzend Clientcluster.*/
-static ClusterId_t clientClusterOnOffLightIds[] = {ONOFF_CLUSTER_ID};
-		
-/*Liste mit ZCL_Cluster_t Datenstrukturen, der unterst?tzten ClientCluster.*/
-static ZCL_Cluster_t clientClustersOnOffLight[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
-	
-
 
 //Funktion zur Initialisierung des Endpunktes
 static void initEndpoints();
@@ -233,7 +156,7 @@ static void initEndpoints();
 //Funktion zur Manipulation des OnOff-Cluster-Attributes OnOff.
 static void setOnOffState(ZCL_OnOffClusterServerAttributes_t* attribute, bool state);
 
-//Funktion zur Initialisierung der Outputs (LEDs, L?fter)
+//Funktion zur Initialisierung der Outputs (LEDs, Luefter)
 static void initOutputs();
 
 // Notifikation nachdem ein Kommando zum Server geschickt wurde
@@ -252,40 +175,77 @@ static void interruptHandlerINT3(void);
 void APS_DataIndTemp(APS_DataInd_t *indData);
 void APS_DataIndIlluminance(APS_DataInd_t *indData);
 
+// Notify nachdem manuelle Reports geschickt wurden
+void ReportNotify();
 /**********************************PROTOTYPEN-ENDE**********************************************/
 
 
 /**********************************IMPLEMENTIERUNG**********************************************/
-static void initKommando(void){
-	toggleLightCommand.dstAddressing.addrMode=APS_EXT_ADDRESS;
-	toggleLightCommand.dstAddressing.addr.extAddress = 0x50000000A01LL;
-	toggleLightCommand.dstAddressing.profileId=0x0104;
-	toggleLightCommand.dstAddressing.endpointId=srcOnOff_Light_Server;
-	toggleLightCommand.dstAddressing.clusterId=ONOFF_CLUSTER_ID;
-	toggleLightCommand.dstAddressing.clusterSide=ZCL_CLUSTER_SIDE_SERVER;
 
-	toggleLightCommand.endpointId=srcOnOff_Light_Client;
-	toggleLightCommand.id=ZCL_ONOFF_CLUSTER_TOGGLE_COMMAND_ID;
-	toggleLightCommand.ZCL_Notify=ZCL_CommandResp;
+/*Datenstruktur mit allen Variablen des
+OnOff-Serverclusters (hier nur onOff-Attribut)
+Temperaturemeasurement-Serverclusters
+Illuminancy-Servercluster
+*/
+//Intervall (min-max) fuer den Report definieren
+static ZCL_OnOffClusterServerAttributes_t onOffLightAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
+static ZCL_OnOffClusterServerAttributes_t onOffStatusAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
+static ZCL_OnOffClusterServerAttributes_t onOffMode_climateAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
+static ZCL_OnOffClusterServerAttributes_t onOffMode_lightAttributes = {ZCL_DEFINE_ONOFF_CLUSTER_SERVER_ATTRIBUTES(2,0)};
+static ZCL_TemperatureMeasurementClusterAttributes_t temperatureMeasurementAttributes ={ZCL_DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 2)};
+static ZCL_IlluminanceMeasurementClusterServerAttributes_t illuminanceMeasurementAttributes ={ZCL_DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER_SERVER_ATTRIBUTES(0, 2)};
+
+/*Datenstruktur in der zu jeder OnOff-KommandoId eine Referenz auf die ausf?hrenden Funktionen gespeichert ist.*/
+static ZCL_OnOffClusterCommands_t onOffLightCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onLight, offLight, toggleLight)};
+static ZCL_OnOffClusterCommands_t onOffActivityCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onStatus, offStatus, NULL)};
+static ZCL_OnOffClusterCommands_t onOffAutomaticTempCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onMode_climate, offMode_climate, NULL)};
+static ZCL_OnOffClusterCommands_t onOffAutomaticLightCommands = {ZCL_DEFINE_ONOFF_CLUSTER_COMMANDS(onMode_light, offMode_light, NULL)};
+
+/*Liste mit IDs der unterst?tzend Servercluster.*/
+static ClusterId_t serverClusterOnOffStatusId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t serverClusterOnOffMode_climateId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t serverClusterOnOffMode_lightId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t serverClusterOnOffLightId[] = {ONOFF_CLUSTER_ID};
+static ClusterId_t serverClusterIlluminanceId[] = {ILLUMINANCE_MEASUREMENT_CLUSTER_ID};
+static ClusterId_t serverClusterTemperatureId[] = {TEMPERATURE_MEASUREMENT_CLUSTER_ID};
+
+/*Liste mit ZCL_Cluster_t Datenstrukturen, der unterst?tzten ServerCluster.*/
+static ZCL_Cluster_t serverClustersOnOffStatus[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffStatusAttributes, &onOffActivityCommands)};
+static ZCL_Cluster_t serverClustersOnOffMode_climate[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffMode_climateAttributes, &onOffAutomaticTempCommands)};
+static ZCL_Cluster_t serverClustersOnOffClimate_light[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffMode_lightAttributes, &onOffAutomaticLightCommands)};
+static ZCL_Cluster_t serverClustersOnOffLight[] = {DEFINE_ONOFF_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &onOffLightAttributes, &onOffLightCommands)};
+static ZCL_Cluster_t serverClustersIlluminance[] = {DEFINE_ILLUMINANCE_MEASUREMENT_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &illuminanceMeasurementAttributes)};
+static ZCL_Cluster_t serverClustersTemperature[] = {DEFINE_TEMPERATURE_MEASUREMENT_CLUSTER(ZCL_SERVER_CLUSTER_TYPE, &temperatureMeasurementAttributes)};
+
+/*Liste mit IDs der unterst?tzend Clientcluster.*/
+static ClusterId_t clientClusterOnOffLightIds[] = {ONOFF_CLUSTER_ID};
+
+/*Liste mit ZCL_Cluster_t Datenstrukturen, der unterst?tzten ClientCluster.*/
+static ZCL_Cluster_t clientClustersOnOffLight[]={DEFINE_ONOFF_CLUSTER(ZCL_CLIENT_CLUSTER_TYPE, NULL, NULL)};
+
+/*CB-Funktion nach Starten des Netzwerkes (ZDO_StartNetworkReq()).*/
+void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t* confirmInfo){
+	if(ZDO_SUCCESS_STATUS == confirmInfo->status){
+		appstate=START_REPORTING;
+	}
+	SYS_PostTask(APL_TASK_ID);
 }
-static  ZCL_CommandResp(ZCL_Notify_t *ntfy){
+
+static  void ZCL_CommandResp(ZCL_Notify_t *ntfy){
 	(void)ntfy;
-}
-static void initButton(void){
-	HAL_RegisterIrq(IRQ_3, IRQ_FALLING_EDGE, interruptHandlerINT3);
-	HAL_EnableIrq(IRQ_3);
 }
 
 void interruptHandlerINT3(void){
-	ZCL_CommandReq(&toggleLightCommand);
-//	bool newValue = false;
-//	ZCL_WriteAttributeValue(srcOnOff_Mode_Light_Server, ONOFF_CLUSTER_ID,  ZCL_CLUSTER_SIDE_SERVER, ZCL_ONOFF_CLUSTER_ONOFF_SERVER_ATTRIBUTE_ID,  ZCL_BOOLEAN_DATA_TYPE_ID, (uint8_t*)(&newValue));
-//	setOnOffState(&onOffMode_lightAttributes, true);
-	setOnOffState(&onOffMode_lightAttributes, false);
-
+	if(onOffStatusAttributes.onOff.value){
+		ZCL_CommandReq(&toggleLightCommand);
+		//	bool newValue = false;
+		//	ZCL_WriteAttributeValue(srcOnOff_Mode_Light_Server, ONOFF_CLUSTER_ID,  ZCL_CLUSTER_SIDE_SERVER, ZCL_ONOFF_CLUSTER_ONOFF_SERVER_ATTRIBUTE_ID,  ZCL_BOOLEAN_DATA_TYPE_ID, (uint8_t*)(&newValue));
+		//	setOnOffState(&onOffMode_lightAttributes, true);
+		setOnOffState(&onOffMode_lightAttributes, false);
+	}
 }
 
-// Pin f?r Temperaturmessung vorbereiten
+// Pin fuer Temperaturmessung vorbereiten
 static HAL_I2cDescriptor_t i2cdescriptor={
 	.tty = TWI_CHANNEL_0,
 	.clockRate = I2C_CLOCK_RATE_62,
@@ -306,33 +266,18 @@ static HAL_AdcDescriptor_t adcdescriptor={
 	.callback = readIlluminanceSensorDoneCb
 };
 
-// Timer f?r periodische Sensormessungen initialisieren
-static void initTimer(){
-	sendeTimer.interval = 2000;
-	sendeTimer.mode = TIMER_REPEAT_MODE;
-	sendeTimer.callback = sendeTimerFired;
-	HAL_StartAppTimer(&sendeTimer);
-	
-	updateTimer.interval = 2000;
-	updateTimer.mode = TIMER_REPEAT_MODE;
-	updateTimer.callback = updateTimerFired;
-	HAL_StartAppTimer(&updateTimer);
-}
-
 // Bei Timerablauf Temperatur und Helligkeit auslesen
 static void sendeTimerFired(){
 	HAL_ReadI2cPacket(&i2cdescriptor);
 	HAL_ReadAdc(&adcdescriptor, HAL_ADC_CHANNEL1);
 }
 
-// Bei Timerablauf Temperatur und Helligkeit auslesen
+// Bei Timerablauf Logik-Modulschaltung durchlaufen
 static void updateTimerFired(){
 	
 	if(onOffStatusAttributes.onOff.value){
 		if(onOffMode_climateAttributes.onOff.value){
 			if((temperatureMeasurementAttributes.measuredValue.value < module.temperatureReference) && (module.LEDRED_status == false)){
-				setOnOffState(&onOffHeatingAttributes, true);
-				setOnOffState(&onOffCoolingAttributes, false);
 				turnOn(LEDRED);
 				module.LEDRED_status = true;
 				turnOff(FAN);
@@ -340,8 +285,6 @@ static void updateTimerFired(){
 				turnOff(LEDBLUE);
 				module.LEDBLUE_status = false;
 			}else if((temperatureMeasurementAttributes.measuredValue.value > module.temperatureReference) && (module.LEDBLUE_status == false)){
-				setOnOffState(&onOffHeatingAttributes, false);
-				setOnOffState(&onOffCoolingAttributes, true);
 				turnOff(LEDRED);
 				module.LEDRED_status = false;
 				turnOn(FAN);
@@ -350,31 +293,23 @@ static void updateTimerFired(){
 				module.LEDBLUE_status = true;
 			}
 		} else {
-			setOnOffState(&onOffHeatingAttributes, false);
-			setOnOffState(&onOffCoolingAttributes, false);
 			turnOff(LEDRED);
 			module.LEDRED_status = false;
 			turnOff(LEDBLUE);
 			module.LEDBLUE_status = false;
 			turnOff(FAN);
 			module.FAN_status = false;
-		}
-		
+		}		
 		if(onOffMode_lightAttributes.onOff.value){
 			if((illuminanceMeasurementAttributes.measuredValue.value > module.illuminanceReference) && (module.LEDWHITE_status == false)){
-				setOnOffState(&onOffLightAttributes, true);
-				
-				onPWMOutput(&LEDWHITE);
-				
+				setOnOffState(&onOffLightAttributes, true);			
+				onPWMOutput(&LEDWHITE);				
 			}else if((illuminanceMeasurementAttributes.measuredValue.value < module.illuminanceReference) && (module.LEDWHITE_status == true)){				
 				setOnOffState(&onOffLightAttributes, false);
-				offPWMOutput(&LEDWHITE);
-				
+				offPWMOutput(&LEDWHITE);				
 			}
 		}
 	} else {
-		setOnOffState(&onOffHeatingAttributes, false);
-		setOnOffState(&onOffCoolingAttributes, false);
 		turnOff(LEDRED);
 		module.LEDRED_status = false;
 		turnOff(LEDBLUE);
@@ -383,15 +318,13 @@ static void updateTimerFired(){
 		module.FAN_status = false;
 		
 		setOnOffState(&onOffLightAttributes, false);
-		offPWMOutput(&LEDWHITE);
-		
+		offPWMOutput(&LEDWHITE);	
 	}
 	
 }
 
 void readIlluminanceSensorDoneCb(){
-	illuminanceMeasurementAttributes.measuredValue.value = LightData;
-	
+	illuminanceMeasurementAttributes.measuredValue.value = LightData;	
 }
 
 int16_t calcTemperature(void){
@@ -410,8 +343,7 @@ int16_t calcTemperature(void){
 }
 
 // Temperturwert konvertieren und in Temperaturclusterattribut schreiben. Die ersten 9 bits sind der vorkommawert und bit 10+11 der Nachkommawert
-void readTempSensorDoneCb(){
-	
+void readTempSensorDoneCb(bool b){	
 	temperatureMeasurementAttributes.measuredValue.value = calcTemperature();
 	
 }
@@ -430,25 +362,26 @@ void clusterInit(void){
 	onOffStatusAttributes.onOff.reportableChange = true;
 	onOffMode_climateAttributes.onOff.reportableChange = true;
 	onOffMode_lightAttributes.onOff.reportableChange = true;
-	onOffCoolingAttributes.onOff.reportableChange = true;
-	onOffHeatingAttributes.onOff.reportableChange = true;
 }
-//Initial, first Report for light, status and modus because of onChange reports
-void ReportNotify(){
+
+
+static void initButton(void){
+	HAL_RegisterIrq(IRQ_3, IRQ_FALLING_EDGE, interruptHandlerINT3);
+	HAL_EnableIrq(IRQ_3);
+}
+
+// Timer fuer periodische Sensormessungen und Logik-Modulschaltung initialisieren
+static void initTimer(){
+	sendeTimer.interval = 2000;
+	sendeTimer.mode = TIMER_REPEAT_MODE;
+	sendeTimer.callback = sendeTimerFired;
+	HAL_StartAppTimer(&sendeTimer);
 	
+	updateTimer.interval = 2000;
+	updateTimer.mode = TIMER_REPEAT_MODE;
+	updateTimer.callback = updateTimerFired;
+	HAL_StartAppTimer(&updateTimer);
 }
-
-static uint8_t lightAttrBuff[LIGHT_ATTRIBUTE_BUFFER_SIZE];
-ZCL_Report_t *reportLightAttrElement = (ZCL_Report_t*) lightAttrBuff;
-
-static uint8_t statusAttrBuff[STATUS_ATTRIBUTE_BUFFER_SIZE];
-ZCL_Report_t *reportStatusAttrElement = (ZCL_Report_t*) statusAttrBuff;
-
-static uint8_t modeLightAttrBuff[MODELIGHT_ATTRIBUTE_BUFFER_SIZE];
-ZCL_Report_t *reportModeLightAttrElement = (ZCL_Report_t*) modeLightAttrBuff;
-
-static uint8_t modeClimateAttrBuff[MODECLIMATE_ATTRIBUTE_BUFFER_SIZE];
-ZCL_Report_t *reportModeClimateAttrElement = (ZCL_Report_t*) modeClimateAttrBuff;
 
 void initReport(){
 	reportLightAttrElement->id = ZCL_ONOFF_CLUSTER_ONOFF_SERVER_ATTRIBUTE_ID;
@@ -467,6 +400,231 @@ void initReport(){
 	reportModeClimateAttrElement->type = ZCL_BOOLEAN_DATA_TYPE_ID;
 	reportModeClimateAttrElement->value[0] = onOffMode_climateAttributes.onOff.value;
 }
+
+
+/* Initialisierung der Outputs (LEDS, Luefter) */
+/* PINS: PE7 = rote LED , PE2 = blaue LED ,PE4 = weisse LED, PE3 = Luefter */
+static void initOutputs(){
+	
+	/* PINS als Ausgaenge deklarieren */
+	DDRE |= (1<<PE2);
+	DDRE |= (1<<PE3);
+	DDRE |= (1<<PE4);
+	DDRE |= (1<<PE7);
+	
+	/* init Timer3 in fast PWM mode 
+	   Timer Clock = CPU Clock (No Prescaleing)
+	   Compare Output Mode = Clear OC3B and OC3A on compare match with TCNT3 (Value = 2)
+	   Mode        = Fast PWM (Value = 3)
+	   PWM Output  = Non Inverted                */
+	TCCR3A |= (1<<WGM00)|(1<<WGM01)|(1<<COM3B1);
+	TCCR3B |= (1<<CS30);
+	
+	/* Alle Ausgaenge im Ausgangszustand ausschalten */
+	turnOff(LEDBLUE);
+	turnOff(LEDRED);
+}
+
+static void initModule(){
+	module.ID = MODULE_ID;
+	setOnOffState(&onOffLightAttributes, false);
+	onOffStatusAttributes.onOff.value = false;
+	onOffMode_climateAttributes.onOff.value = false;
+	onOffMode_lightAttributes.onOff.value = false;
+	module.illuminanceReference = 100;
+	module.temperatureReference = 3000; // Wert in °C: /100
+	module.LEDWHITE_status = false;
+	module.LEDWHITE_power = 0;
+	LEDWHITE = 0;
+	setPWMOutputDuty(&LEDWHITE, 255);		// Wert zwischen 0 und 255 (0 = 0%, 255 = 100%)
+	module.LEDBLUE_status = false;
+	module.LEDRED_status = false;
+	module.FAN_status = false;
+	offPWMOutput(&LEDWHITE);
+}
+
+/*Initialisierung der Endpunkte zur Datenkommunikation*/
+static void initEndpoints(){
+
+	endPointOnOffStatusServer.simpleDescriptor.AppDeviceId =1;
+	endPointOnOffStatusServer.simpleDescriptor.AppProfileId = 0x0104;
+	endPointOnOffStatusServer.simpleDescriptor.endpoint = srcOnOff_Status_Server;
+	endPointOnOffStatusServer.simpleDescriptor.AppDeviceVersion = 1;
+	endPointOnOffStatusServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffStatusId);
+	endPointOnOffStatusServer.simpleDescriptor.AppInClustersList = serverClusterOnOffStatusId;
+	endPointOnOffStatusServer.simpleDescriptor.AppOutClustersCount = 0;
+	endPointOnOffStatusServer.simpleDescriptor.AppOutClustersList = NULL;
+	endPointOnOffStatusServer.serverCluster = serverClustersOnOffStatus;
+	endPointOnOffStatusServer.clientCluster = NULL;
+
+	endPointOnOffMode_climateServer.simpleDescriptor.AppDeviceId =1;
+	endPointOnOffMode_climateServer.simpleDescriptor.AppProfileId = 0x0104;
+	endPointOnOffMode_climateServer.simpleDescriptor.endpoint = srcOnOff_Mode_Climate_Server;
+	endPointOnOffMode_climateServer.simpleDescriptor.AppDeviceVersion = 1;
+	endPointOnOffMode_climateServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffMode_climateId);
+	endPointOnOffMode_climateServer.simpleDescriptor.AppInClustersList = serverClusterOnOffMode_climateId;
+	endPointOnOffMode_climateServer.simpleDescriptor.AppOutClustersCount = 0;
+	endPointOnOffMode_climateServer.simpleDescriptor.AppOutClustersList = NULL;
+	endPointOnOffMode_climateServer.serverCluster = serverClustersOnOffMode_climate;
+	endPointOnOffMode_climateServer.clientCluster = NULL;
+
+	endPointOnOffMode_lightServer.simpleDescriptor.AppDeviceId =1;
+	endPointOnOffMode_lightServer.simpleDescriptor.AppProfileId = 0x0104;
+	endPointOnOffMode_lightServer.simpleDescriptor.endpoint = srcOnOff_Mode_Light_Server;
+	endPointOnOffMode_lightServer.simpleDescriptor.AppDeviceVersion = 1;
+	endPointOnOffMode_lightServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffMode_lightId);
+	endPointOnOffMode_lightServer.simpleDescriptor.AppInClustersList = serverClusterOnOffMode_lightId;
+	endPointOnOffMode_lightServer.simpleDescriptor.AppOutClustersCount = 0;
+	endPointOnOffMode_lightServer.simpleDescriptor.AppOutClustersList = NULL;
+	endPointOnOffMode_lightServer.serverCluster = serverClustersOnOffClimate_light;
+	endPointOnOffMode_lightServer.clientCluster = NULL;
+	
+	endPointAppOnOffLightServer.simpleDescriptor.AppDeviceId =1;
+	endPointAppOnOffLightServer.simpleDescriptor.AppProfileId = 0x0104;
+	endPointAppOnOffLightServer.simpleDescriptor.endpoint = srcApp_OnOff_Light_Server;
+	endPointAppOnOffLightServer.simpleDescriptor.AppDeviceVersion = 1;
+	endPointAppOnOffLightServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffLightId);
+	endPointAppOnOffLightServer.simpleDescriptor.AppInClustersList = serverClusterOnOffLightId;
+	endPointAppOnOffLightServer.simpleDescriptor.AppOutClustersCount = 0;
+	endPointAppOnOffLightServer.simpleDescriptor.AppOutClustersList = NULL;
+	endPointAppOnOffLightServer.serverCluster = serverClustersOnOffLight;
+	endPointAppOnOffLightServer.clientCluster = NULL;
+	
+	endPointOnOffLightServer.simpleDescriptor.AppDeviceId =1;
+	endPointOnOffLightServer.simpleDescriptor.AppProfileId = 0x0104;
+	endPointOnOffLightServer.simpleDescriptor.endpoint = srcOnOff_Light_Server;
+	endPointOnOffLightServer.simpleDescriptor.AppDeviceVersion = 1;
+	endPointOnOffLightServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffLightId);
+	endPointOnOffLightServer.simpleDescriptor.AppInClustersList = serverClusterOnOffLightId;
+	endPointOnOffLightServer.simpleDescriptor.AppOutClustersCount = 0;
+	endPointOnOffLightServer.simpleDescriptor.AppOutClustersList = NULL;
+	endPointOnOffLightServer.serverCluster = serverClustersOnOffLight;
+	endPointOnOffLightServer.clientCluster = NULL;
+	
+	endPointIlluminanceServer.simpleDescriptor.AppDeviceId =1;
+	endPointIlluminanceServer.simpleDescriptor.AppProfileId = 0x0104;
+	endPointIlluminanceServer.simpleDescriptor.endpoint = srcIlluminance_Measurement_Server;
+	endPointIlluminanceServer.simpleDescriptor.AppDeviceVersion = 1;
+	endPointIlluminanceServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterIlluminanceId);
+	endPointIlluminanceServer.simpleDescriptor.AppInClustersList = serverClusterIlluminanceId;
+	endPointIlluminanceServer.simpleDescriptor.AppOutClustersCount = 0;
+	endPointIlluminanceServer.simpleDescriptor.AppOutClustersList = NULL;
+	endPointIlluminanceServer.serverCluster = serverClustersIlluminance;
+	endPointIlluminanceServer.clientCluster = NULL;
+
+	endPointTemperatureMeasurementServer.simpleDescriptor.AppDeviceId =1;
+	endPointTemperatureMeasurementServer.simpleDescriptor.AppProfileId = 0x0104;
+	endPointTemperatureMeasurementServer.simpleDescriptor.endpoint = srcTemperature_Measurement_Server;
+	endPointTemperatureMeasurementServer.simpleDescriptor.AppDeviceVersion = 1;
+	endPointTemperatureMeasurementServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterTemperatureId);
+	endPointTemperatureMeasurementServer.simpleDescriptor.AppInClustersList = serverClusterTemperatureId;
+	endPointTemperatureMeasurementServer.simpleDescriptor.AppOutClustersCount = 0;
+	endPointTemperatureMeasurementServer.simpleDescriptor.AppOutClustersList = NULL;
+	endPointTemperatureMeasurementServer.serverCluster = serverClustersTemperature;
+	endPointTemperatureMeasurementServer.clientCluster = NULL;
+	
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceId =1;
+	endPointOnOffLightClient.simpleDescriptor.AppProfileId = 0x0104;
+	endPointOnOffLightClient.simpleDescriptor.endpoint = srcOnOff_Light_Client;
+	endPointOnOffLightClient.simpleDescriptor.AppDeviceVersion = 1;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersCount = 0;
+	endPointOnOffLightClient.simpleDescriptor.AppInClustersList = NULL;
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterOnOffLightIds);
+	endPointOnOffLightClient.simpleDescriptor.AppOutClustersList = clientClusterOnOffLightIds;
+	endPointOnOffLightClient.serverCluster = NULL;
+	endPointOnOffLightClient.clientCluster = clientClustersOnOffLight;
+	
+	// Endpoints for receiving values for controlling temperature / illuminance
+	simpleDescriptorTemp.AppDeviceId = 1;
+	simpleDescriptorTemp.AppProfileId = 1;
+	simpleDescriptorTemp.endpoint = srcTemperature_Zielwert;
+	simpleDescriptorTemp.AppDeviceVersion = 1;
+	endPointTemperatureZielwert.simpleDescriptor = &simpleDescriptorTemp;
+	endPointTemperatureZielwert.APS_DataInd = APS_DataIndTemp;
+	APS_RegisterEndpointReq(&endPointTemperatureZielwert);
+
+	simpleDescriptorIlluminance.AppDeviceId = 1;
+	simpleDescriptorIlluminance.AppProfileId = 1;
+	simpleDescriptorIlluminance.endpoint = srcIlluminance_Zielwert;
+	simpleDescriptorIlluminance.AppDeviceVersion = 1;
+	endPointIlluminanceZielwert.simpleDescriptor = &simpleDescriptorIlluminance;
+	endPointIlluminanceZielwert.APS_DataInd = APS_DataIndIlluminance;
+	APS_RegisterEndpointReq(&endPointIlluminanceZielwert);
+	
+	ZCL_RegisterEndpoint(&endPointTemperatureMeasurementServer);
+	ZCL_RegisterEndpoint(&endPointOnOffLightServer);
+	ZCL_RegisterEndpoint(&endPointOnOffStatusServer);
+	ZCL_RegisterEndpoint(&endPointOnOffMode_climateServer);
+	ZCL_RegisterEndpoint(&endPointOnOffMode_lightServer);
+	ZCL_RegisterEndpoint(&endPointIlluminanceServer);
+	ZCL_RegisterEndpoint(&endPointOnOffLightClient);
+	ZCL_RegisterEndpoint(&endPointAppOnOffLightServer);
+}
+
+// Binding fuer Tempertur und OnOff initialisieren
+void initBinding(void){
+	CS_ReadParameter(CS_UID_ID, &bindIlluminance.srcAddr);
+	
+	bindIlluminance.srcEndpoint = srcIlluminance_Measurement_Server;
+	bindIlluminance.clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
+	bindIlluminance.dstAddrMode = APS_EXT_ADDRESS;
+	bindIlluminance.dst.unicast.extAddr  =  0x50000000A04LL;
+	bindIlluminance.dst.unicast.endpoint = dstIlluminance_Measurement_Client;
+	
+	APS_BindReq(&bindIlluminance);
+	
+	CS_ReadParameter(CS_UID_ID, &bindTemp.srcAddr); //eigene Adresse lesen und schreiben
+
+	bindTemp.srcEndpoint = srcTemperature_Measurement_Server;
+	bindTemp.clusterId   = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
+	bindTemp.dstAddrMode = APS_EXT_ADDRESS;
+	bindTemp.dst.unicast.extAddr  =   0x50000000A04LL;
+	bindTemp.dst.unicast.endpoint = dstTemperature_Measurement_Client;
+
+	APS_BindReq(&bindTemp); //local binding ausf?hren
+	
+	CS_ReadParameter(CS_UID_ID, &bindOnOffLight.srcAddr); //eigene Adresse lesen und schreiben
+
+	bindOnOffLight.srcEndpoint = srcOnOff_Light_Server;
+	bindOnOffLight.clusterId   = ONOFF_CLUSTER_ID;
+	bindOnOffLight.dstAddrMode = APS_EXT_ADDRESS;
+	bindOnOffLight.dst.unicast.extAddr  =  0x50000000A04LL;
+	bindOnOffLight.dst.unicast.endpoint = dstOnOff_Light_Client;
+
+	APS_BindReq(&bindOnOffLight); //local binding ausf?hren
+	
+
+	CS_ReadParameter(CS_UID_ID, &bindOnOffStatus.srcAddr); //eigene Adresse lesen und schreiben
+
+	bindOnOffStatus.srcEndpoint = srcOnOff_Status_Server;
+	bindOnOffStatus.clusterId   = ONOFF_CLUSTER_ID;
+	bindOnOffStatus.dstAddrMode = APS_EXT_ADDRESS;
+	bindOnOffStatus.dst.unicast.extAddr  =  0x50000000A04LL;
+	bindOnOffStatus.dst.unicast.endpoint = dstOnOff_Status_Client;
+
+	APS_BindReq(&bindOnOffStatus); //local binding ausf?hren
+	
+	CS_ReadParameter(CS_UID_ID, &bindOnOffmode_climate.srcAddr); //eigene Adresse lesen und schreiben
+
+	bindOnOffmode_climate.srcEndpoint = srcOnOff_Mode_Climate_Server;
+	bindOnOffmode_climate.clusterId   = ONOFF_CLUSTER_ID;
+	bindOnOffmode_climate.dstAddrMode = APS_EXT_ADDRESS;
+	bindOnOffmode_climate.dst.unicast.extAddr  =  0x50000000A04LL;
+	bindOnOffmode_climate.dst.unicast.endpoint = dstOnOff_Mode_Climate_Client;
+
+	APS_BindReq(&bindOnOffmode_climate); //local binding ausf?hren
+	
+	CS_ReadParameter(CS_UID_ID, &bindOnOffmode_light.srcAddr); //eigene Adresse lesen und schreiben
+
+	bindOnOffmode_light.srcEndpoint = srcOnOff_Mode_Light_Server;
+	bindOnOffmode_light.clusterId   = ONOFF_CLUSTER_ID;
+	bindOnOffmode_light.dstAddrMode = APS_EXT_ADDRESS;
+	bindOnOffmode_light.dst.unicast.extAddr  =  0x50000000A04LL;
+	bindOnOffmode_light.dst.unicast.endpoint = dstOnOff_Mode_Light_Client;
+
+	APS_BindReq(&bindOnOffmode_light); //local binding ausf?hren
+}
+
 static ZCL_Request_t lightAttrReq = {
 	.id = ZCL_REPORT_ATTRIBUTES_COMMAND_ID,
 	.ZCL_Notify = ReportNotify,
@@ -481,6 +639,7 @@ static ZCL_Request_t lightAttrReq = {
 	.requestPayload = lightAttrBuff,
 	.defaultResponse = ZCL_FRAME_CONTROL_DISABLE_DEFAULT_RESPONSE,
 };
+
 static ZCL_Request_t statusAttrReq = {
 	.id = ZCL_REPORT_ATTRIBUTES_COMMAND_ID,
 	.ZCL_Notify = ReportNotify,
@@ -527,239 +686,9 @@ static ZCL_Request_t modeClimateAttrReq = {
 	.defaultResponse = ZCL_FRAME_CONTROL_DISABLE_DEFAULT_RESPONSE,
 };
 
-
-// Binding fuer Tempertur und OnOff initialisieren
-void initBinding(void){
-	CS_ReadParameter(CS_UID_ID, &bindIlluminance.srcAddr);
+//Initial, first Report for light, status and modus because of onChange reports
+void ReportNotify(){
 	
-	bindIlluminance.srcEndpoint = srcIlluminance_Measurement_Server;
-	bindIlluminance.clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
-	bindIlluminance.dstAddrMode = APS_EXT_ADDRESS;
-	bindIlluminance.dst.unicast.extAddr  =  0x50000000A04LL;
-	bindIlluminance.dst.unicast.endpoint = dstIlluminance_Measurement_Client;
-	
-	APS_BindReq(&bindIlluminance);
-	
-	CS_ReadParameter(CS_UID_ID, &bindTemp.srcAddr); //eigene Adresse lesen und schreiben
-
-	bindTemp.srcEndpoint = srcTemperature_Measurement_Server;
-	bindTemp.clusterId   = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
-	bindTemp.dstAddrMode = APS_EXT_ADDRESS;
-	bindTemp.dst.unicast.extAddr  =   0x50000000A04LL;
-	bindTemp.dst.unicast.endpoint = dstTemperature_Measurement_Client;
-
-	APS_BindReq(&bindTemp); //local binding ausf?hren
-	
-	CS_ReadParameter(CS_UID_ID, &bindOnOffLight.srcAddr); //eigene Adresse lesen und schreiben
-
-	bindOnOffLight.srcEndpoint = srcOnOff_Light_Server;
-	bindOnOffLight.clusterId   = ONOFF_CLUSTER_ID;
-	bindOnOffLight.dstAddrMode = APS_EXT_ADDRESS;
-	bindOnOffLight.dst.unicast.extAddr  =  0x50000000A04LL;
-	bindOnOffLight.dst.unicast.endpoint = dstOnOff_Light_Client;
-
-	APS_BindReq(&bindOnOffLight); //local binding ausf?hren
-	
-	CS_ReadParameter(CS_UID_ID, &bindOnOffCooling.srcAddr); //eigene Adresse lesen und schreiben
-
-	bindOnOffCooling.srcEndpoint = srcOnOff_COOLING_Server;
-	bindOnOffCooling.clusterId   = ONOFF_CLUSTER_ID;
-	bindOnOffCooling.dstAddrMode = APS_EXT_ADDRESS;
-	bindOnOffCooling.dst.unicast.extAddr  =  0x50000000A04LL;
-	bindOnOffCooling.dst.unicast.endpoint = dstOnOff_Cooling_Client;
-
-	APS_BindReq(&bindOnOffCooling); //local binding ausf?hren
-	
-	CS_ReadParameter(CS_UID_ID, &bindOnOffHeating.srcAddr); //eigene Adresse lesen und schreiben
-
-	bindOnOffHeating.srcEndpoint = srcOnOff_HEATING_Server;
-	bindOnOffHeating.clusterId   = ONOFF_CLUSTER_ID;
-	bindOnOffHeating.dstAddrMode = APS_EXT_ADDRESS;
-	bindOnOffHeating.dst.unicast.extAddr  =  0x50000000A04LL;
-	bindOnOffHeating.dst.unicast.endpoint = dstOnOff_Heating_Client;
-
-	APS_BindReq(&bindOnOffHeating); //local binding ausf?hren
-///	
-	CS_ReadParameter(CS_UID_ID, &bindOnOffStatus.srcAddr); //eigene Adresse lesen und schreiben
-
-	bindOnOffStatus.srcEndpoint = srcOnOff_Status_Server;
-	bindOnOffStatus.clusterId   = ONOFF_CLUSTER_ID;
-	bindOnOffStatus.dstAddrMode = APS_EXT_ADDRESS;
-	bindOnOffStatus.dst.unicast.extAddr  =  0x50000000A04LL;
-	bindOnOffStatus.dst.unicast.endpoint = dstOnOff_Status_Client;
-
-	APS_BindReq(&bindOnOffStatus); //local binding ausf?hren
-	
-	CS_ReadParameter(CS_UID_ID, &bindOnOffmode_climate.srcAddr); //eigene Adresse lesen und schreiben
-
-	bindOnOffmode_climate.srcEndpoint = srcOnOff_Mode_Climate_Server;
-	bindOnOffmode_climate.clusterId   = ONOFF_CLUSTER_ID;
-	bindOnOffmode_climate.dstAddrMode = APS_EXT_ADDRESS;
-	bindOnOffmode_climate.dst.unicast.extAddr  =  0x50000000A04LL;
-	bindOnOffmode_climate.dst.unicast.endpoint = dstOnOff_Mode_Climate_Client;
-
-	APS_BindReq(&bindOnOffmode_climate); //local binding ausf?hren
-	
-	CS_ReadParameter(CS_UID_ID, &bindOnOffmode_light.srcAddr); //eigene Adresse lesen und schreiben
-
-	bindOnOffmode_light.srcEndpoint = srcOnOff_Mode_Light_Server;
-	bindOnOffmode_light.clusterId   = ONOFF_CLUSTER_ID;
-	bindOnOffmode_light.dstAddrMode = APS_EXT_ADDRESS;
-	bindOnOffmode_light.dst.unicast.extAddr  =  0x50000000A04LL;
-	bindOnOffmode_light.dst.unicast.endpoint = dstOnOff_Mode_Light_Client;
-
-	APS_BindReq(&bindOnOffmode_light); //local binding ausf?hren
-}
-
-static void initModule(){
-	module.ID = MODULE_ID;
-	setOnOffState(&onOffLightAttributes, false);
-	onOffStatusAttributes.onOff.value = false;
-	onOffMode_climateAttributes.onOff.value = false;
-	onOffMode_lightAttributes.onOff.value = false;
-	module.illuminanceReference = 100;
-	module.temperatureReference = 3000; // Wert in °C: /100
-	module.LEDWHITE_status = false;
-	module.LEDWHITE_power = 0;
-	LEDWHITE = 0;
-	setPWMOutputDuty(&LEDWHITE, 255);		// Wert zwischen 0 und 255 (0 = 0%, 255 = 100%)
-	module.LEDBLUE_status = false;
-	module.LEDRED_status = false;
-	module.FAN_status = false;
-	offPWMOutput(&LEDWHITE);
-}
-
-/*Initialisierung der Endpunkte zur Datenkommunikation*/
-static void initEndpoints(){
-	endPointTemperatureMeasurementServer.simpleDescriptor.AppDeviceId =1;
-	endPointTemperatureMeasurementServer.simpleDescriptor.AppProfileId = 0x0104;
-	endPointTemperatureMeasurementServer.simpleDescriptor.endpoint = srcTemperature_Measurement_Server;
-	endPointTemperatureMeasurementServer.simpleDescriptor.AppDeviceVersion = 1;
-	endPointTemperatureMeasurementServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterTemperatureId);
-	endPointTemperatureMeasurementServer.simpleDescriptor.AppInClustersList = serverClusterTemperatureId;
-	endPointTemperatureMeasurementServer.simpleDescriptor.AppOutClustersCount = 0;
-	endPointTemperatureMeasurementServer.simpleDescriptor.AppOutClustersList = NULL;
-	endPointTemperatureMeasurementServer.serverCluster = serverClustersTemperature;
-	endPointTemperatureMeasurementServer.clientCluster = NULL;
-	
-	endPointOnOffLightServer.simpleDescriptor.AppDeviceId =1;
-	endPointOnOffLightServer.simpleDescriptor.AppProfileId = 0x0104;
-	endPointOnOffLightServer.simpleDescriptor.endpoint = srcOnOff_Light_Server;
-	endPointOnOffLightServer.simpleDescriptor.AppDeviceVersion = 1;
-	endPointOnOffLightServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffLightId);
-	endPointOnOffLightServer.simpleDescriptor.AppInClustersList = serverClusterOnOffLightId;
-	endPointOnOffLightServer.simpleDescriptor.AppOutClustersCount = 0;
-	endPointOnOffLightServer.simpleDescriptor.AppOutClustersList = NULL;
-	endPointOnOffLightServer.serverCluster = serverClustersOnOffLight;
-	endPointOnOffLightServer.clientCluster = NULL;
-	
-	endPointAppOnOffLightServer.simpleDescriptor.AppDeviceId =1;
-	endPointAppOnOffLightServer.simpleDescriptor.AppProfileId = 0x0104;
-	endPointAppOnOffLightServer.simpleDescriptor.endpoint = srcApp_OnOff_Light_Server;
-	endPointAppOnOffLightServer.simpleDescriptor.AppDeviceVersion = 1;
-	endPointAppOnOffLightServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffLightId);
-	endPointAppOnOffLightServer.simpleDescriptor.AppInClustersList = serverClusterOnOffLightId;
-	endPointAppOnOffLightServer.simpleDescriptor.AppOutClustersCount = 0;
-	endPointAppOnOffLightServer.simpleDescriptor.AppOutClustersList = NULL;
-	endPointAppOnOffLightServer.serverCluster = serverClustersOnOffLight;
-	endPointAppOnOffLightServer.clientCluster = NULL;
-	
-	endPointIlluminanceServer.simpleDescriptor.AppDeviceId =1;
-	endPointIlluminanceServer.simpleDescriptor.AppProfileId = 0x0104;
-	endPointIlluminanceServer.simpleDescriptor.endpoint = srcIlluminance_Measurement_Server;
-	endPointIlluminanceServer.simpleDescriptor.AppDeviceVersion = 1;
-	endPointIlluminanceServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterIlluminanceId);
-	endPointIlluminanceServer.simpleDescriptor.AppInClustersList = serverClusterIlluminanceId;
-	endPointIlluminanceServer.simpleDescriptor.AppOutClustersCount = 0;
-	endPointIlluminanceServer.simpleDescriptor.AppOutClustersList = NULL;
-	endPointIlluminanceServer.serverCluster = serverClustersIlluminance;
-	endPointIlluminanceServer.clientCluster = NULL;
-	
-	endPointOnOffLightClient.simpleDescriptor.AppDeviceId =1;
-	endPointOnOffLightClient.simpleDescriptor.AppProfileId = 0x0104;
-	endPointOnOffLightClient.simpleDescriptor.endpoint = srcOnOff_Light_Client;
-	endPointOnOffLightClient.simpleDescriptor.AppDeviceVersion = 1;
-	endPointOnOffLightClient.simpleDescriptor.AppInClustersCount = 0;
-	endPointOnOffLightClient.simpleDescriptor.AppInClustersList = NULL;
-	endPointOnOffLightClient.simpleDescriptor.AppOutClustersCount = ARRAY_SIZE(clientClusterOnOffLightIds);
-	endPointOnOffLightClient.simpleDescriptor.AppOutClustersList = clientClusterOnOffLightIds;
-	endPointOnOffLightClient.serverCluster = NULL;
-	endPointOnOffLightClient.clientCluster = clientClustersOnOffLight;
-
-
-	
-	endPointOnOffCoolingServer.simpleDescriptor.AppDeviceId =1;
-	endPointOnOffCoolingServer.simpleDescriptor.AppProfileId = 0x0104;
-	endPointOnOffCoolingServer.simpleDescriptor.endpoint = srcOnOff_COOLING_Server;
-	endPointOnOffCoolingServer.simpleDescriptor.AppDeviceVersion = 1;
-	endPointOnOffCoolingServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffCoolingId);
-	endPointOnOffCoolingServer.simpleDescriptor.AppInClustersList = serverClusterOnOffCoolingId;
-	endPointOnOffCoolingServer.simpleDescriptor.AppOutClustersCount = 0;
-	endPointOnOffCoolingServer.simpleDescriptor.AppOutClustersList = NULL;
-	endPointOnOffCoolingServer.serverCluster = serverClustersOnOffCooling;
-	endPointOnOffCoolingServer.clientCluster = NULL;
-	
-	endPointOnOffHeatingServer.simpleDescriptor.AppDeviceId =1;
-	endPointOnOffHeatingServer.simpleDescriptor.AppProfileId = 0x0104;
-	endPointOnOffHeatingServer.simpleDescriptor.endpoint = srcOnOff_HEATING_Server;
-	endPointOnOffHeatingServer.simpleDescriptor.AppDeviceVersion = 1;
-	endPointOnOffHeatingServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffHeatingId);
-	endPointOnOffHeatingServer.simpleDescriptor.AppInClustersList = serverClusterOnOffHeatingId;
-	endPointOnOffHeatingServer.simpleDescriptor.AppOutClustersCount = 0;
-	endPointOnOffHeatingServer.simpleDescriptor.AppOutClustersList = NULL;
-	endPointOnOffHeatingServer.serverCluster = serverClustersOnOffHeating;
-	endPointOnOffHeatingServer.clientCluster = NULL;
-	
-	endPointOnOffStatusServer.simpleDescriptor.AppDeviceId =1;
-	endPointOnOffStatusServer.simpleDescriptor.AppProfileId = 0x0104;
-	endPointOnOffStatusServer.simpleDescriptor.endpoint = srcOnOff_Status_Server;
-	endPointOnOffStatusServer.simpleDescriptor.AppDeviceVersion = 1;
-	endPointOnOffStatusServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffStatusId);
-	endPointOnOffStatusServer.simpleDescriptor.AppInClustersList = serverClusterOnOffStatusId;
-	endPointOnOffStatusServer.simpleDescriptor.AppOutClustersCount = 0;
-	endPointOnOffStatusServer.simpleDescriptor.AppOutClustersList = NULL;
-	endPointOnOffStatusServer.serverCluster = serverClustersOnOffStatus;
-	endPointOnOffStatusServer.clientCluster = NULL;
-	
-	endPointOnOffMode_climateServer.simpleDescriptor.AppDeviceId =1;
-	endPointOnOffMode_climateServer.simpleDescriptor.AppProfileId = 0x0104;
-	endPointOnOffMode_climateServer.simpleDescriptor.endpoint = srcOnOff_Mode_Climate_Server;
-	endPointOnOffMode_climateServer.simpleDescriptor.AppDeviceVersion = 1;
-	endPointOnOffMode_climateServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffMode_climateId);
-	endPointOnOffMode_climateServer.simpleDescriptor.AppInClustersList = serverClusterOnOffMode_climateId;
-	endPointOnOffMode_climateServer.simpleDescriptor.AppOutClustersCount = 0;
-	endPointOnOffMode_climateServer.simpleDescriptor.AppOutClustersList = NULL;
-	endPointOnOffMode_climateServer.serverCluster = serverClustersOnOffMode_climate;
-	endPointOnOffMode_climateServer.clientCluster = NULL;
-	
-	endPointOnOffMode_lightServer.simpleDescriptor.AppDeviceId =1;
-	endPointOnOffMode_lightServer.simpleDescriptor.AppProfileId = 0x0104;
-	endPointOnOffMode_lightServer.simpleDescriptor.endpoint = srcOnOff_Mode_Light_Server;
-	endPointOnOffMode_lightServer.simpleDescriptor.AppDeviceVersion = 1;
-	endPointOnOffMode_lightServer.simpleDescriptor.AppInClustersCount = ARRAY_SIZE(serverClusterOnOffMode_lightId);
-	endPointOnOffMode_lightServer.simpleDescriptor.AppInClustersList = serverClusterOnOffMode_lightId;
-	endPointOnOffMode_lightServer.simpleDescriptor.AppOutClustersCount = 0;
-	endPointOnOffMode_lightServer.simpleDescriptor.AppOutClustersList = NULL;
-	endPointOnOffMode_lightServer.serverCluster = serverClustersOnOffClimate_light;
-	endPointOnOffMode_lightServer.clientCluster = NULL;
-	
-	
-	// Endpoints for receiving values for controlling temperature / illuminance
-	simpleDescriptorTemp.AppDeviceId = 1;
-	simpleDescriptorTemp.AppProfileId = 1;
-	simpleDescriptorTemp.endpoint = srcTemperature_Zielwert;
-	simpleDescriptorTemp.AppDeviceVersion = 1;
-	endPointTemperatureZielwert.simpleDescriptor = &simpleDescriptorTemp;
-	endPointTemperatureZielwert.APS_DataInd = APS_DataIndTemp;
-	APS_RegisterEndpointReq(&endPointTemperatureZielwert);
-
-	simpleDescriptorIlluminance.AppDeviceId = 1;
-	simpleDescriptorIlluminance.AppProfileId = 1;
-	simpleDescriptorIlluminance.endpoint = srcIlluminance_Zielwert;
-	simpleDescriptorIlluminance.AppDeviceVersion = 1;
-	endPointIlluminanceZielwert.simpleDescriptor = &simpleDescriptorIlluminance;
-	endPointIlluminanceZielwert.APS_DataInd = APS_DataIndIlluminance;
-	APS_RegisterEndpointReq(&endPointIlluminanceZielwert);
 }
 
 void APS_DataIndTemp(APS_DataInd_t *indData){
@@ -768,20 +697,34 @@ void APS_DataIndTemp(APS_DataInd_t *indData){
 	sum = sum + indData->asdu[1]*100;
 	sum = sum + indData->asdu[2]*10;
 	sum = sum + indData->asdu[3];
-
 	module.temperatureReference = sum;
 }
+
 void APS_DataIndIlluminance(APS_DataInd_t *indData){
 	int16_t sum;
 	sum = indData->asdu[0]*100;
 	sum = sum + indData->asdu[1]*10;
-	sum = sum + indData->asdu[2];
-		
+	sum = sum + indData->asdu[2];		
 	module.illuminanceReference = sum;
 }
 void wait()
 {
 	_delay_loop_2(10000);
+}
+
+
+
+static void initKommando(void){
+	toggleLightCommand.dstAddressing.addrMode=APS_EXT_ADDRESS;
+	toggleLightCommand.dstAddressing.addr.extAddress = 0x50000000A01LL;
+	toggleLightCommand.dstAddressing.profileId=0x0104;
+	toggleLightCommand.dstAddressing.endpointId=srcOnOff_Light_Server;
+	toggleLightCommand.dstAddressing.clusterId=ONOFF_CLUSTER_ID;
+	toggleLightCommand.dstAddressing.clusterSide=ZCL_CLUSTER_SIDE_SERVER;
+
+	toggleLightCommand.endpointId=srcOnOff_Light_Client;
+	toggleLightCommand.id=ZCL_ONOFF_CLUSTER_TOGGLE_COMMAND_ID;
+	toggleLightCommand.ZCL_Notify=ZCL_CommandResp;
 }
 
 // Funktion mit der man von einem PWM Pin den Output erhöht
@@ -793,7 +736,6 @@ static void setPWMOutputDuty(volatile uint16_t* port, uint8_t duty)
 }
 
 static void onPWMOutput(volatile uint16_t* port){
-	BSP_OnLed(LED_YELLOW);
 	for(uint8_t power=*port;power<module.LEDWHITE_duty;power++){
 		//Increase the Brightness/Speed using PWM
 		*port = power;
@@ -808,7 +750,6 @@ static void onPWMOutput(volatile uint16_t* port){
 }
 
 static void offPWMOutput(volatile uint16_t* port){
-	BSP_ToggleLed(LED_GREEN);
 	for(uint8_t power=*port;power>0;power--){
 		//Decrease The Brightness/Speed using PWM
 		*port = power;
@@ -852,67 +793,10 @@ static void togglePWMOutput(volatile uint16_t* port){
 	
 }
 
-static void toggle(volatile uint16_t port){
-	
-	if(port == LEDBLUE){
-		if(PINE & (1<<LEDBLUE)){			// if LEDBLUE in PINE is set
-			PORTE &= ~(1<<LEDBLUE);
-			module.LEDBLUE_status = false;	// turn off
-		}
-		else{
-			PORTE |= (1<<LEDBLUE);		// tun on
-			module.LEDBLUE_status = true;
-		}
-	}
-	else if(port == LEDRED){
-		if(PINE & (1<<LEDRED)){			// if LEDBLUE in PINE is set
-			PORTE &= ~(1<<LEDRED);
-			module.LEDRED_status = false;	// turn off
-		}
-		else{
-			PORTE |= (1<<LEDRED);		// tun on
-			module.LEDRED_status = true;
-		}
-	}
-	else{
-		if(PINE & (1<<FAN)){			// if LEDBLUE in PINE is set
-			PORTE &= ~(1<<FAN);
-			module.FAN_status = false;	// turn off
-		}
-		else{
-			PORTE |= (1<<FAN);		// tun on
-			module.FAN_status = true;
-		}
-	}
-}
-
-/* Initialisierung der Outputs (LEDS, Luefter) */
-/* PINS: PE7 = rote LED , PE2 = blaue LED ,PE4 = weisse LED, PE3 = Luefter */
-static void initOutputs(){
-	
-	/* PINS als Ausgaenge deklarieren */
-	DDRE |= (1<<PE2);
-	DDRE |= (1<<PE3);
-	DDRE |= (1<<PE4);
-	DDRE |= (1<<PE7);
-	
-	/* init Timer3 in fast PWM mode 
-	   Timer Clock = CPU Clock (No Prescaleing)
-	   Compare Output Mode = Clear OC3B and OC3A on compare match with TCNT3 (Value = 2)
-	   Mode        = Fast PWM (Value = 3)
-	   PWM Output  = Non Inverted                */
-	TCCR3A |= (1<<WGM00)|(1<<WGM01)|(1<<COM3B1);
-	TCCR3B |= (1<<CS30);
-	
-	/* Alle Ausgaenge im Ausgangszustand ausschalten */
-	turnOff(LEDBLUE);
-	turnOff(LEDRED);
-}
 
 /* On-Kommando erhalten. OnOff-Attribut auf On setzen und LED anschalten. */
-ZCL_Status_t onLight(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-	
-	
+ZCL_Status_t onLight(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){	
+
 	setOnOffState(&onOffLightAttributes, true);
 	onPWMOutput(&LEDWHITE);
 
@@ -935,27 +819,6 @@ ZCL_Status_t onMode_climate(ZCL_Addressing_t* addressing, uint8_t payloadLength,
 ZCL_Status_t onMode_light(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
 
 	setOnOffState(&onOffMode_lightAttributes, true);
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
-/* On-Kommando erhalten. OnOff-Attribut auf On setzen und LED anschalten. */
-ZCL_Status_t onCooling(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-	setOnOffState(&onOffCoolingAttributes, true);
-	turnOn(LEDBLUE);
-	turnOn(FAN);
-	module.LEDBLUE_status = true;
-	module.FAN_status = true;
-	
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
-
-/* On-Kommando erhalten. OnOff-Attribut auf On setzen und LED anschalten. */
-ZCL_Status_t onHeating(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-	setOnOffState(&onOffHeatingAttributes, true);
-	turnOn(LEDRED);
-	module.LEDRED_status = true;
-	
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -985,46 +848,6 @@ ZCL_Status_t offMode_light(ZCL_Addressing_t* addressing, uint8_t payloadLength, 
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
-/* Off-Kommando erhalten. OnOff-Attribut auf Off setzen und LED ausschalten.*/
-ZCL_Status_t offHeating(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-	setOnOffState(&onOffHeatingAttributes, false);
-	module.LEDRED_status = false;
-	turnOff(LEDRED);
-	
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
-
-/* Off-Kommando erhalten. OnOff-Attribut auf Off setzen und LED ausschalten.*/
-ZCL_Status_t offCooling(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-	setOnOffState(&onOffCoolingAttributes, false);
-	module.LEDBLUE_status = false;
-	module.FAN_status = false;
-	turnOff(LEDBLUE);
-	turnOff(FAN);
-	
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
-
-/* Toggle-Kommando erhalten. Zustand des OnOff-Attribut und der LED wechseln. */
-ZCL_Status_t toggleHeating(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-	setOnOffState(&onOffHeatingAttributes, !onOffHeatingAttributes.onOff.value);
-	toggle(LEDRED);
-	
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
-
-/* Toggle-Kommando erhalten. Zustand des OnOff-Attribut und der LED wechseln. */
-ZCL_Status_t toggleCooling(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-	setOnOffState(&onOffCoolingAttributes, !onOffCoolingAttributes.onOff.value);
-	toggle(LEDBLUE);
-	toggle(FAN);
-	
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
 
 /* Toggle-Kommando erhalten. Zustand des OnOff-Attribut und der LED wechseln. */
 ZCL_Status_t toggleLight(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
@@ -1032,32 +855,6 @@ ZCL_Status_t toggleLight(ZCL_Addressing_t* addressing, uint8_t payloadLength, ui
 // 	bool newValue = !onOffLightAttributes.onOff.value;
 // 	ZCL_WriteAttributeValue(srcOnOff_Light_Server, ONOFF_CLUSTER_ID,  ZCL_CLUSTER_SIDE_SERVER, ZCL_ONOFF_CLUSTER_ONOFF_SERVER_ATTRIBUTE_ID,  ZCL_BOOLEAN_DATA_TYPE_ID, (uint8_t*)(&newValue));
 	togglePWMOutput(&LEDWHITE);	
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
-/* Toggle-Kommando erhalten. Zustand des OnOff-Attribut und der LED wechseln. 
-ZCL_Status_t toggleAppLight(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-	setOnOffState(&onOffLightAttributes, !onOffLightAttributes.onOff.value);
-	togglePWMOutput(&LEDWHITE);
-	BSP_ToggleLed(LED_GREEN);
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
-*/
-ZCL_Status_t toggleStatus(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-
-	setOnOffState(&onOffStatusAttributes, !onOffStatusAttributes.onOff.value);
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
-ZCL_Status_t toggleMode_climate(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-
-	setOnOffState(&onOffMode_climateAttributes, !onOffMode_climateAttributes.onOff.value);
-	(void)addressing, (void)payloadLength, (void)payload;
-	return ZCL_SUCCESS_STATUS;
-}
-ZCL_Status_t toggleMode_light(ZCL_Addressing_t* addressing, uint8_t payloadLength, uint8_t* payload){
-	setOnOffState(&onOffMode_lightAttributes, !onOffMode_lightAttributes.onOff.value);
 	(void)addressing, (void)payloadLength, (void)payload;
 	return ZCL_SUCCESS_STATUS;
 }
@@ -1069,57 +866,38 @@ static void setOnOffState(ZCL_OnOffClusterServerAttributes_t* attribute, bool st
 	
 }
 
-/*CB-Funktion nach Starten des Netzwerkes (ZDO_StartNetworkReq()).*/
-void ZDO_StartNetworkConf(ZDO_StartNetworkConf_t* confirmInfo){
-	if(ZDO_SUCCESS_STATUS == confirmInfo->status){
-		appstate=REG_ENDPOINT;
-	}
-	SYS_PostTask(APL_TASK_ID);
-}
 
 void APL_TaskHandler(){
 	
 	switch(appstate){
 		case INIT:
-			appInitUsartManager();
+			HAL_OpenI2cPacket(&i2cdescriptor);
+			HAL_OpenAdc(&adcdescriptor);
 			BSP_OpenLeds();
 			initOutputs();
 			initKommando();
 			initEndpoints();
-            HAL_OpenI2cPacket(&i2cdescriptor);
-			HAL_OpenAdc(&adcdescriptor);
-			appstate = START_NETWORK;
-			SYS_PostTask(APL_TASK_ID);
-			break;
-			
-		case START_NETWORK:
-			networkParams.ZDO_StartNetworkConf = ZDO_StartNetworkConf;
-			ZDO_StartNetworkReq(&networkParams);
-			break;
-			
-		case REG_ENDPOINT:
-			ZCL_RegisterEndpoint(&endPointTemperatureMeasurementServer);
-			ZCL_RegisterEndpoint(&endPointOnOffLightServer);
-			ZCL_RegisterEndpoint(&endPointOnOffStatusServer);
-			ZCL_RegisterEndpoint(&endPointOnOffMode_climateServer);
-			ZCL_RegisterEndpoint(&endPointOnOffMode_lightServer);		
-			ZCL_RegisterEndpoint(&endPointIlluminanceServer);	
-			ZCL_RegisterEndpoint(&endPointOnOffLightClient);
-			ZCL_RegisterEndpoint(&endPointOnOffCoolingServer);
-			ZCL_RegisterEndpoint(&endPointOnOffHeatingServer);
-			ZCL_RegisterEndpoint(&endPointAppOnOffLightServer);
 			clusterInit();
 			initModule();
 			initTimer();
 			initButton();
-            initBinding(); //Binding initialisieren
-			ZCL_StartReporting(); //Automatisches Reporting starten
+            initBinding(); 
 			initReport();
+   			appstate = JOIN_NETWORK;
+			SYS_PostTask(APL_TASK_ID);
+			break;
+			
+		case JOIN_NETWORK:
+			networkParams.ZDO_StartNetworkConf = ZDO_StartNetworkConf;
+			ZDO_StartNetworkReq(&networkParams);
+			break;
+			
+		case START_REPORTING:
+			ZCL_StartReporting(); //Automatisches Reporting starten
 			ZCL_AttributeReq(&lightAttrReq);
 			ZCL_AttributeReq(&statusAttrReq);
 			ZCL_AttributeReq(&modeLightAttrReq);
 			ZCL_AttributeReq(&modeClimateAttrReq);
-
 			appstate = NOTHING;
 			break;
 		
