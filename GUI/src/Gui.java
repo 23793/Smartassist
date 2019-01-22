@@ -448,7 +448,7 @@ public class Gui extends Application {
 					}
 				}
 			}
-		});		
+		});
 
 		/*
 		 * save Button
