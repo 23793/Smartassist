@@ -2,6 +2,7 @@ package GUI.src;
 
 import java.awt.Point;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -20,7 +21,7 @@ import javafx.stage.Stage;
 /**
  * The Licht class contains all logical functionalities and graphical displays
  * of lights in rooms.
- * 
+ *
  * @author MinhMax
  *
  */
@@ -121,12 +122,18 @@ public class Licht {
 	}
 
 	public void setLichtAnAus(boolean state) {
-		lichtAnAus.setFlag(state);
-		if (lichtAnAus.getFlag()) {
-			settings.setGraphic(anBild);
-		} else {
-			settings.setGraphic(ausBild);
-		}
+		Platform.runLater(new Runnable() {
+
+			@Override
+			public void run() {
+				lichtAnAus.setFlag(state);
+				if (lichtAnAus.getFlag()) {
+					settings.setGraphic(anBild);
+				} else {
+					settings.setGraphic(ausBild);
+				}
+			} }) ;
+
 	}
 
 	public boolean getLichtAnAus() {

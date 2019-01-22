@@ -103,6 +103,11 @@
                         <Font size="14.0" />
                      </font>
                   </Button>
+                  <Label layoutX="20.0" layoutY="757.0" text="anchorpane get(4)" textFill="WHITE">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                  </Label>
                </children>
             </AnchorPane>
         </items>

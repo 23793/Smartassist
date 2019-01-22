@@ -25,7 +25,7 @@ import javafx.stage.Stage;
 
 /**
  * Lichtpop class for the light configuration pop-up
- * 
+ *
  * @author MinhMax
  *
  */
@@ -36,9 +36,12 @@ public class Lichtpop {
 	private AnchorPane apane;
 	private Scene scene;
 
+	private boolean onOff;
+
 	// Constructor with room
 	public Lichtpop(Raum r) {
 		raum = r;
+		onOff = r.getLicht().getLichtAnAus();
 	}
 
 	// Icons for low / high light
@@ -50,7 +53,7 @@ public class Lichtpop {
 
 	/**
 	 * Displays the light pop-up and handles all logical functionalities
-	 * 
+	 *
 	 * @param primaryStage
 	 *            the stage the pop-up is called from
 	 */
@@ -119,6 +122,8 @@ public class Lichtpop {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> arg0, Boolean arg1, Boolean arg2) {
 				ts.set_mode(false);
+				onOff = arg2;
+				System.out.println(onOff);
 			}
 
 		});
@@ -140,7 +145,8 @@ public class Lichtpop {
 
 			public void handle(ActionEvent event) {
 				// Set the new settings for the light
-				raum.getLicht().setLichtAnAus(oo.get_mode());
+				raum.getLicht().setLichtAnAus(onOff);
+				System.out.println(onOff);
 				raum.getLicht().setLichtModus(ts.get_mode());
 				raum.getLicht().setLichtZielWert(tempZielWert);
 

@@ -3,6 +3,7 @@ package GUI.src;
 import java.awt.Point;
 import java.text.DecimalFormat;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -17,7 +18,7 @@ import javafx.stage.Stage;
 /**
  * The Klima class for the temperature display. Also contains the target
  * temperature value for the room the module is in.
- * 
+ *
  * @author MinhMax
  *
  */
@@ -91,26 +92,34 @@ public class Klima {
 	/**
 	 * Checks the given value and sets the temperature icon accordingly. Also
 	 * sets the temperature label.
-	 * 
+	 *
 	 * @param s
 	 *            the value to be checked
 	 */
 	public void setImageAndLabel(String s) {
-		if (s.equals("kalt")) {
-			iv1.setImage(snow);
-		} else if (s.equals("heiss")) {
-			iv1.setImage(fire);
-		} else if (s.equals("perfekt")) {
-			iv1.setImage(perfect);
-		}
-		// System.out.println(raum.getModul().gettemperatur() + "�C");
 
-		// Float format
-		DecimalFormat df = new DecimalFormat("00.00");
-		String tempZielFormat = df.format(raum.getKlima().getZielTemp());
-		
 		// Set the temperature label
-		temps.setText(tempZielFormat + "�C");
+		Platform.runLater(new Runnable() {
+
+			@Override
+			public void run() {
+				if (s.equals("kalt")) {
+					iv1.setImage(snow);
+				} else if (s.equals("heiss")) {
+					iv1.setImage(fire);
+				} else if (s.equals("perfekt")) {
+					iv1.setImage(perfect);
+				}
+				// System.out.println(raum.getModul().gettemperatur() + "�C");
+
+				// Float format
+				DecimalFormat df = new DecimalFormat("00.00");
+				String tempZielFormat = df.format(raum.getModul().gettemperatur());
+
+				// TODO Auto-generated method stub
+				temps.setText(tempZielFormat + "C");
+			}});
+
 	}
 
 	public ImageView getIv1() {
