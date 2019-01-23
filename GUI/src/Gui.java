@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -80,7 +81,7 @@ public class Gui extends Application {
 	Stage stage = new Stage();
 
 	private Button save;
-	private File file = new File("gui/src/save.txt");
+	private File file;
 
 	private Button restore;
 
@@ -343,7 +344,7 @@ public class Gui extends Application {
 											// Adding a light to a room
 											tempRaum.setLicht(new Licht(p, tempRaum, anchorpane));
 											createLichtAnzeige(tempRaum);
-											System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugef�gt!");
+											System.out.println("Licht zu Raum " + tempRaum.getID() + " hinzugefuegt!");
 											lichtcounter++;
 											if (lichtcounter >= 3) {
 												list.get(3).setOpacity(0.5);
@@ -354,7 +355,7 @@ public class Gui extends Application {
 											// Creates the room
 											tempRaum.setModul(new Modul(tempModulID));
 											System.out.println(
-													"Modul " + tempRaum.getModul().getModulID() + " hinzugef�gt!");
+													"Modul " + tempRaum.getModul().getModulID() + " hinzugefuegt!");
 											// Adds the temperature display
 											createTempAnzeige(tempRaum);
 											tempRaum.getKlima().setImageAndLabel(tempRaum.getModul()
@@ -422,7 +423,7 @@ public class Gui extends Application {
 				// Informing the WSN about deactivated modules
 				new Thread(new Runnable() {
 					public void run() {
-
+						Iterator<Raum> iterator = raumListe.iterator();
 						for (Raum r : raumListe) {
 							if (r.getModul() != null) {
 								schnittstelle.send(r.getModul().getModulID() + ";0;0;0;0;000;0000E");
@@ -472,6 +473,19 @@ public class Gui extends Application {
 				// TODO Auto-generated method stub
 
 				try {
+					/*
+					 * initialing the file
+					 */
+					file = new File("gui/src/save.txt");
+					
+					/*
+					 * check if the file exist or not.
+					 * and create it if not.
+					 */
+					
+					if (!file.exists()) {
+						file.createNewFile();
+					}
 					FileWriter fwriter = new FileWriter(file);
 					PrintWriter pwriter = new PrintWriter(fwriter);
 					/*
@@ -484,68 +498,78 @@ public class Gui extends Application {
 					System.out.println("size of rectangles : " + rectangles.size());
 
 					for (Raum raum : raumListe) {
-						if (raum.getLicht() == null) {
-							String string = raum.getRect().getX() + ";" + raum.getRect().getY() + ";"
-									+ raum.getRect().getWidth() + ";" + raum.getRect().getHeight() + ";" + raum.getID()
-									+ ";" + raum.getposition_x() + ";" + raum.getposition_y() + ";"
-									+ raum.getKlima().getHeizungsstatus() + ";" + raum.getModul().gettemperatur() + ";"
-									+ raum.getModul().getModulID() + ";" + raum.getLicht().getLichtZielWert() + ";"
-									+ raum.getKlima().getSettings().getLayoutX() + ";"
-									+ raum.getKlima().getSettings().getLayoutY() + ";"
-									+ raum.getKlima().getBox().getLayoutX() + ";"
-									+ raum.getKlima().getBox().getLayoutY() + ";"
-									+ raum.getKlima().getTemps().getLayoutX() + ";"
-									+ raum.getKlima().getTemps().getLayoutY() + ";"
-									+ raum.getKlima().getTemps().getText() + ";" + raum.getKlima().getIv1().getLayoutX()
-									+ ";" + raum.getKlima().getIv1().getLayoutY() + ";"
-									+ raum.getKlima().getVebox().getLayoutX() + ";"
-									+ raum.getKlima().getVebox().getLayoutY();
+						if(raum.getLicht() == null & raum.getModul() == null)
+						{
+							String string = raum.getRect().getX()+";"+
+											raum.getRect().getY()+";"+
+											raum.getRect().getWidth()+";"+
+											raum.getRect().getHeight()+";"+
+											raum.getID()+";"+
+											raum.getposition_x()+";"+
+											raum.getposition_y();
+							pwriter.println(string);
+						}
+						else if(raum.getLicht() == null)
+						{
+							String string = raum.getRect().getX()+";"+
+											raum.getRect().getY()+";"+
+											raum.getRect().getWidth()+";"+
+											raum.getRect().getHeight()+";"+
+											raum.getID()+";"+
+											raum.getposition_x()+";"+
+											raum.getposition_y()+";"+
+											raum.getKlima().getHeizungsstatus()+";"+
+											raum.getModul().getModulID()+";"+
+											raum.getKlima().getZielTemp()+";"+
+											raum.getKlima().getTemps().getText();
+							
+							pwriter.println(string);
 
 						} else {
-							String string = raum.getRect().getX() + ";" + raum.getRect().getY() + ";"
-									+ raum.getRect().getWidth() + ";" + raum.getRect().getHeight() + ";"
-									+ raum.getLicht().getLichtPoint().getX() + ";"
-									+ raum.getLicht().getLichtPoint().getY() + ";" + raum.getID() + ";"
-									+ raum.getposition_x() + ";" + raum.getposition_y() + ";"
-									+ raum.getLicht().getLichtAnAus() + ";" + raum.getLicht().getLichtModus() + ";"
-									+ raum.getKlima().getHeizungsstatus() + ";" + raum.getModul().gettemperatur() + ";"
-									+ raum.getModul().getModulID() + ";" + raum.getLicht().getLichtZielWert() + ";"
-									+ raum.getKlima().getSettings().getLayoutX() + ";"
-									+ raum.getKlima().getSettings().getLayoutY() + ";"
-									+ raum.getKlima().getBox().getLayoutX() + ";"
-									+ raum.getKlima().getBox().getLayoutY() + ";"
-									+ raum.getKlima().getTemps().getLayoutX() + ";"
-									+ raum.getKlima().getTemps().getLayoutY() + ";"
-									+ raum.getKlima().getTemps().getText() + ";" + raum.getKlima().getIv1().getLayoutX()
-									+ ";" + raum.getKlima().getIv1().getLayoutY() + ";"
-									+ raum.getKlima().getVebox().layoutXProperty() + ";"
-									+ raum.getKlima().getVebox().getLayoutY() + ";" + raum.getKlima().getZielTemp();
+							String string = raum.getRect().getX()+";"+
+											raum.getRect().getY()+";"+
+											raum.getRect().getWidth()+";"+
+											raum.getRect().getHeight()+";"+
+											raum.getLicht().getLichtPoint().getX()+";"+
+											raum.getLicht().getLichtPoint().getY()+";"+
+											raum.getID()+";"+
+											raum.getposition_x()+";"+
+											raum.getposition_y()+";"+
+											raum.getLicht().getLichtAnAus()+";"+
+											raum.getLicht().getLichtModus()+";"+
+											raum.getKlima().getHeizungsstatus()+";"+
+											raum.getModul().getModulID()+";"+
+											raum.getLicht().getLichtZielWert()+";"+
+											raum.getKlima().getZielTemp()+";"+
+											raum.getKlima().getTemps().getText();
+														
+							pwriter.println(string);
 
-						}
+						
 					}
 					pwriter.flush();
+					
+					}
 					pwriter.close();
-
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-
+			
 			}
-
+			
 		});
-
 		/*
 		 * restoring the data.
 		 */
-		restore = (Button) anchorpane.getChildren().get(3);
-
-		restore.setOnMouseClicked(new EventHandler<MouseEvent>() {
+restore = (Button)anchorpane.getChildren().get(3);
+		
+		restore.setOnMouseClicked(new EventHandler<MouseEvent>(){
 
 			@Override
 			public void handle(MouseEvent event) {
 				// TODO Auto-generated method stub
 				try {
-					FileReader filereader = new FileReader(file);
+					FileReader filereader = new FileReader("gui/src/save.txt");
 					BufferedReader bufreader = new BufferedReader(filereader);
 					String string = bufreader.readLine();
 
@@ -553,93 +577,177 @@ public class Gui extends Application {
 					gc.setLineDashes(8);
 					gc.setLineWidth(3);
 					gc.setStroke(Color.LIGHTGREY);
-					System.out.println("String length + : " + string.length());
-					while (string != null) {
+					int numberOfmodule = 0;
+					while( string != null )
+					{
 						String[] arr = string.split(";");
-						Rectangle old_viereck = new Rectangle();
-						Raum old_raum = new Raum(Integer.parseInt(arr[6]), old_viereck.x + old_viereck.width,
-								old_viereck.y + old_viereck.height, old_viereck);
-						System.out.println("xxx : " + Double.parseDouble(arr[24]));
-						VBox vbox = new VBox();
-						// old_raum.getKlima().getVebox().setLayoutX(Double.parseDouble(arr[24]));
-						// old_raum.getKlima().getVebox().setLayoutY(Double.parseDouble(arr[25]));
-						// old_raum.getKlima().getSettings().setLayoutY(Double.parseDouble(arr[15]));
-						// old_raum.getKlima().getSettings().setLayoutY(Double.parseDouble(arr[16]));
-						// old_raum.getKlima().getBox().setLayoutX(Double.parseDouble(arr[17]));
-						// old_raum.getKlima().getBox().setLayoutY(Double.parseDouble(arr[18]));
-						// old_raum.getKlima().getTemps().setLayoutX(Double.parseDouble(arr[19]));
-						// old_raum.getKlima().getTemps().setLayoutY(Double.parseDouble(arr[20]));
-						// old_raum.getKlima().getTemps().setText(arr[21]);
-						// old_raum.getKlima().getIv1().setLayoutX(Double.parseDouble(arr[22]));
-						// old_raum.getKlima().getIv1().setLayoutY(Double.parseDouble(arr[23]));
-						// old_raum.getModul().settemperatur(Float.parseFloat(arr[12]));
-						// old_raum.getKlima().setHeizungsstatus(Boolean.parseBoolean(arr[11]));
-						// old_raum.getKlima().setZielTemp(Double.parseDouble(arr[26]));
 
+						if (arr.length == 7) {
+
+							Rectangle old_viereck = new Rectangle();
+							old_viereck.setRect(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]),
+									Double.parseDouble(arr[2]), Double.parseDouble(arr[3]));
+							// Draw room because of viability
+
+							gc.strokeRect(old_viereck.x, old_viereck.y, old_viereck.width, old_viereck.height);
+							rectangles.add(old_viereck);
+							Raum old_raum = new Raum(Integer.parseInt(arr[4]), old_viereck.x + old_viereck.width,
+									old_viereck.y + old_viereck.height, old_viereck);
+							raumListe.add(old_raum);
+							gc2.setStroke(Color.LIGHTGREY);
+							
+						} else if(arr.length == 11 ){ 
+
+							Rectangle old_viereck = new Rectangle();
+							old_viereck.setRect(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]),
+									Double.parseDouble(arr[2]), Double.parseDouble(arr[3]));
+							
+							gc.strokeRect(old_viereck.x, old_viereck.y, old_viereck.width, old_viereck.height);
+							rectangles.add(old_viereck);
+							Raum old_raum = new Raum(Integer.parseInt(arr[4]), old_viereck.x + old_viereck.width,
+									old_viereck.y + old_viereck.height, old_viereck);
+							
+							gc2.setStroke(Color.LIGHTGREY);
+							gc.setFill(Color.WHITE);
+							gc.fillRect(old_raum.getRect().getX() + 1, old_raum.getRect().getY() + 1,
+									old_raum.getRect().getWidth() - 2,
+									old_raum.getRect().getHeight() - 2);
+							
+							Modul modul = new Modul(Integer.parseInt(arr[8]));
+
+							old_raum.setModul(modul);
+							
+							System.out.println(
+									"OLD_Modul " + modul.getModulID() + " hinzugefuegt!");
+							
+							// FUEGT TEMPERATURANZEIGE HINZU
+//							createLichtAnzeige(old_raum);
+							createTempAnzeige(old_raum);
+							old_raum.getKlima().setImageAndLabel(old_raum.getModul().temperaturanzeige(Float.parseFloat(arr[9])));
+							old_raum.getKlima().setHeizungsstatus(Boolean.parseBoolean(arr[7]));
+							old_raum.getKlima().setZielTemp(Double.parseDouble(arr[9]));
+							old_raum.getKlima().getTemps().setText(arr[10]);
+
+							// MALE RAUM AUS
+							gc.setFill(Color.WHITE);
+							gc.fillRect(old_raum.getRect().getX() + 1, old_raum.getRect().getY() + 1,
+									old_raum.getRect().getWidth() - 2,
+									old_raum.getRect().getHeight() - 2);
+
+							
+							raumListe.add(old_raum);
+							rectangles.add(old_viereck);
+							System.out.println("ModulID  :" + modul.getModulID());
+							/*
+							 * Deaktivierung von benutzten Modulen.
+							 */
+							
+							switch(modul.getModulID()) {
+								case 1:
+									list.get(0).setOpacity(0.2);
+									list.get(0).setDisable(true);
+									break;
+								case 2:
+									list.get(1).setOpacity(0.2);
+									list.get(1).setDisable(true);
+									break;
+								case 3:
+									list.get(2).setOpacity(0.2);
+									list.get(2).setDisable(true);
+									break;
+							}
+							numberOfmodule++;
+							// Info fuer das WSN zu neu aktiviertem Modul
+							updateModule(old_raum);
+							
+						} else if (arr.length == 16){
+							
+
+						Rectangle old_viereck = new Rectangle();
 						old_viereck.setRect(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]),
 								Double.parseDouble(arr[2]), Double.parseDouble(arr[3]));
 						// Draw room because of viability
 
 						gc.strokeRect(old_viereck.x, old_viereck.y, old_viereck.width, old_viereck.height);
-						// Punkt f�r eigentlichen Raum unten rechts
-						raumListe.add(old_raum);
 						rectangles.add(old_viereck);
-						// System.out.println("Raum: " +
-						// raumListe.get(Integer.parseInt(arr[6]) - 1).getID() +
-						// ", "
-						// + raumListe.get(Integer.parseInt(arr[6]) -
-						// 1).getposition_x() + ", "
-						// + raumListe.get(Integer.parseInt(arr[6]) -
-						// 1).getposition_y());
+						System.out.println("IDDD: "+ Integer.parseInt(arr[6]));
+						Raum old_raum = new Raum(Integer.parseInt(arr[6]), old_viereck.x + old_viereck.width,
+								old_viereck.y + old_viereck.height, old_viereck);
 
-						// System.out.println("Breite: " + old_viereck.width);
-						// System.out.println("Hoehe: " + old_viereck.height);
+						System.out.println("Boolean.parseBoolean(arr[11]) :: "+ Boolean.parseBoolean(arr[9]));
+
 						gc2.setStroke(Color.LIGHTGREY);
-
+						
 						Point point = new Point();
 						point.setLocation(Double.parseDouble(arr[4]), Double.parseDouble(arr[5]));
 						Licht licht = new Licht(point, old_raum, anchorpane);
 						licht.setLichtAnAus(Boolean.parseBoolean(arr[9]));
 						licht.setLichtModus(Boolean.parseBoolean(arr[10]));
-						licht.setLichtZielWert(Integer.parseInt(arr[14]));
+						licht.setLichtZielWert(Integer.parseInt(arr[13]));
 						old_raum.setLicht(licht);
 						createLichtAnzeige(old_raum);
-						System.out.println("Licht zu Raum " + old_raum.getID() + " hinzugef�gt!");
-
+						System.out.println("Licht zu Raum " + old_raum.getID() + " hinzugefuegt!");
+						
 						Modul modul = new Modul(old_raum.getID());
-						System.out.println(modul.getModulID() + "old_raum.getId");
+						System.out.println(modul.getModulID()+"old_raum.getId");
 						old_raum.setModul(modul);
-						System.out.println("OLD_Modul " + modul.getModulID() + " hinzugef�gt!");
-						// F�GT TEMPERATURANZEIGE HINZU
+						
+						System.out.println(
+								"OLD_Modul " + modul.getModulID() + " hinzugefuegt!");
+						
+						// FUEGT TEMPERATURANZEIGE HINZU
 						createTempAnzeige(old_raum);
-						// old_raum.getKlima().setImageAndLabel(old_raum.getModul().temperaturanzeige(Float.parseFloat(arr[26])));
+						
+						old_raum.getKlima().setImageAndLabel(old_raum.getModul().temperaturanzeige(Float.parseFloat(arr[14])));
+						old_raum.getKlima().setHeizungsstatus(Boolean.parseBoolean(arr[11]));
+						old_raum.getKlima().setZielTemp(Double.parseDouble(arr[14]));
+						old_raum.getKlima().getTemps().setText(arr[15]);
+
 						// MALE RAUM AUS
 						gc.setFill(Color.WHITE);
 						gc.fillRect(old_raum.getRect().getX() + 1, old_raum.getRect().getY() + 1,
-								old_raum.getRect().getWidth() - 2, old_raum.getRect().getHeight() - 2);
-
+								old_raum.getRect().getWidth() - 2,
+								old_raum.getRect().getHeight() - 2);
+						
+						raumListe.add(old_raum);
+						rectangles.add(old_viereck);
+						
 						/*
 						 * Deaktivierung von benutzten Modulen.
 						 */
-
-						list.get(0).setOpacity(0.2);
-						list.get(0).setDisable(true);
-						list.get(1).setOpacity(0.2);
-						list.get(1).setDisable(true);
-						list.get(2).setOpacity(0.2);
-						list.get(2).setDisable(true);
-
-						// Info f�r das WSN zu neu aktiviertem Modul
+						
+						switch(Integer.parseInt(arr[12])) {
+						case 1:
+							list.get(0).setOpacity(0.2);
+							list.get(0).setDisable(true);
+							break;
+						case 2:
+							list.get(1).setOpacity(0.2);
+							list.get(1).setDisable(true);
+							break;
+						case 3:
+							list.get(2).setOpacity(0.2);
+							list.get(2).setDisable(true);
+							break;
+						}
+						numberOfmodule++;
+						// Info fuer das WSN zu neu aktiviertem Modul
 						updateModule(old_raum);
+						
+						}
 
 						string = bufreader.readLine();
 					}
-				} catch (IOException e) {
+					if(numberOfmodule==3){
+						list.get(3).setOpacity(0.2);
+						list.get(3).setDisable(true);
+					}
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
-
+				
 			}
-
+			
 		});
 
 		primaryStage.setScene(scene);
