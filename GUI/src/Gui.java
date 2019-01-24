@@ -358,6 +358,11 @@ public class Gui extends Application {
 													"Modul " + tempRaum.getModul().getModulID() + " hinzugefuegt!");
 											// Adds the temperature display
 											createTempAnzeige(tempRaum);
+											
+										System.out.println("Raum: " + tempRaum.getID() + ", "
+											+ tempRaum.getposition_x() + ", "
+											+ tempRaum.getposition_y());
+										
 											tempRaum.getKlima().setImageAndLabel(tempRaum.getModul()
 													.temperaturanzeige((float) tempRaum.getKlima().getZielTemp()));
 											// Fill the room with white
@@ -423,10 +428,9 @@ public class Gui extends Application {
 				// Informing the WSN about deactivated modules
 				new Thread(new Runnable() {
 					public void run() {
-						Iterator<Raum> iterator = raumListe.iterator();
-						for (Raum r : raumListe) {
-							if (r.getModul() != null) {
-								schnittstelle.send(r.getModul().getModulID() + ";0;0;0;0;000;0000E");
+						for (int i = 0; i < raumListe.size(); i++) {
+							if (raumListe.get(i).getModul() != null) {
+								schnittstelle.send(raumListe.get(i).getModul().getModulID() + ";0;0;0;0;000;0000E");
 								try {
 									// Wait in between messages
 									Thread.sleep(800);
@@ -581,7 +585,8 @@ restore = (Button)anchorpane.getChildren().get(3);
 					while( string != null )
 					{
 						String[] arr = string.split(";");
-
+						
+						
 						if (arr.length == 7) {
 
 							Rectangle old_viereck = new Rectangle();
@@ -621,7 +626,7 @@ restore = (Button)anchorpane.getChildren().get(3);
 									"OLD_Modul " + modul.getModulID() + " hinzugefuegt!");
 							
 							// FUEGT TEMPERATURANZEIGE HINZU
-//							createLichtAnzeige(old_raum);
+
 							createTempAnzeige(old_raum);
 							old_raum.getKlima().setImageAndLabel(old_raum.getModul().temperaturanzeige(Float.parseFloat(arr[9])));
 							old_raum.getKlima().setHeizungsstatus(Boolean.parseBoolean(arr[7]));
@@ -656,92 +661,95 @@ restore = (Button)anchorpane.getChildren().get(3);
 									list.get(2).setDisable(true);
 									break;
 							}
-							numberOfmodule++;
+							
 							// Info fuer das WSN zu neu aktiviertem Modul
 							updateModule(old_raum);
 							
 						} else if (arr.length == 16){
 							
 
-						Rectangle old_viereck = new Rectangle();
-						old_viereck.setRect(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]),
-								Double.parseDouble(arr[2]), Double.parseDouble(arr[3]));
-						// Draw room because of viability
-
-						gc.strokeRect(old_viereck.x, old_viereck.y, old_viereck.width, old_viereck.height);
-						rectangles.add(old_viereck);
-						System.out.println("IDDD: "+ Integer.parseInt(arr[6]));
-						Raum old_raum = new Raum(Integer.parseInt(arr[6]), old_viereck.x + old_viereck.width,
-								old_viereck.y + old_viereck.height, old_viereck);
-
-						System.out.println("Boolean.parseBoolean(arr[11]) :: "+ Boolean.parseBoolean(arr[9]));
-
-						gc2.setStroke(Color.LIGHTGREY);
-						
-						Point point = new Point();
-						point.setLocation(Double.parseDouble(arr[4]), Double.parseDouble(arr[5]));
-						Licht licht = new Licht(point, old_raum, anchorpane);
-						licht.setLichtAnAus(Boolean.parseBoolean(arr[9]));
-						licht.setLichtModus(Boolean.parseBoolean(arr[10]));
-						licht.setLichtZielWert(Integer.parseInt(arr[13]));
-						old_raum.setLicht(licht);
-						createLichtAnzeige(old_raum);
-						System.out.println("Licht zu Raum " + old_raum.getID() + " hinzugefuegt!");
-						
-						Modul modul = new Modul(old_raum.getID());
-						System.out.println(modul.getModulID()+"old_raum.getId");
-						old_raum.setModul(modul);
-						
-						System.out.println(
-								"OLD_Modul " + modul.getModulID() + " hinzugefuegt!");
-						
-						// FUEGT TEMPERATURANZEIGE HINZU
-						createTempAnzeige(old_raum);
-						
-						old_raum.getKlima().setImageAndLabel(old_raum.getModul().temperaturanzeige(Float.parseFloat(arr[14])));
-						old_raum.getKlima().setHeizungsstatus(Boolean.parseBoolean(arr[11]));
-						old_raum.getKlima().setZielTemp(Double.parseDouble(arr[14]));
-						old_raum.getKlima().getTemps().setText(arr[15]);
-
-						// MALE RAUM AUS
-						gc.setFill(Color.WHITE);
-						gc.fillRect(old_raum.getRect().getX() + 1, old_raum.getRect().getY() + 1,
-								old_raum.getRect().getWidth() - 2,
-								old_raum.getRect().getHeight() - 2);
-						
-						raumListe.add(old_raum);
-						rectangles.add(old_viereck);
-						
-						/*
-						 * Deaktivierung von benutzten Modulen.
-						 */
-						
-						switch(Integer.parseInt(arr[12])) {
-						case 1:
-							list.get(0).setOpacity(0.2);
-							list.get(0).setDisable(true);
-							break;
-						case 2:
-							list.get(1).setOpacity(0.2);
-							list.get(1).setDisable(true);
-							break;
-						case 3:
-							list.get(2).setOpacity(0.2);
-							list.get(2).setDisable(true);
-							break;
-						}
-						numberOfmodule++;
-						// Info fuer das WSN zu neu aktiviertem Modul
-						updateModule(old_raum);
+							Rectangle old_viereck = new Rectangle();
+							old_viereck.setRect(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]),
+									Double.parseDouble(arr[2]), Double.parseDouble(arr[3]));
+							// Draw room because of viability
+	
+							gc.strokeRect(old_viereck.x, old_viereck.y, old_viereck.width, old_viereck.height);
+							rectangles.add(old_viereck);
+							System.out.println("IDDD: "+ Integer.parseInt(arr[6]));
+							Raum old_raum = new Raum(Integer.parseInt(arr[6]), old_viereck.x + old_viereck.width,
+									old_viereck.y + old_viereck.height, old_viereck);
+	
+							System.out.println("Boolean.parseBoolean(arr[11]) :: "+ Boolean.parseBoolean(arr[9]));
+	
+							gc2.setStroke(Color.LIGHTGREY);
+							
+							Point point = new Point();
+							point.setLocation(Double.parseDouble(arr[4]), Double.parseDouble(arr[5]));
+							Licht licht = new Licht(point, old_raum, anchorpane);
+							licht.setLichtAnAus(Boolean.parseBoolean(arr[9]));
+							licht.setLichtModus(Boolean.parseBoolean(arr[10]));
+							licht.setLichtZielWert(Integer.parseInt(arr[13]));
+							old_raum.setLicht(licht);
+							createLichtAnzeige(old_raum);
+							System.out.println("Licht zu Raum " + old_raum.getID() + " hinzugefuegt!");
+							
+							Modul modul = new Modul(old_raum.getID());
+							System.out.println(modul.getModulID()+"old_raum.getId");
+							old_raum.setModul(modul);
+							
+							System.out.println(
+									"OLD_Modul " + modul.getModulID() + " hinzugefuegt!");
+							
+							// FUEGT TEMPERATURANZEIGE HINZU
+							createTempAnzeige(old_raum);
+							
+							old_raum.getKlima().setImageAndLabel(old_raum.getModul().temperaturanzeige(Float.parseFloat(arr[14])));
+							old_raum.getKlima().setHeizungsstatus(Boolean.parseBoolean(arr[11]));
+							old_raum.getKlima().setZielTemp(Double.parseDouble(arr[14]));
+							old_raum.getKlima().getTemps().setText(arr[15]);
+	
+							// MALE RAUM AUS
+							gc.setFill(Color.WHITE);
+							gc.fillRect(old_raum.getRect().getX() + 1, old_raum.getRect().getY() + 1,
+									old_raum.getRect().getWidth() - 2,
+									old_raum.getRect().getHeight() - 2);
+							
+							raumListe.add(old_raum);
+							rectangles.add(old_viereck);
+							
+							/*
+							 * Deaktivierung von benutzten Modulen.
+							 */
+							
+							switch(Integer.parseInt(arr[12])) {
+							case 1:
+								list.get(0).setOpacity(0.2);
+								list.get(0).setDisable(true);
+								break;
+							case 2:
+								list.get(1).setOpacity(0.2);
+								list.get(1).setDisable(true);
+								break;
+							case 3:
+								list.get(2).setOpacity(0.2);
+								list.get(2).setDisable(true);
+								break;
+							}
+							numberOfmodule++;
+							// Info fuer das WSN zu neu aktiviertem Modul
+							updateModule(old_raum);
 						
 						}
 
 						string = bufreader.readLine();
 					}
-					if(numberOfmodule==3){
+					
+					if(numberOfmodule == 3)
+					{
 						list.get(3).setOpacity(0.2);
 						list.get(3).setDisable(true);
 					}
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -893,9 +901,7 @@ restore = (Button)anchorpane.getChildren().get(3);
 			// temperature display)
 			raumListe.add(new Raum(idCounter, viereck.x + viereck.width, viereck.y + viereck.height, viereck));
 			rectangles.add(viereck);
-			System.out.println("Raum: " + raumListe.get(idCounter - 1).getID() + ", "
-					+ raumListe.get(idCounter - 1).getposition_x() + ", "
-					+ raumListe.get(idCounter - 1).getposition_y());
+
 			idCounter++;
 		}
 
