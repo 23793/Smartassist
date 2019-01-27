@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -47,9 +48,9 @@ import javafx.stage.WindowEvent;
  * @author MinhMax & Gaitan
  *
  */
-public class Gui extends Application {
+public class Gui2 extends Application {
 
-	private static int lichtcounter = 0;
+	private int lichtcounter = 0;
 
 	// Schnittstelle
 	private static Schnittstelle schnittstelle;
@@ -79,8 +80,8 @@ public class Gui extends Application {
 	String temperatur = "";
 	Stage stage = new Stage();
 
-	private static Button save;
-	private static File file;
+	private Button save;
+	private File file;
 
 	private Button restore;
 
@@ -357,11 +358,6 @@ public class Gui extends Application {
 													"Modul " + tempRaum.getModul().getModulID() + " hinzugefuegt!");
 											// Adds the temperature display
 											createTempAnzeige(tempRaum);
-											
-//										System.out.println("Raum: " + tempRaum.getID() + ", "
-//											+ tempRaum.getposition_x() + ", "
-//											+ tempRaum.getposition_y());
-										
 											tempRaum.getKlima().setImageAndLabel(tempRaum.getModul()
 													.temperaturanzeige((float) tempRaum.getKlima().getZielTemp()));
 											// Fill the room with white
@@ -420,10 +416,48 @@ public class Gui extends Application {
 		reset.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent event) {
-				/*
-				 * reseting the current canvas.
-				 */
-				reset();
+				// Clear the canvases
+				gc.clearRect(0, 0, 554, 746);
+				gc2.clearRect(0, 0, 554, 746);
+
+				// Informing the WSN about deactivated modules
+				new Thread(new Runnable() {
+					public void run() {
+						Iterator<Raum> iterator = raumListe.iterator();
+						for (Raum r : raumListe) {
+							if (r.getModul() != null) {
+								schnittstelle.send(r.getModul().getModulID() + ";0;0;0;0;000;0000E");
+								try {
+									// Wait in between messages
+									Thread.sleep(800);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+
+						// Clear the room list
+						raumListe.clear();
+					}
+				}).start();
+
+				// Clear the rectangle list
+				rectangles.clear();
+
+				// Reset the counter variables
+				idCounter = 1;
+				lichtcounter = 0;
+
+				// Remove the light and temperature buttons
+				anchorpane.getChildren().subList(6, anchorpane.getChildren().size()).clear();
+
+				// Make the modules active and interactable again
+				for (Node n : list) {
+					if (n.isDisable() == true) {
+						n.setDisable(false);
+						n.setOpacity(1);
+					}
+				}
 			}
 		});
 
@@ -439,28 +473,19 @@ public class Gui extends Application {
 				// TODO Auto-generated method stub
 
 				try {
-					
 					/*
 					 * initialing the file
 					 */
 					file = new File("gui/src/save.txt");
-					/*
-					 * clear the file contents
-					 */
-					PrintWriter writer = new PrintWriter(file);
-					writer.print("");
-					writer.flush();
-					writer.close();
+					
 					/*
 					 * check if the file exist or not.
 					 * and create it if not.
 					 */
 					
-					
 					if (!file.exists()) {
 						file.createNewFile();
-					}					
-					
+					}
 					FileWriter fwriter = new FileWriter(file);
 					PrintWriter pwriter = new PrintWriter(fwriter);
 					/*
@@ -472,51 +497,51 @@ public class Gui extends Application {
 					System.out.println("raumListe size :" + raumListe.size());
 					System.out.println("size of rectangles : " + rectangles.size());
 
-					for (int i = 0; i < raumListe.size(); i++) {
-						if(raumListe.get(i).getLicht() == null & raumListe.get(i).getModul() == null)
+					for (Raum raum : raumListe) {
+						if(raum.getLicht() == null & raum.getModul() == null)
 						{
-							String string = raumListe.get(i).getRect().getX()+";"+
-									raumListe.get(i).getRect().getY()+";"+
-									raumListe.get(i).getRect().getWidth()+";"+
-									raumListe.get(i).getRect().getHeight()+";"+
-									raumListe.get(i).getID()+";"+
-									raumListe.get(i).getposition_x()+";"+
-									raumListe.get(i).getposition_y();
+							String string = raum.getRect().getX()+";"+
+											raum.getRect().getY()+";"+
+											raum.getRect().getWidth()+";"+
+											raum.getRect().getHeight()+";"+
+											raum.getID()+";"+
+											raum.getposition_x()+";"+
+											raum.getposition_y();
 							pwriter.println(string);
 						}
-						else if(raumListe.get(i).getLicht() == null)
+						else if(raum.getLicht() == null)
 						{
-							String string = raumListe.get(i).getRect().getX()+";"+
-									raumListe.get(i).getRect().getY()+";"+
-									raumListe.get(i).getRect().getWidth()+";"+
-									raumListe.get(i).getRect().getHeight()+";"+
-									raumListe.get(i).getID()+";"+
-									raumListe.get(i).getposition_x()+";"+
-									raumListe.get(i).getposition_y()+";"+
-									raumListe.get(i).getKlima().getHeizungsstatus()+";"+
-									raumListe.get(i).getModul().getModulID()+";"+
-									raumListe.get(i).getKlima().getZielTemp()+";"+
-									raumListe.get(i).getKlima().getTemps().getText();
+							String string = raum.getRect().getX()+";"+
+											raum.getRect().getY()+";"+
+											raum.getRect().getWidth()+";"+
+											raum.getRect().getHeight()+";"+
+											raum.getID()+";"+
+											raum.getposition_x()+";"+
+											raum.getposition_y()+";"+
+											raum.getKlima().getHeizungsstatus()+";"+
+											raum.getModul().getModulID()+";"+
+											raum.getKlima().getZielTemp()+";"+
+											raum.getKlima().getTemps().getText();
 							
 							pwriter.println(string);
 
 						} else {
-							String string = raumListe.get(i).getRect().getX()+";"+
-									raumListe.get(i).getRect().getY()+";"+
-									raumListe.get(i).getRect().getWidth()+";"+
-									raumListe.get(i).getRect().getHeight()+";"+
-									raumListe.get(i).getLicht().getLichtPoint().getX()+";"+
-									raumListe.get(i).getLicht().getLichtPoint().getY()+";"+
-									raumListe.get(i).getID()+";"+
-									raumListe.get(i).getposition_x()+";"+
-									raumListe.get(i).getposition_y()+";"+
-									raumListe.get(i).getLicht().getLichtAnAus()+";"+
-									raumListe.get(i).getLicht().getLichtModus()+";"+
-									raumListe.get(i).getKlima().getHeizungsstatus()+";"+
-									raumListe.get(i).getModul().getModulID()+";"+
-									raumListe.get(i).getLicht().getLichtZielWert()+";"+
-									raumListe.get(i).getKlima().getZielTemp()+";"+
-									raumListe.get(i).getKlima().getTemps().getText();
+							String string = raum.getRect().getX()+";"+
+											raum.getRect().getY()+";"+
+											raum.getRect().getWidth()+";"+
+											raum.getRect().getHeight()+";"+
+											raum.getLicht().getLichtPoint().getX()+";"+
+											raum.getLicht().getLichtPoint().getY()+";"+
+											raum.getID()+";"+
+											raum.getposition_x()+";"+
+											raum.getposition_y()+";"+
+											raum.getLicht().getLichtAnAus()+";"+
+											raum.getLicht().getLichtModus()+";"+
+											raum.getKlima().getHeizungsstatus()+";"+
+											raum.getModul().getModulID()+";"+
+											raum.getLicht().getLichtZielWert()+";"+
+											raum.getKlima().getZielTemp()+";"+
+											raum.getKlima().getTemps().getText();
 														
 							pwriter.println(string);
 
@@ -542,13 +567,9 @@ restore = (Button)anchorpane.getChildren().get(3);
 
 			@Override
 			public void handle(MouseEvent event) {
-				/**
-				 * first reset the canvas again if it wasn't already done.
-				 */
-				reset();
 				// TODO Auto-generated method stub
 				try {
-					FileReader filereader = new FileReader(file);
+					FileReader filereader = new FileReader("gui/src/save.txt");
 					BufferedReader bufreader = new BufferedReader(filereader);
 					String string = bufreader.readLine();
 
@@ -560,7 +581,7 @@ restore = (Button)anchorpane.getChildren().get(3);
 					while( string != null )
 					{
 						String[] arr = string.split(";");
-												
+
 						if (arr.length == 7) {
 
 							Rectangle old_viereck = new Rectangle();
@@ -600,7 +621,7 @@ restore = (Button)anchorpane.getChildren().get(3);
 									"OLD_Modul " + modul.getModulID() + " hinzugefuegt!");
 							
 							// FUEGT TEMPERATURANZEIGE HINZU
-
+//							createLichtAnzeige(old_raum);
 							createTempAnzeige(old_raum);
 							old_raum.getKlima().setImageAndLabel(old_raum.getModul().temperaturanzeige(Float.parseFloat(arr[9])));
 							old_raum.getKlima().setHeizungsstatus(Boolean.parseBoolean(arr[7]));
@@ -635,97 +656,98 @@ restore = (Button)anchorpane.getChildren().get(3);
 									list.get(2).setDisable(true);
 									break;
 							}
-							
+							numberOfmodule++;
 							// Info fuer das WSN zu neu aktiviertem Modul
 							updateModule(old_raum);
 							
 						} else if (arr.length == 16){
 							
 
-							Rectangle old_viereck = new Rectangle();
-							old_viereck.setRect(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]),
-									Double.parseDouble(arr[2]), Double.parseDouble(arr[3]));
-							// Draw room because of viability
-	
-							gc.strokeRect(old_viereck.x, old_viereck.y, old_viereck.width, old_viereck.height);
-							rectangles.add(old_viereck);
-							System.out.println("IDDD: "+ Integer.parseInt(arr[6]));
-							Raum old_raum = new Raum(Integer.parseInt(arr[6]), old_viereck.x + old_viereck.width,
-									old_viereck.y + old_viereck.height, old_viereck);
-	
-							System.out.println("Boolean.parseBoolean(arr[11]) :: "+ Boolean.parseBoolean(arr[9]));
-	
-							gc2.setStroke(Color.LIGHTGREY);
-							
-							Point point = new Point();
-							point.setLocation(Double.parseDouble(arr[4]), Double.parseDouble(arr[5]));
-							Licht licht = new Licht(point, old_raum, anchorpane);
-							licht.setLichtAnAus(Boolean.parseBoolean(arr[9]));
-							licht.setLichtModus(Boolean.parseBoolean(arr[10]));
-							licht.setLichtZielWert(Integer.parseInt(arr[13]));
-							old_raum.setLicht(licht);
-							createLichtAnzeige(old_raum);
-							System.out.println("Licht zu Raum " + old_raum.getID() + " hinzugefuegt!");
-							
-							Modul modul = new Modul(old_raum.getID());
-							System.out.println(modul.getModulID()+"old_raum.getId");
-							old_raum.setModul(modul);
-							
-							System.out.println(
-									"OLD_Modul " + modul.getModulID() + " hinzugefuegt!");
-							
-							// FUEGT TEMPERATURANZEIGE HINZU
-							createTempAnzeige(old_raum);
-							
-							old_raum.getKlima().setImageAndLabel(old_raum.getModul().temperaturanzeige(Float.parseFloat(arr[14])));
-							old_raum.getKlima().setHeizungsstatus(Boolean.parseBoolean(arr[11]));
-							old_raum.getKlima().setZielTemp(Double.parseDouble(arr[14]));
-							old_raum.getKlima().getTemps().setText(arr[15]);
-	
-							// MALE RAUM AUS
-							gc.setFill(Color.WHITE);
-							gc.fillRect(old_raum.getRect().getX() + 1, old_raum.getRect().getY() + 1,
-									old_raum.getRect().getWidth() - 2,
-									old_raum.getRect().getHeight() - 2);
-							
-							raumListe.add(old_raum);
-							rectangles.add(old_viereck);
-							
-							/*
-							 * Deaktivierung von benutzten Modulen.
-							 */
-							
-							switch(Integer.parseInt(arr[12])) {
-							case 1:
-								list.get(0).setOpacity(0.2);
-								list.get(0).setDisable(true);
-								break;
-							case 2:
-								list.get(1).setOpacity(0.2);
-								list.get(1).setDisable(true);
-								break;
-							case 3:
-								list.get(2).setOpacity(0.2);
-								list.get(2).setDisable(true);
-								break;
-							}
-							numberOfmodule++;
-							// Info fuer das WSN zu neu aktiviertem Modul
-							updateModule(old_raum);
+						Rectangle old_viereck = new Rectangle();
+						old_viereck.setRect(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]),
+								Double.parseDouble(arr[2]), Double.parseDouble(arr[3]));
+						// Draw room because of viability
+
+						gc.strokeRect(old_viereck.x, old_viereck.y, old_viereck.width, old_viereck.height);
+						rectangles.add(old_viereck);
+						System.out.println("IDDD: "+ Integer.parseInt(arr[6]));
+						Raum old_raum = new Raum(Integer.parseInt(arr[6]), old_viereck.x + old_viereck.width,
+								old_viereck.y + old_viereck.height, old_viereck);
+
+						System.out.println("Boolean.parseBoolean(arr[11]) :: "+ Boolean.parseBoolean(arr[9]));
+
+						gc2.setStroke(Color.LIGHTGREY);
+						
+						Point point = new Point();
+						point.setLocation(Double.parseDouble(arr[4]), Double.parseDouble(arr[5]));
+						Licht licht = new Licht(point, old_raum, anchorpane);
+						licht.setLichtAnAus(Boolean.parseBoolean(arr[9]));
+						licht.setLichtModus(Boolean.parseBoolean(arr[10]));
+						licht.setLichtZielWert(Integer.parseInt(arr[13]));
+						old_raum.setLicht(licht);
+						createLichtAnzeige(old_raum);
+						System.out.println("Licht zu Raum " + old_raum.getID() + " hinzugefuegt!");
+						
+						Modul modul = new Modul(old_raum.getID());
+						System.out.println(modul.getModulID()+"old_raum.getId");
+						old_raum.setModul(modul);
+						
+						System.out.println(
+								"OLD_Modul " + modul.getModulID() + " hinzugefuegt!");
+						
+						// FUEGT TEMPERATURANZEIGE HINZU
+						createTempAnzeige(old_raum);
+						
+						old_raum.getKlima().setImageAndLabel(old_raum.getModul().temperaturanzeige(Float.parseFloat(arr[14])));
+						old_raum.getKlima().setHeizungsstatus(Boolean.parseBoolean(arr[11]));
+						old_raum.getKlima().setZielTemp(Double.parseDouble(arr[14]));
+						old_raum.getKlima().getTemps().setText(arr[15]);
+
+						// MALE RAUM AUS
+						gc.setFill(Color.WHITE);
+						gc.fillRect(old_raum.getRect().getX() + 1, old_raum.getRect().getY() + 1,
+								old_raum.getRect().getWidth() - 2,
+								old_raum.getRect().getHeight() - 2);
+						
+						raumListe.add(old_raum);
+						rectangles.add(old_viereck);
+						
+						/*
+						 * Deaktivierung von benutzten Modulen.
+						 */
+						
+						switch(Integer.parseInt(arr[12])) {
+						case 1:
+							list.get(0).setOpacity(0.2);
+							list.get(0).setDisable(true);
+							break;
+						case 2:
+							list.get(1).setOpacity(0.2);
+							list.get(1).setDisable(true);
+							break;
+						case 3:
+							list.get(2).setOpacity(0.2);
+							list.get(2).setDisable(true);
+							break;
+						}
+						numberOfmodule++;
+						// Info fuer das WSN zu neu aktiviertem Modul
+						updateModule(old_raum);
 						
 						}
 
 						string = bufreader.readLine();
 					}
-					if(numberOfmodule == 3)
-					{
+					if(numberOfmodule==3){
 						list.get(3).setOpacity(0.2);
 						list.get(3).setDisable(true);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
-				}	
+				}
+				
 			}
+			
 		});
 
 		primaryStage.setScene(scene);
@@ -871,9 +893,9 @@ restore = (Button)anchorpane.getChildren().get(3);
 			// temperature display)
 			raumListe.add(new Raum(idCounter, viereck.x + viereck.width, viereck.y + viereck.height, viereck));
 			rectangles.add(viereck);
-//			System.out.println("Raum: " + raumListe.get(idCounter - 1).getID() + ", "
-//					+ raumListe.get(idCounter - 1).getposition_x() + ", "
-//					+ raumListe.get(idCounter - 1).getposition_y());
+			System.out.println("Raum: " + raumListe.get(idCounter - 1).getID() + ", "
+					+ raumListe.get(idCounter - 1).getposition_x() + ", "
+					+ raumListe.get(idCounter - 1).getposition_y());
 			idCounter++;
 		}
 
@@ -983,53 +1005,6 @@ restore = (Button)anchorpane.getChildren().get(3);
 			schnittstelle.send(moduleId + moduleStatus + lichtModus + tempStatus + lichtStatus + lichtZiel + tempZiel);
 		}
 	}
-	
-	/*
-	 * reset the canvas.
-	 */
-	public static void reset() {
-		// Clear the canvases
-		gc.clearRect(0, 0, 554, 746);
-		gc2.clearRect(0, 0, 554, 746);
-
-		// Informing the WSN about deactivated modules
-		new Thread(new Runnable() {
-			public void run() {
-				for (int i = 0; i < raumListe.size(); i++) {
-					if (raumListe.get(i).getModul() != null) {
-						schnittstelle.send(raumListe.get(i).getModul().getModulID() + ";0;0;0;0;000;0000E");
-						try {
-							// Wait in between messages
-							Thread.sleep(800);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-
-				// Clear the room list
-				raumListe.clear();
-			}
-		}).start();
-
-		// Clear the rectangle list
-		rectangles.clear();
-
-		// Reset the counter variables
-		idCounter = 1;
-		lichtcounter = 0;
-
-		// Remove the light and temperature buttons
-		anchorpane.getChildren().subList(6, anchorpane.getChildren().size()).clear();
-
-		// Make the modules active and interactable again
-		for (Node n : list) {
-			if (n.isDisable() == true) {
-				n.setDisable(false);
-				n.setOpacity(1);
-			}
-		}
-	}
 
 	/**
 	 * Getter for the room ArrayList
@@ -1039,5 +1014,4 @@ restore = (Button)anchorpane.getChildren().get(3);
 	public static ArrayList<Raum> getRaumListe() {
 		return raumListe;
 	}
-	
 }
