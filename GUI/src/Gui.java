@@ -720,6 +720,13 @@ public class Gui extends Application {
 						list.get(3).setOpacity(0.2);
 						list.get(3).setDisable(true);
 					}
+					/*
+					 * clear the file content after reloading it.
+					 */
+					PrintWriter writer = new PrintWriter(file);
+					writer.print("");
+					writer.flush();
+					writer.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
