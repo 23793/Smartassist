@@ -83,6 +83,7 @@ public class Gui extends Application {
 	private static File file;
 
 	private Button restore;
+	private static boolean restoreMutEx = false;
 
 	@Override
 	/**
@@ -440,6 +441,14 @@ public class Gui extends Application {
 				// TODO Auto-generated method stub
 
 				try {
+					
+					// Mutual exclusion of Restore and Reset
+					if (!restoreMutEx) {
+						restoreMutEx = true;
+						restore.setDisable(true);
+						restore.setOpacity(0.2);
+					}
+
 
 					/*
 					 * initialing the file
@@ -532,13 +541,20 @@ public class Gui extends Application {
 				/**
 				 * first reset the canvas again if it wasn't already done.
 				 */
-				reset();
+				// reset();
 				// TODO Auto-generated method stub
 				try {
 					file = new File("gui/src/save.txt");
 					FileReader filereader = new FileReader(file);
 					BufferedReader bufreader = new BufferedReader(filereader);
 					String string = bufreader.readLine();
+
+					// Mutual exclusion of Restore and Reset
+					if (!restoreMutEx) {
+						restoreMutEx = true;
+						restore.setDisable(true);
+						restore.setOpacity(0.2);
+					}
 
 					gc.setLineDashes(8);
 					gc.setLineWidth(3);
@@ -699,12 +715,20 @@ public class Gui extends Application {
 						// Update Modules in the WSN ----------
 						new Thread(new Runnable() {
 							public void run() {
+								try {
+									// Wait for reset to finish
+									Thread.sleep(1000);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+
 								for (int i = 0; i < raumListe.size(); i++) {
 									if (raumListe.get(i).getModul() != null) {
 										updateModule(raumListe.get(i));
+
 										try {
 											// Wait in between messages
-											Thread.sleep(400);
+											Thread.sleep(300);
 										} catch (InterruptedException e) {
 											e.printStackTrace();
 										}
@@ -994,6 +1018,14 @@ public class Gui extends Application {
 	 * reset the canvas.
 	 */
 	public static void reset() {
+		// Mutual exclusion of Restore and Reset
+
+		if (restoreMutEx) {
+			anchorpane.getChildren().get(3).setOpacity(1);
+			anchorpane.getChildren().get(3).setDisable(false);
+			restoreMutEx = false;
+		}
+
 		// Clear the canvases
 		gc.clearRect(0, 0, 554, 746);
 		gc2.clearRect(0, 0, 554, 746);
