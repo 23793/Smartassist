@@ -454,13 +454,7 @@ public class Gui extends Application {
 					 * initialing the file
 					 */
 					file = new File("gui/src/save.txt");
-					/*
-					 * clear the file contents
-					 */
-					PrintWriter writer = new PrintWriter(file);
-					writer.print("");
-					writer.flush();
-					writer.close();
+
 					/*
 					 * check if the file exist or not. and create it if not.
 					 */
@@ -721,7 +715,6 @@ public class Gui extends Application {
 								} catch (InterruptedException e) {
 									e.printStackTrace();
 								}
-
 								for (int i = 0; i < raumListe.size(); i++) {
 									if (raumListe.get(i).getModul() != null) {
 										updateModule(raumListe.get(i));
@@ -744,13 +737,7 @@ public class Gui extends Application {
 						list.get(3).setOpacity(0.2);
 						list.get(3).setDisable(true);
 					}
-					/*
-					 * clear the file content after reloading it.
-					 */
-					PrintWriter writer = new PrintWriter(file);
-					writer.print("");
-					writer.flush();
-					writer.close();
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
