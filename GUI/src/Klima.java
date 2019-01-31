@@ -96,9 +96,9 @@ public class Klima {
 	 *            the value to be checked
 	 */
 	public void setImageAndLabel(String s) {
-		if (s.equals("kalt")) {
+		if (s.equals("heiss")) {
 			iv1.setImage(snow);
-		} else if (s.equals("heiss")) {
+		} else if (s.equals("kalt")) {
 			iv1.setImage(fire);
 		} else if (s.equals("perfekt")) {
 			iv1.setImage(perfect);
